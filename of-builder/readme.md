@@ -1,10 +1,12 @@
 ```
 # setup
-docker service create registry --name registry registry:latest
+docker rm -f of-builder
+docker service rm registry
+
+docker service create --network func_functions --name registry --detach=true  registry:latest
 docker build -t alexellis2/of-builder .
 
-docker rm -f of-builder
-docker run -d --net registry --name of-builder --privileged of-builder
+docker run -d --net func_functions --name of-builder --privileged alexellis2/of-builder
 
 rm req.tar
 

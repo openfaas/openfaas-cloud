@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -73,10 +74,12 @@ func shrinkwrap(pushEvent PushEvent, filePath string) (string, error) {
 
 func makeTar(pushEvent PushEvent, filePath string, services *stack.Services) ([]string, error) {
 	tars := []string{}
+
 	fmt.Printf("Tar up %s\n", filePath)
 	for k, v := range services.Functions {
 		fmt.Println("Start work on: ", v.Handler, k)
-		contextTar, err := os.Create(path.Join(filePath, fmt.Sprintf("%s.tar", k)))
+		tarPath := path.Join(filePath, fmt.Sprintf("%s.tar", k))
+		contextTar, err := os.Create(tarPath)
 		if err != nil {
 			return []string{}, err
 		}
@@ -85,6 +88,17 @@ func makeTar(pushEvent PushEvent, filePath string, services *stack.Services) ([]
 		defer tarWriter.Close()
 
 		base := filepath.Join(filePath, filepath.Join("build", k))
+
+		config := cfg{
+			Ref: "registry:5000/" + v.Image,
+		}
+
+		configBytes, _ := json.Marshal(config)
+		configErr := ioutil.WriteFile(path.Join(base, "config"), configBytes, 0600)
+		if configErr != nil {
+			return nil, configErr
+		}
+
 		fmt.Println("Base: ", base, filePath, k)
 		err = filepath.Walk(base, func(path string, f os.FileInfo, pathErr error) error {
 			if pathErr != nil {
@@ -106,8 +120,15 @@ func makeTar(pushEvent PushEvent, filePath string, services *stack.Services) ([]
 			if headerErr != nil {
 				return headerErr
 			}
-			log.Println("trim ", path, base)
+
 			header.Name = strings.TrimPrefix(path, base)
+			log.Printf("header.Name '%s'\n", header.Name)
+			if header.Name != "/config" {
+				header.Name = filepath.Join("context", header.Name)
+			}
+			header.Name = strings.TrimPrefix(header.Name, "/")
+
+			log.Println("tar - header.Name ", header.Name)
 			if err1 = tarWriter.WriteHeader(header); err != nil {
 				return err1
 			}
@@ -122,7 +143,7 @@ func makeTar(pushEvent PushEvent, filePath string, services *stack.Services) ([]
 		if err != nil {
 			return []string{}, err
 		}
-		tars = append(tars, path.Join(filePath, "context.tar"))
+		tars = append(tars, tarPath)
 	}
 
 	return tars, nil
@@ -164,4 +185,9 @@ type PushEvent struct {
 		CloneURL string `json:"clone_url"`
 	}
 	AfterCommitID string `json:"after"`
+}
+
+type cfg struct {
+	Ref      string
+	Frontend string
 }
