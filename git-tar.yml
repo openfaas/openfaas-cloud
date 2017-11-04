@@ -6,4 +6,4 @@ functions:
   git-tar:
     lang: Dockerfile
     handler: ./git-tar
-    image: alexellis2/of-git-tar
+    image: alexellis2/of-git-tar:0.1

@@ -9,3 +9,7 @@ functions:
     image: alexellis2/gh-push
     environment:
       Http_X_Github_Event: push
+  git-tar:
+    lang: Dockerfile
+    handler: ./git-tar
+    image: alexellis2/of-git-tar:0.1

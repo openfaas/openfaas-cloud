@@ -11,6 +11,8 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/openfaas/faas-cli/stack"
 )
 
 // Handle a serverless request
@@ -23,25 +25,38 @@ func Handle(req []byte) []byte {
 		os.Exit(-1)
 	}
 
-	path, err := clone(pushEvent)
+	clonePath, err := clone(pushEvent)
 	if err != nil {
 		log.Println("Clone ", err.Error())
 		os.Exit(-2)
 	}
 
-	path, err = shrinkwrap(pushEvent, path)
+	stack, err := parseYAML(pushEvent, clonePath)
+	if err != nil {
+		log.Println("parseYAML ", err.Error())
+		os.Exit(-2)
+	}
+
+	var shrinkWrapPath string
+	shrinkWrapPath, err = shrinkwrap(pushEvent, clonePath)
 	if err != nil {
 		log.Println("Shrinkwrap ", err.Error())
 		os.Exit(-2)
 	}
 
-	path, err = makeTar(pushEvent, path)
+	var tars []string
+	tars, err = makeTar(pushEvent, shrinkWrapPath, stack)
 	if err != nil {
 		log.Println("Tar ", err.Error())
 		os.Exit(-2)
 	}
 
-	return []byte("Tar at: " + path)
+	return []byte(fmt.Sprintf("Tar at: %s", tars))
+}
+
+func parseYAML(pushEvent PushEvent, filePath string) (*stack.Services, error) {
+	parsed, err := stack.ParseYAMLFile(path.Join(filePath, "stack.yml"), "", "")
+	return parsed, err
 }
 
 func shrinkwrap(pushEvent PushEvent, filePath string) (string, error) {
@@ -53,56 +68,64 @@ func shrinkwrap(pushEvent PushEvent, filePath string) (string, error) {
 	}
 	err = buildCmd.Wait()
 
-	return "", err
+	return filePath, err
 }
 
-func makeTar(pushEvent PushEvent, filePath string) (string, error) {
-	contextTar, err := os.Create(path.Join(filePath, "context.tar"))
-	// contextTar, err:= os.Open(path.Join(filepath, "context.tar"))
-	if err != nil {
-		return "", err
+func makeTar(pushEvent PushEvent, filePath string, services *stack.Services) ([]string, error) {
+	tars := []string{}
+	fmt.Printf("Tar up %s\n", filePath)
+	for k, v := range services.Functions {
+		fmt.Println("Start work on: ", v.Handler, k)
+		contextTar, err := os.Create(path.Join(filePath, fmt.Sprintf("%s.tar", k)))
+		if err != nil {
+			return []string{}, err
+		}
+
+		tarWriter := tar.NewWriter(contextTar)
+		defer tarWriter.Close()
+
+		base := filepath.Join(filePath, filepath.Join("build", k))
+		fmt.Println("Base: ", base, filePath, k)
+		err = filepath.Walk(base, func(path string, f os.FileInfo, pathErr error) error {
+			if pathErr != nil {
+				return pathErr
+			}
+
+			if f.Name() == "context.tar" {
+				return nil
+			}
+
+			targetFile, err1 := os.Open(path)
+			log.Println(path)
+
+			if err1 != nil {
+				return err1
+			}
+
+			header, headerErr := tar.FileInfoHeader(f, f.Name())
+			if headerErr != nil {
+				return headerErr
+			}
+			log.Println("trim ", path, base)
+			header.Name = strings.TrimPrefix(path, base)
+			if err1 = tarWriter.WriteHeader(header); err != nil {
+				return err1
+			}
+
+			if f.Mode().IsDir() {
+				return nil
+			}
+
+			_, err1 = io.Copy(tarWriter, targetFile)
+			return err1
+		})
+		if err != nil {
+			return []string{}, err
+		}
+		tars = append(tars, path.Join(filePath, "context.tar"))
 	}
 
-	tarWriter := tar.NewWriter(contextTar)
-	defer tarWriter.Close()
-	// base := filepath.Join( filePath+ "/build/")
-	err = filepath.Walk(filePath, func(path string, f os.FileInfo, pathErr error) error {
-		if pathErr != nil {
-			return pathErr
-		}
-
-		if f.Name() == "context.tar" {
-			return nil
-		}
-
-		targetFile, err1 := os.Open(path)
-		log.Println(path)
-
-		if err1 != nil {
-			return err1
-		}
-
-		header, headerErr := tar.FileInfoHeader(f, f.Name())
-		if headerErr != nil {
-			return headerErr
-		}
-		header.Name = strings.TrimPrefix(path, base)
-		if err1 = tarWriter.WriteHeader(header); err != nil {
-			return err1
-		}
-
-		if f.Mode().IsDir() {
-			return nil
-		}
-
-		_, err1 = io.Copy(tarWriter, targetFile)
-		return err1
-	})
-	if err != nil {
-		return "", err
-	}
-
-	return path.Join(filePath, "context.tar"), err
+	return tars, nil
 }
 
 func clone(pushEvent PushEvent) (string, error) {

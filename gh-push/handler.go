@@ -1,8 +1,10 @@
 package function
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 )
 
@@ -17,6 +19,18 @@ func Handle(req []byte) string {
 		if err != nil {
 			return err.Error()
 		}
+
+		body, _ := json.Marshal(pushEvent)
+
+		c := http.Client{}
+		bodyReader := bytes.NewBuffer(body)
+		httpReq, _ := http.NewRequest(http.MethodPost, "http://gateway:8080/async-function/git-tar", bodyReader)
+		res, reqErr := c.Do(httpReq)
+		if reqErr != nil {
+			return reqErr.Error()
+		}
+
+		fmt.Println("Tar - ", res.StatusCode)
 
 		return fmt.Sprintf("Got a push - %s\n", pushEvent)
 	}
