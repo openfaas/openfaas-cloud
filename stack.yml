@@ -1,0 +1,11 @@
+provider:
+  name: faas
+  gateway: http://147.75.44.133:8080
+
+functions:
+  gh-push:
+    lang: go
+    handler: ./gh-push
+    image: alexellis2/gh-push
+    environment:
+      Http_X_Github_Event: push
