@@ -19,3 +19,11 @@ functions:
     environment:
       read_timeout: 120
       write_timeout: 120
+
+  buildshiprun:
+    lang: go
+    handler: ./buildshiprun
+    image: alexellis2/of-buildshiprun
+    environment:
+      read_timeout: 120
+      write_timeout: 120

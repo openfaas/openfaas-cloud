@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -23,15 +24,21 @@ func Handle(req []byte) string {
 
 	buildStatus, _ := ioutil.ReadAll(res.Body)
 
-	parts := strings.Split(strings.TrimSpace(string(buildStatus)), " ")
-	if len(parts) == 2 {
+	imageName := strings.TrimSpace(string(buildStatus))
+	imageName = "127.0.0.1" + imageName[strings.Index(imageName, ":"):]
+
+	if len(imageName) > 0 {
 
 		deploy := deployment{
 			Service: os.Getenv("Http_Service"),
-			Image:   parts[1],
+			Image:   imageName,
 		}
 
-		deployFunction(deploy)
+		result, err := deployFunction(deploy)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		log.Println(result)
 	}
 
 	return fmt.Sprintf("buildStatus %s", buildStatus)
@@ -41,6 +48,7 @@ func deployFunction(deploy deployment) (string, error) {
 	bytesOut, _ := json.Marshal(deploy)
 	reader := bytes.NewBuffer(bytesOut)
 
+	fmt.Println("Deploying: " + deploy.Image + " as " + deploy.Service)
 	res, err := http.Post("http://gateway:8080/system/functions", "application/json", reader)
 	if err != nil {
 		fmt.Println(err)
@@ -48,8 +56,9 @@ func deployFunction(deploy deployment) (string, error) {
 	}
 
 	defer res.Body.Close()
-
+	fmt.Println("Deploy status: " + res.Status)
 	buildStatus, _ := ioutil.ReadAll(res.Body)
+
 	return string(buildStatus), err
 }
 

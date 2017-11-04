@@ -1,9 +1,0 @@
-provider:
-  name: faas
-  gateway: http://147.75.44.133:8080
-
-functions:
-  buildshiprun:
-    lang: go
-    handler: ./buildshiprun
-    image: alexellis2/of-buildshiprun
