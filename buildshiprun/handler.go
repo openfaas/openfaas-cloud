@@ -26,11 +26,14 @@ func Handle(req []byte) string {
 	imageName := strings.TrimSpace(string(buildStatus))
 
 	if len(imageName) > 0 {
-		// Replace image name for local-host for deployment
+		service := os.Getenv("Http_Service")
 		imageName = "127.0.0.1" + imageName[strings.Index(imageName, ":"):]
 
+		log.Printf("Deploying %s as %s", imageName, service)
+		// Replace image name for local-host for deployment
+
 		deploy := deployment{
-			Service: os.Getenv("Http_Service"),
+			Service: service,
 			Image:   imageName,
 			Network: "func_functions",
 		}
