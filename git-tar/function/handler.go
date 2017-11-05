@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"path"
@@ -45,14 +46,39 @@ func Handle(req []byte) []byte {
 		os.Exit(-2)
 	}
 
-	var tars []string
+	var tars []tarEntry
 	tars, err = makeTar(pushEvent, shrinkWrapPath, stack)
 	if err != nil {
 		log.Println("Tar ", err.Error())
 		os.Exit(-2)
 	}
 
+	err = deploy(tars)
+
 	return []byte(fmt.Sprintf("Tar at: %s", tars))
+}
+
+func deploy(tars []tarEntry) error {
+
+	c := http.Client{}
+
+	for _, tarEntry := range tars {
+		fileOpen, err := os.Open(tarEntry.fileName)
+		if err != nil {
+			return err
+		}
+
+		httpReq, _ := http.NewRequest(http.MethodPost, "http://gateway:8080/function/buildshiprun", fileOpen)
+		log.Println("Deploy service - " + tarEntry.functionName)
+
+		httpReq.Header.Add("Service", tarEntry.functionName)
+		res, reqErr := c.Do(httpReq)
+		if reqErr != nil {
+			return reqErr
+		}
+		log.Println("Service - ", tarEntry.functionName, res.Status)
+	}
+	return nil
 }
 
 func parseYAML(pushEvent PushEvent, filePath string) (*stack.Services, error) {
@@ -72,16 +98,22 @@ func shrinkwrap(pushEvent PushEvent, filePath string) (string, error) {
 	return filePath, err
 }
 
-func makeTar(pushEvent PushEvent, filePath string, services *stack.Services) ([]string, error) {
-	tars := []string{}
+type tarEntry struct {
+	fileName     string
+	functionName string
+}
+
+func makeTar(pushEvent PushEvent, filePath string, services *stack.Services) ([]tarEntry, error) {
+	tars := []tarEntry{}
 
 	fmt.Printf("Tar up %s\n", filePath)
 	for k, v := range services.Functions {
 		fmt.Println("Start work on: ", v.Handler, k)
+
 		tarPath := path.Join(filePath, fmt.Sprintf("%s.tar", k))
 		contextTar, err := os.Create(tarPath)
 		if err != nil {
-			return []string{}, err
+			return []tarEntry{}, err
 		}
 
 		tarWriter := tar.NewWriter(contextTar)
@@ -126,6 +158,7 @@ func makeTar(pushEvent PushEvent, filePath string, services *stack.Services) ([]
 			if header.Name != "/config" {
 				header.Name = filepath.Join("context", header.Name)
 			}
+
 			header.Name = strings.TrimPrefix(header.Name, "/")
 
 			log.Println("tar - header.Name ", header.Name)
@@ -141,9 +174,9 @@ func makeTar(pushEvent PushEvent, filePath string, services *stack.Services) ([]
 			return err1
 		})
 		if err != nil {
-			return []string{}, err
+			return []tarEntry{}, err
 		}
-		tars = append(tars, tarPath)
+		tars = append(tars, tarEntry{fileName: tarPath, functionName: strings.TrimSpace(k)})
 	}
 
 	return tars, nil
@@ -188,6 +221,6 @@ type PushEvent struct {
 }
 
 type cfg struct {
-	Ref      string
-	Frontend string
+	Ref      string  `json:"ref"`
+	Frontend *string `json:"frontend,omitempty"`
 }
