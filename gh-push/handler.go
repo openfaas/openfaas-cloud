@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 )
@@ -14,6 +15,13 @@ func Handle(req []byte) string {
 	event := os.Getenv("Http_X_Github_Event")
 
 	if event == "push" {
+		xHubSignature := os.Getenv("Http_X_Hub_Signature")
+
+		validateErr := validateHMAC(req, xHubSignature, os.Getenv("github_webhook_secret"))
+		if validateErr != nil {
+			log.Fatal(validateErr)
+		}
+
 		pushEvent := PushEvent{}
 		err := json.Unmarshal(req, &pushEvent)
 		if err != nil {
@@ -43,6 +51,10 @@ type PushEvent struct {
 		Name     string `json:"name"`
 		FullName string `json:"full_name"`
 		CloneURL string `json:"clone_url"`
+		Owner    struct {
+			Login string `json:"login"`
+			Email string `json:"email"`
+		} `json:"owner"`
 	}
 	AfterCommitID string `json:"after"`
 }

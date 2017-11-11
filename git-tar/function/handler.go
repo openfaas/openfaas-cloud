@@ -43,7 +43,7 @@ func Handle(req []byte) []byte {
 		os.Exit(-2)
 	}
 
-	err = deploy(tars)
+	err = deploy(tars, pushEvent.Repository.Owner.Login, pushEvent.Repository.Name)
 
 	return []byte(fmt.Sprintf("Tar at: %s", tars))
 }

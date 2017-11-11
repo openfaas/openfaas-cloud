@@ -11,6 +11,8 @@ functions:
       Http_X_Github_Event: push
       read_timeout: 5
       write_timeout: 5
+    environment_file:
+      - github.yml
 
   git-tar:
     lang: Dockerfile
@@ -27,3 +29,8 @@ functions:
     environment:
       read_timeout: 120
       write_timeout: 120
+
+  list-functions:
+    lang: go
+    handler: ./list-functions
+    image: alexellis2/list-functions:0.1

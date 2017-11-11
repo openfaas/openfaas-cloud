@@ -22,6 +22,10 @@ type PushEvent struct {
 		Name     string `json:"name"`
 		FullName string `json:"full_name"`
 		CloneURL string `json:"clone_url"`
+		Owner    struct {
+			Login string `json:"login"`
+			Email string `json:"email"`
+		} `json:"owner"`
 	}
 	AfterCommitID string `json:"after"`
 }
@@ -73,7 +77,7 @@ func makeTar(pushEvent PushEvent, filePath string, services *stack.Services) ([]
 
 		base := filepath.Join(filePath, filepath.Join("build", k))
 
-		imageName := formatImageName("registry:5000", &v, pushEvent.AfterCommitID)
+		imageName := formatImageShaTag("registry:5000", &v, pushEvent.AfterCommitID)
 		config := cfg{
 			Ref: imageName,
 		}
@@ -136,7 +140,7 @@ func makeTar(pushEvent PushEvent, filePath string, services *stack.Services) ([]
 	return tars, nil
 }
 
-func formatImageName(registry string, function *stack.Function, sha string) string {
+func formatImageShaTag(registry string, function *stack.Function, sha string) string {
 	tag := ":latest"
 	imageName := function.Image
 	tagIndex := strings.LastIndex(function.Image, ":")
@@ -178,7 +182,7 @@ func clone(pushEvent PushEvent) (string, error) {
 	return destPath, err
 }
 
-func deploy(tars []tarEntry) error {
+func deploy(tars []tarEntry, owner string, repo string) error {
 
 	c := http.Client{}
 
@@ -189,8 +193,10 @@ func deploy(tars []tarEntry) error {
 		}
 
 		httpReq, _ := http.NewRequest(http.MethodPost, "http://gateway:8080/function/buildshiprun", fileOpen)
-		log.Println("Deploy service - " + tarEntry.functionName)
 
+		log.Println("Deploy service - " + tarEntry.functionName)
+		httpReq.Header.Add("Repo", repo)
+		httpReq.Header.Add("Owner", owner)
 		httpReq.Header.Add("Service", tarEntry.functionName)
 		httpReq.Header.Add("Image", tarEntry.imageName)
 
@@ -198,7 +204,8 @@ func deploy(tars []tarEntry) error {
 		if reqErr != nil {
 			return reqErr
 		}
-		log.Println("Service - ", tarEntry.functionName, res.Status)
+
+		log.Println("Service - ", tarEntry.functionName, res.Status, owner)
 	}
 	return nil
 }

@@ -27,15 +27,23 @@ func Handle(req []byte) string {
 
 	if len(imageName) > 0 {
 		service := os.Getenv("Http_Service")
+		owner := os.Getenv("Http_Owner")
+		repo := os.Getenv("Http_Repo")
+
+		// Replace image name for local-host for deployment
 		imageName = "127.0.0.1" + imageName[strings.Index(imageName, ":"):]
 
-		log.Printf("Deploying %s as %s", imageName, service)
-		// Replace image name for local-host for deployment
+		serviceValue := fmt.Sprintf("%s-%s", owner, service)
+		log.Printf("Deploying %s as %s", imageName, serviceValue)
 
 		deploy := deployment{
-			Service: service,
+			Service: serviceValue,
 			Image:   imageName,
 			Network: "func_functions",
+			Labels: map[string]string{
+				"Git-Owner": owner,
+				"Git-Repo":  repo,
+			},
 		}
 
 		result, err := deployFunction(deploy)
@@ -109,6 +117,7 @@ type deployment struct {
 	Service string
 	Image   string
 	Network string
+	Labels  map[string]string
 }
 
 type function struct {
