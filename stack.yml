@@ -27,8 +27,9 @@ functions:
     handler: ./buildshiprun
     image: alexellis2/of-buildshiprun:0.0.1
     environment:
-      read_timeout: 120
-      write_timeout: 120
+      read_timeout: 300
+      write_timeout: 300
+      default_memory_limit: 30m
 
   list-functions:
     lang: go

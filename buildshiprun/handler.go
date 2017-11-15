@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 // Handle a serverless request
@@ -36,13 +37,22 @@ func Handle(req []byte) string {
 		serviceValue := fmt.Sprintf("%s-%s", owner, service)
 		log.Printf("Deploying %s as %s", imageName, serviceValue)
 
+		defaultMemoryLimit := os.Getenv("default_memory_limit")
+		if len(defaultMemoryLimit) == 0 {
+			defaultMemoryLimit = "20m"
+		}
+
 		deploy := deployment{
 			Service: serviceValue,
 			Image:   imageName,
 			Network: "func_functions",
 			Labels: map[string]string{
-				"Git-Owner": owner,
-				"Git-Repo":  repo,
+				"Git-Owner":      owner,
+				"Git-Repo":       repo,
+				"Git-DeployTime": time.Now().String(),
+			},
+			Limits: Limits{
+				Memory: defaultMemoryLimit,
 			},
 		}
 
@@ -118,6 +128,11 @@ type deployment struct {
 	Image   string
 	Network string
 	Labels  map[string]string
+	Limits  Limits
+}
+
+type Limits struct {
+	Memory string
 }
 
 type function struct {
