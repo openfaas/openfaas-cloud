@@ -47,6 +47,7 @@ func Handle(req []byte) string {
 			Image:   imageName,
 			Network: "func_functions",
 			Labels: map[string]string{
+				"Git-Cloud":      "1",
 				"Git-Owner":      owner,
 				"Git-Repo":       repo,
 				"Git-DeployTime": time.Now().String(),
