@@ -17,9 +17,12 @@ func Handle(req []byte) string {
 	if event == "push" {
 		xHubSignature := os.Getenv("Http_X_Hub_Signature")
 
-		validateErr := validateHMAC(req, xHubSignature, os.Getenv("github_webhook_secret"))
-		if validateErr != nil {
-			log.Fatal(validateErr)
+		shouldValidate := os.Getenv("validate_hmac")
+		if len(shouldValidate) > 0 && (shouldValidate == "1" || shouldValidate == "true") {
+			validateErr := validateHMAC(req, xHubSignature, os.Getenv("github_webhook_secret"))
+			if validateErr != nil {
+				log.Fatal(validateErr)
+			}
 		}
 
 		pushEvent := PushEvent{}
