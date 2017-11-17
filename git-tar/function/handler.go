@@ -1,10 +1,16 @@
 package function
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
+	"time"
+
+	"github.com/openfaas/faas-cli/stack"
 )
 
 // Handle a serverless request
@@ -44,6 +50,55 @@ func Handle(req []byte) []byte {
 	}
 
 	err = deploy(tars, pushEvent.Repository.Owner.Login, pushEvent.Repository.Name)
+	if err != nil {
+		log.Println(err)
+	}
+	err = collect(pushEvent, stack)
+	if err != nil {
+		log.Println(err)
+	}
 
 	return []byte(fmt.Sprintf("Tar at: %s", tars))
+}
+
+func collect(pushEvent PushEvent, stack *stack.Services) error {
+	var err error
+
+	garbageReq := GarbageRequest{
+		Owner: pushEvent.Repository.Owner.Login,
+		Repo:  pushEvent.Repository.Name,
+	}
+
+	for k := range stack.Functions {
+		garbageReq.Functions = append(garbageReq.Functions, k)
+	}
+
+	c := http.Client{
+		Timeout: time.Second * 3,
+	}
+
+	bytesReq, _ := json.Marshal(garbageReq)
+	bufferReader := bytes.NewBuffer(bytesReq)
+	request, _ := http.NewRequest(http.MethodPost, "http://gateway:8080/function/garbage-collect", bufferReader)
+
+	response, err := c.Do(request)
+
+	if err == nil {
+		if response.Body != nil {
+			defer response.Body.Close()
+			bodyBytes, bErr := ioutil.ReadAll(response.Body)
+			if bErr != nil {
+				log.Fatal(bErr)
+			}
+			log.Println(string(bodyBytes))
+		}
+	}
+
+	return err
+}
+
+type GarbageRequest struct {
+	Functions []string
+	Repo      string
+	Owner     string
 }
