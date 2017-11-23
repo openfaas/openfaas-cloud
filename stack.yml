@@ -44,3 +44,13 @@ functions:
     environment:
       write_debug: true
       read_debug: true
+
+  garbage-collect:
+    lang: go
+    handler: ./garbage-collect
+    image: alexellis2/garbage-collect:0.1
+    environment:
+      write_debug: true
+      read_debug: true
+      read_timeout: 30
+      write_timeout: 30
