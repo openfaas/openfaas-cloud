@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
+	"os"
 	"strings"
 	"time"
 )
@@ -14,12 +16,23 @@ func Handle(req []byte) string {
 
 	user := string(req)
 	if len(user) == 0 {
-		return "User is required."
+		if query, exists := os.LookupEnv("Http_Query"); exists {
+			vals, _ := url.ParseQuery(query)
+			userQuery := vals.Get("user")
+			if len(userQuery) > 0 {
+				user = userQuery
+			}
+		}
+	}
+
+	if len(user) == 0 {
+		return "User is required as POST or querystring i.e. ?user=alexellis."
 	}
 
 	c := http.Client{
 		Timeout: time.Second * 3,
 	}
+
 	request, _ := http.NewRequest(http.MethodGet, "http://gateway:8080/system/functions", nil)
 
 	response, err := c.Do(request)

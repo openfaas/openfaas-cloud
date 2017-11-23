@@ -64,7 +64,7 @@ func makeTar(pushEvent PushEvent, filePath string, services *stack.Services) ([]
 	fmt.Printf("Tar up %s\n", filePath)
 
 	for k, v := range services.Functions {
-		fmt.Println("Start work on: ", v.Handler, k)
+		fmt.Println("Creating tar for: ", v.Handler, k)
 
 		tarPath := path.Join(filePath, fmt.Sprintf("%s.tar", k))
 		contextTar, err := os.Create(tarPath)
@@ -88,7 +88,7 @@ func makeTar(pushEvent PushEvent, filePath string, services *stack.Services) ([]
 			return nil, configErr
 		}
 
-		fmt.Println("Base: ", base, filePath, k)
+		// fmt.Println("Base: ", base, filePath, k)
 		err = filepath.Walk(base, func(path string, f os.FileInfo, pathErr error) error {
 			if pathErr != nil {
 				return pathErr
@@ -111,14 +111,14 @@ func makeTar(pushEvent PushEvent, filePath string, services *stack.Services) ([]
 			}
 
 			header.Name = strings.TrimPrefix(path, base)
-			log.Printf("header.Name '%s'\n", header.Name)
+			// log.Printf("header.Name '%s'\n", header.Name)
 			if header.Name != "/config" {
 				header.Name = filepath.Join("context", header.Name)
 			}
 
 			header.Name = strings.TrimPrefix(header.Name, "/")
 
-			log.Println("tar - header.Name ", header.Name)
+			// log.Println("tar - header.Name ", header.Name)
 			if err1 = tarWriter.WriteHeader(header); err != nil {
 				return err1
 			}
@@ -187,6 +187,8 @@ func deploy(tars []tarEntry, owner string, repo string) error {
 	c := http.Client{}
 
 	for _, tarEntry := range tars {
+		fmt.Println("Deploy service - " + tarEntry.functionName)
+
 		fileOpen, err := os.Open(tarEntry.fileName)
 		if err != nil {
 			return err
@@ -194,7 +196,6 @@ func deploy(tars []tarEntry, owner string, repo string) error {
 
 		httpReq, _ := http.NewRequest(http.MethodPost, "http://gateway:8080/function/buildshiprun", fileOpen)
 
-		log.Println("Deploy service - " + tarEntry.functionName)
 		httpReq.Header.Add("Repo", repo)
 		httpReq.Header.Add("Owner", owner)
 		httpReq.Header.Add("Service", tarEntry.functionName)
@@ -205,7 +206,7 @@ func deploy(tars []tarEntry, owner string, repo string) error {
 			return reqErr
 		}
 
-		log.Println("Service - ", tarEntry.functionName, res.Status, owner)
+		fmt.Println("Service deployed ", tarEntry.functionName, res.Status, owner)
 	}
 	return nil
 }

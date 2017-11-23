@@ -5,8 +5,8 @@ docker service rm registry
 docker service create --network func_functions --name registry --detach=true -p 5000:5000  registry:latest
 
 docker rm -f of-builder
-docker build -t alexellis2/of-builder .
-docker run -d --net func_functions --name of-builder --privileged alexellis2/of-builder
+docker build -t alexellis2/of-builder:0.2 .
+docker run -d --net func_functions --name of-builder --privileged alexellis2/of-builder:0.2
 
 rm req.tar
 

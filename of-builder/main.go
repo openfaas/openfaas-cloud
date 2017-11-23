@@ -92,7 +92,8 @@ func build(w http.ResponseWriter, r *http.Request) ([]byte, error) {
 		cfg.Frontend = "tonistiigi/dockerfile:v0"
 	}
 
-	cmd := exec.Command("buildctl", "--debug", "build", "--frontend=gateway.v0", "--frontend-opt=source="+cfg.Frontend, "--local=context="+filepath.Join(tmpdir, "context"), "--local=dockerfile="+filepath.Join(tmpdir, "context"), "--no-progress", "--exporter=image", "--exporter-opt=name="+cfg.Ref, "--exporter-opt=push=true", "--exporter-opt=insecure.registry=true")
+	cmd := exec.Command("buildctl", "--debug", "build", "--frontend=gateway.v0", "--frontend-opt=source="+cfg.Frontend, "--local=context="+filepath.Join(tmpdir, "context"), "--local=dockerfile="+filepath.Join(tmpdir, "context"), "--no-progress", "--exporter=image",
+		"--exporter-opt=name="+cfg.Ref, "--exporter-opt=push=true", "--exporter-opt=registry.insecure=true")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
