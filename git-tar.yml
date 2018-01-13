@@ -1,9 +1,0 @@
-provider:
-  name: faas
-  gateway: http://147.75.44.133:8080
-
-functions:
-  git-tar:
-    lang: Dockerfile
-    handler: ./git-tar
-    image: alexellis2/of-git-tar:0.1

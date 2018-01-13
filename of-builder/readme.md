@@ -28,3 +28,23 @@ tar cvf req.tar .
 # query
 curl -i 192.168.10.98:8080/build -X POST --data-binary @req.tar
 ```
+
+Outside of OpenFaaS:
+
+```
+docker build -t alexellis2/of-builder .
+
+docker network create builder --driver overlay --attachable=true ; \
+ docker service rm registry; \
+ docker service create --network builder --name registry --detach=true -p 5000:5000  registry:latest ; \
+ docker rm -f of-builder ; \
+docker run -p 8080:8080 -d --net builder --name of-builder --privileged alexellis2/of-builder
+```
+
+Test:
+
+```
+
+docker rm -f dind; docker run --name dind --privileged --net=builder -d docker:dind dockerd --insecure-registry registry:5000
+docker exec -ti dind docker pull registry:5000/jmkhael/figlet:latest-99745ca9f5a1a914384686e0e928a10854cc87d5
+```
