@@ -1,6 +1,17 @@
-```
-# setup
+# Setup
 
+When deploying OpenFaaS make sure you update the network to "attachable" in the docker-compose.yml file:
+
+```
+networks:
+  functions:
+    driver: overlay
+    attachable: true
+```
+
+Now setup the registry and builder:
+
+```
 docker service rm registry
 docker service create --network func_functions --name registry --detach=true -p 5000:5000  registry:latest
 
@@ -48,3 +59,4 @@ Test:
 docker rm -f dind; docker run --name dind --privileged --net=builder -d docker:dind dockerd --insecure-registry registry:5000
 docker exec -ti dind docker pull registry:5000/jmkhael/figlet:latest-99745ca9f5a1a914384686e0e928a10854cc87d5
 ```
+
