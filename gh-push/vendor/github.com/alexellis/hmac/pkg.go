@@ -1,4 +1,4 @@
-package function
+package hmac
 
 import (
 	"crypto/hmac"
@@ -7,8 +7,8 @@ import (
 	"fmt"
 )
 
-// checkMAC verifies hash checksum
-func checkMAC(message, messageMAC, key []byte) bool {
+// CheckMAC verifies hash checksum
+func CheckMAC(message, messageMAC, key []byte) bool {
 	mac := hmac.New(sha1.New, key)
 	mac.Write(message)
 	expectedMAC := mac.Sum(nil)
@@ -16,15 +16,15 @@ func checkMAC(message, messageMAC, key []byte) bool {
 	return hmac.Equal(messageMAC, expectedMAC)
 }
 
-// validateHMAC validate a digest from Github via xHubSignature
-func validateHMAC(bytesIn []byte, xHubSignature string, secretKey string) error {
+// ValidateHMAC validate a digest from Github via xHubSignature
+func Validate(bytesIn []byte, xHubSignature string, secretKey string) error {
 	var validated error
 
 	if len(xHubSignature) > 5 {
 		messageMAC := xHubSignature[5:] // first few chars are: sha1=
 		messageMACBuf, _ := hex.DecodeString(messageMAC)
 
-		res := checkMAC(bytesIn, []byte(messageMACBuf), []byte(secretKey))
+		res := CheckMAC(bytesIn, []byte(messageMACBuf), []byte(secretKey))
 		if res == false {
 			validated = fmt.Errorf("invalid message digest or secret")
 		}
@@ -32,3 +32,9 @@ func validateHMAC(bytesIn []byte, xHubSignature string, secretKey string) error 
 
 	return validated
 }
+
+func init() {
+
+}
+
+

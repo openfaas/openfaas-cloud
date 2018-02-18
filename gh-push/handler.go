@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/alexellis/hmac"
 )
 
 // Handle a serverless request
@@ -19,7 +21,7 @@ func Handle(req []byte) string {
 
 		shouldValidate := os.Getenv("validate_hmac")
 		if len(shouldValidate) > 0 && (shouldValidate == "1" || shouldValidate == "true") {
-			validateErr := validateHMAC(req, xHubSignature, os.Getenv("github_webhook_secret"))
+			validateErr := hmac.Validate(req, xHubSignature, os.Getenv("github_webhook_secret"))
 			if validateErr != nil {
 				log.Fatal(validateErr)
 			}
