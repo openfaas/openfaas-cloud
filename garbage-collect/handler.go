@@ -18,11 +18,12 @@ func Handle(req []byte) string {
 	if err != nil {
 		log.Panic(err)
 	}
-
+	fmt.Println("garbageReq", garbageReq)
 	list, err := listFunctions(garbageReq.Owner)
 	if err != nil {
 		log.Panic(err)
 	}
+	fmt.Println("list: ", list)
 
 	for _, fn := range list {
 		found := false
@@ -91,7 +92,6 @@ func listFunctions(owner string) ([]string, error) {
 	request, _ := http.NewRequest(http.MethodGet, "http://gateway:8080/system/functions", nil)
 
 	response, err := c.Do(request)
-	filtered := []function{}
 
 	if err == nil {
 		defer response.Body.Close()
@@ -101,25 +101,24 @@ func listFunctions(owner string) ([]string, error) {
 				log.Fatal(bErr)
 			}
 
-			functions := []function{}
-			mErr := json.Unmarshal(bodyBytes, &functions)
+			functionList := []function{}
+			mErr := json.Unmarshal(bodyBytes, &functionList)
 			if mErr != nil {
 				log.Fatal(mErr)
 			}
+			for _, fn := range functionList {
+				functions = append(functions, fn.Name)
+			}
 		}
-	}
-
-	for _, fn := range filtered {
-		functions = append(functions, fn.Name)
 	}
 
 	return functions, err
 }
 
 type GarbageRequest struct {
-	Functions []string
-	Repo      string
-	Owner     string
+	Functions []string `json:"functions"`
+	Repo      string   `json:"repo"`
+	Owner     string   `json:"owner"`
 }
 
 type function struct {

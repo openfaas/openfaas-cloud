@@ -99,7 +99,7 @@ func collect(pushEvent PushEvent, stack *stack.Services) error {
 }
 
 type GarbageRequest struct {
-	Functions []string
-	Repo      string
-	Owner     string
+	Functions []string `json:"functions"`
+	Repo      string   `json:"repo"`
+	Owner     string   `json:"owner"`
 }

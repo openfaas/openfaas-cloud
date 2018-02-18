@@ -14,9 +14,9 @@ import (
 
 // Handle a serverless request
 func Handle(req []byte) string {
-	event := os.Getenv("Http_X_Github_Event")
+	eventHeader := os.Getenv("Http_X_Github_Event")
 
-	if event == "installation_repositories" {
+	if eventHeader == "installation_repositories" {
 		xHubSignature := os.Getenv("Http_X_Hub_Signature")
 
 		shouldValidate := os.Getenv("validate_hmac")
@@ -33,10 +33,12 @@ func Handle(req []byte) string {
 			return err.Error()
 		}
 
+		fmt.Printf("event.Action: %s\n", event.Action)
+
 		switch event.Action {
 		case "removed":
 			garbageRequests := []GarbageRequest{}
-			for _, repo := range event.Installation.RepositoriesRemoved {
+			for _, repo := range event.RepositoriesRemoved {
 				fmt.Printf("Need to remove: %s.\n", repo.FullName)
 
 				garbageRequests = append(garbageRequests,
@@ -53,7 +55,7 @@ func Handle(req []byte) string {
 
 	}
 
-	return fmt.Sprintf("Message received")
+	return fmt.Sprintf("Message received with event: %s", eventHeader)
 }
 
 func garbageCollect(garbageRequests []GarbageRequest) error {
@@ -79,9 +81,9 @@ func garbageCollect(garbageRequests []GarbageRequest) error {
 }
 
 type GarbageRequest struct {
-	Functions []string
-	Repo      string
-	Owner     string
+	Functions []string `json:"functions"`
+	Repo      string   `json:"repo"`
+	Owner     string   `json:"owner"`
 }
 
 type InstallationRepositoriesEvent struct {
@@ -90,12 +92,12 @@ type InstallationRepositoriesEvent struct {
 		Account struct {
 			Login string
 		}
-		RepositoriesRemoved []Installation `json:"repositories_removed"`
-		RepositoriesAdded   []Installation `json:"repositories_added"`
-	}
+	} `json:"installation"`
+	RepositoriesRemoved []Installation `json:"repositories_removed"`
+	RepositoriesAdded   []Installation `json:"repositories_added"`
 }
 
 type Installation struct {
-	Name     string
+	Name     string `json:"name"`
 	FullName string `json:"full_name"`
 }
