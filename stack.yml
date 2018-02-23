@@ -1,6 +1,6 @@
 provider:
   name: faas
-  gateway: http://git-cloud.openfaas.com:8080
+  gateway: http://localhost:8080
 
 functions:
   gh-push:
