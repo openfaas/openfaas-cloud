@@ -16,6 +16,32 @@ Features:
 * Subscription to OpenFaaS Cloud is done via a single click using a GitHub App
 * Secured through HMAC - the public facing function "gh-push" uses HMAC to verify the origin of events
 
+![](https://pbs.twimg.com/media/DZiif9QXcAEd8If.jpg:large)
+
+Functions:
+
+* gh-push
+
+Receives events from the GitHub app and checks the origin via HMAC
+
+* git-tar
+
+Clones the git repo and checks out the SHA then uses the OpenFaaS CLI to shrinkwrap a tarball to be build with Docker
+
+* buildshiprun
+
+Submits the tar to the of-builder then configures an OpenFaaS deployment based upon stack.yml found in the Git repo. Finally starts a rolling deployment of the function.
+
+Calls garbage-collect
+
+* garbage-collect
+
+Function cleans up functions which were removed or renamed within the repo for the given user.
+
+* of-builder
+
+A buildkit HTTP daemon which builds the image and pushes it to the internal registry. The image is tagged with the SHA of the Git commit event.
+
 ## Usage
 
 You can set up and host your own *OpenFaaS Cloud* or contact alex@openfaas.com for instructions on how to participate in a public trial of a fully-hosted service.
