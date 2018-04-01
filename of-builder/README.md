@@ -21,10 +21,9 @@ docker run -d --net func_functions --name of-builder --privileged alexellis2/of-
 
 rm req.tar
 
-# prepare request tar
-echo >config<<EOT                                                                                                        
-{"Ref": "registry.local:5000/foo/bar:latest"}
-EOT
+# Prepare request tar
+
+echo '{"Ref": "registry.local:5000/foo/bar:latest"}' > config
 
 mkdir -p context
 
