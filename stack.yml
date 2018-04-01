@@ -15,7 +15,7 @@ functions:
       read_debug: true
       customers_url: "https://raw.githubusercontent.com/openfaas/openfaas-cloud/master/CUSTOMERS"
     environment_file:
-      - config.yml
+      - gateway_config.yml
       - github.yml
 
   git-tar:
@@ -28,7 +28,7 @@ functions:
       write_debug: true
       read_debug: true
     environment_file:
-      - config.yml
+      - gateway_config.yml
 
   buildshiprun:
     lang: go
@@ -42,7 +42,7 @@ functions:
       builder_url: http://of-builder:8080/
     environment_file:
       - buildshiprun_limits_swarm.yml
-      - config.yml
+      - gateway_config.yml
 
   list-functions:
     lang: go
@@ -52,7 +52,7 @@ functions:
       write_debug: true
       read_debug: true
     environment_file:
-      - config.yml
+      - gateway_config.yml
 
   garbage-collect:
     lang: go
@@ -64,7 +64,7 @@ functions:
       read_timeout: 30
       write_timeout: 30
     environment_file:
-      - config.yml
+      - gateway_config.yml
       
   git-event:
     lang: go
@@ -75,4 +75,4 @@ functions:
       read_debug: true
     environment_file:
       - github.yml
-      - config.yml
+      - gateway_config.yml
