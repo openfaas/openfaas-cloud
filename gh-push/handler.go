@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/alexellis/hmac"
 )
@@ -32,6 +34,25 @@ func Handle(req []byte) string {
 		if err != nil {
 			return err.Error()
 		}
+
+		customersURL := os.Getenv("customers_url")
+
+		customers, getErr := getCustomers(customersURL)
+		if getErr != nil {
+			return getErr.Error()
+		}
+
+		found := false
+		for _, customer := range customers {
+			if customer == pushEvent.Repository.Owner.Login {
+				found = true
+			}
+		}
+
+		if !found {
+			return fmt.Sprintf("Customer: %s not found in CUSTOMERS file via %s", pushEvent.Repository.Owner.Login, customersURL)
+		}
+
 		statusCode, postErr := postEvent(pushEvent)
 		if postErr != nil {
 			return postErr.Error()
@@ -41,6 +62,30 @@ func Handle(req []byte) string {
 	}
 
 	return fmt.Sprintf("gh-push cannot handle event: %s", event)
+}
+
+// getCustomers reads a list of customers separated by new lines
+// who are valid users of OpenFaaS cloud
+func getCustomers(customerURL string) ([]string, error) {
+	customers := []string{}
+
+	c := http.Client{}
+
+	httpReq, _ := http.NewRequest(http.MethodGet, customerURL, nil)
+	res, reqErr := c.Do(httpReq)
+
+	if reqErr != nil {
+		return customers, reqErr
+	}
+
+	if res.Body != nil {
+		defer res.Body.Close()
+
+		pageBody, _ := ioutil.ReadAll(res.Body)
+		customers = strings.Split(string(pageBody), "\n")
+	}
+
+	return customers, nil
 }
 
 func postEvent(pushEvent PushEvent) (int, error) {

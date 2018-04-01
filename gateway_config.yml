@@ -1,0 +1,2 @@
+environment:
+  gateway_url: http://gateway:8080/

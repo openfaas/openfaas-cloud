@@ -6,16 +6,17 @@ functions:
   gh-push:
     lang: go
     handler: ./gh-push
-    image: alexellis2/gh-push:0.1.0
+    image: alexellis2/gh-push:0.1.1
     environment:
       Http_X_Github_Event: push
       read_timeout: 5
       write_timeout: 5
       write_debug: true
       read_debug: true
+      customers_url: "https://raw.githubusercontent.com/openfaas/openfaas-cloud/master/CUSTOMERS"
     environment_file:
-      - github.yml
       - config.yml
+      - github.yml
 
   git-tar:
     lang: dockerfile
@@ -26,6 +27,8 @@ functions:
       write_timeout: 120
       write_debug: true
       read_debug: true
+    environment_file:
+      - config.yml
 
   buildshiprun:
     lang: go
@@ -34,9 +37,12 @@ functions:
     environment:
       read_timeout: 300
       write_timeout: 300
-      default_memory_limit: 30m
       write_debug: true
       read_debug: true
+      builder_url: http://of-builder:8080/
+    environment_file:
+      - buildshiprun_limits_swarm.yml
+      - config.yml
 
   list-functions:
     lang: go
@@ -45,6 +51,8 @@ functions:
     environment:
       write_debug: true
       read_debug: true
+    environment_file:
+      - config.yml
 
   garbage-collect:
     lang: go
@@ -55,7 +63,9 @@ functions:
       read_debug: true
       read_timeout: 30
       write_timeout: 30
-
+    environment_file:
+      - config.yml
+      
   git-event:
     lang: go
     handler: ./git-event
@@ -65,3 +75,4 @@ functions:
       read_debug: true
     environment_file:
       - github.yml
+      - config.yml

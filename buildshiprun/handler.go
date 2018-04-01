@@ -12,10 +12,13 @@ import (
 	"time"
 )
 
-// Handle a serverless request
+// Handle a build / deploy request - returns empty string for an error
 func Handle(req []byte) string {
+
+	builderURL := os.Getenv("builder_url")
+
 	reader := bytes.NewBuffer(req)
-	res, err := http.Post("http://of-builder:8080/build", "application/octet-stream", reader)
+	res, err := http.Post(builderURL+"build", "application/octet-stream", reader)
 	if err != nil {
 		fmt.Println(err)
 		return ""
@@ -31,10 +34,11 @@ func Handle(req []byte) string {
 		owner := os.Getenv("Http_Owner")
 		repo := os.Getenv("Http_Repo")
 
-		// Replace image name for local-host for deployment
+		// Replace image name for "localhost" for deployment
 		imageName = "127.0.0.1" + imageName[strings.Index(imageName, ":"):]
 
 		serviceValue := fmt.Sprintf("%s-%s", owner, service)
+
 		log.Printf("Deploying %s as %s", imageName, serviceValue)
 
 		defaultMemoryLimit := os.Getenv("default_memory_limit")
@@ -58,9 +62,11 @@ func Handle(req []byte) string {
 		}
 
 		result, err := deployFunction(deploy)
+
 		if err != nil {
 			log.Fatal(err.Error())
 		}
+
 		log.Println(result)
 	}
 
@@ -68,7 +74,9 @@ func Handle(req []byte) string {
 }
 
 func functionExists(deploy deployment) (bool, error) {
-	res, err := http.Get("http://gateway:8080/system/functions")
+	gatewayURL := os.Getenv("gateway_url")
+
+	res, err := http.Get(gatewayURL + "system/functions")
 
 	if err != nil {
 		fmt.Println(err)
@@ -108,7 +116,8 @@ func deployFunction(deploy deployment) (string, error) {
 		method = http.MethodPost
 	}
 
-	httpReq, err = http.NewRequest(method, "http://gateway:8080/system/functions", reader)
+	gatewayURL := os.Getenv("gateway_url")
+	httpReq, err = http.NewRequest(method, gatewayURL+"system/functions", reader)
 	c := http.Client{}
 	res, err = c.Do(httpReq)
 
