@@ -32,25 +32,39 @@ func Handle(req []byte) string {
 		if err != nil {
 			return err.Error()
 		}
-
-		body, _ := json.Marshal(pushEvent)
-
-		c := http.Client{}
-		bodyReader := bytes.NewBuffer(body)
-		httpReq, _ := http.NewRequest(http.MethodPost, "http://gateway:8080/async-function/git-tar", bodyReader)
-		res, reqErr := c.Do(httpReq)
-		if reqErr != nil {
-			return reqErr.Error()
+		statusCode, postErr := postEvent(pushEvent)
+		if postErr != nil {
+			return postErr.Error()
 		}
 
-		fmt.Println("Tar - ", res.StatusCode)
-
-		return fmt.Sprintf("Got a push - %s\n", pushEvent)
+		return fmt.Sprintf("Push - %s, git-tar status: %d\n", pushEvent, statusCode)
 	}
 
-	return "I can't handle event: " + event
+	return fmt.Sprintf("gh-push cannot handle event: %s", event)
 }
 
+func postEvent(pushEvent PushEvent) (int, error) {
+	gatewayURL := os.Getenv("gateway_url")
+
+	body, _ := json.Marshal(pushEvent)
+
+	c := http.Client{}
+	bodyReader := bytes.NewBuffer(body)
+	httpReq, _ := http.NewRequest(http.MethodPost, gatewayURL+"async-function/git-tar", bodyReader)
+	res, reqErr := c.Do(httpReq)
+
+	if reqErr != nil {
+		return http.StatusServiceUnavailable, reqErr
+	}
+
+	if res.Body != nil {
+		defer res.Body.Close()
+	}
+
+	return res.StatusCode, nil
+}
+
+// PushEvent as received from GitHub
 type PushEvent struct {
 	Repository struct {
 		Name     string `json:"name"`
