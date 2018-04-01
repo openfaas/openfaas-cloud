@@ -1,0 +1,38 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: of-buildkit
+  namespace: openfaas
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: of-buildkit
+    spec:
+      containers:
+      - name: of-buildkit
+        args: ["--addr", "tcp://0.0.0.0:1234"]
+        image: alexellis2/buildkit:2018-04-17
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 1234
+          protocol: TCP
+        securityContext:
+          privileged: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: of-buildkit
+  namespace: openfaas
+  labels:
+    app: of-buildkit
+spec:
+  type: ClusterIP
+  ports:
+    - port: 1234
+      protocol: TCP
+      targetPort: 1234
+  selector:
+    app: of-buildkit
