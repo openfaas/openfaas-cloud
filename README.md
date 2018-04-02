@@ -48,14 +48,28 @@ You can set up and host your own *OpenFaaS Cloud* or contact alex@openfaas.com f
 
 ## Development
 
-Create `github.yml` and populate it with your secrets as configured on the GitHub App:
+* Before you start deploy OpenFaaS
+
+Deploy OpenFaaS on Docker Swarm using the instructions in the documentation. Kubernetes will also work but you will need to set up your own YAML files.
+
+https://docs.openfaas.com/deployment/
+
+* Create a GitHub app
+
+Before you start you'll need to create a free GitHub app and select the relevant OAuth permissions. Right now those are just read-only and subscriptions to "push" events.
+
+The GitHub app will deliver webhooks to your OpenFaaS Cloud instance every time code is pushed in a user's function repository. Make sure you provide the public URL for your OpenFaaS gateway to the GitHub app.
+
+* Create `github.yml` and populate it with your secrets as configured on the GitHub App:
 
 ```
 environment:
     github_webhook_secret: "Long-Password-Goes-Here"
 ```
 
-Update the remote gateway URL in `stack.yml`
+The shared secret is used to securely verify each message came from GitHub and not a third party.
+
+* Update the remote gateway URL in `stack.yml` or set the `OPENFAAS_URL` environmental variable.
 
 ```
 provider:
@@ -64,11 +78,28 @@ provider:
 
 ```
 
-Build script:
+* Deploy the registry and of-builder
+
+Using the instructions given in the repo deploy of-builder (buildkit as a HTTP service) and the registry
+
+https://github.com/openfaas/openfaas-cloud/tree/master/of-builder
+
+* Build/deploy
+
+> Before running this build/push/deploy script change the Docker Hub image prefix from `alexellis2/` to your own.
 
 ```
-$ faas-cli build -f stack.yml --parallel=4 \
-  && faas-cli push -f stack.yml --parallel=4
-  && faas-cli deploy -f stack.yml
+$ faas-cli build --parallel=4 \
+  && faas-cli push --parallel=4
+  && faas-cli deploy
 ```
 
+* Test it out
+
+Simply install your GitHub app to one of your OpenFaaS function repos and push a commit.
+
+Within a few seconds you'll have your function deployed and live with a prefix of your username.
+
+* Find out more
+
+For more information get in touch directly for a private trial of the public service.
