@@ -16,6 +16,14 @@ Features:
 * Subscription to OpenFaaS Cloud is done via a single click using a GitHub App
 * Secured through HMAC - the public facing function "gh-push" uses HMAC to verify the origin of events
 
+Conceptual diagram
+
+![](https://pbs.twimg.com/media/DZ7SX6gX4AA5dS7.jpg:large)
+
+## Functions
+
+OpenFaaS Cloud is built using Golang functions to interact with GitHub and build/deploy your functions just seconds after your `git push`.
+
 ![](https://pbs.twimg.com/media/DZiif9QXcAEd8If.jpg:large)
 
 Functions:
