@@ -24,31 +24,33 @@ Conceptual diagram
 
 OpenFaaS Cloud is built using Golang functions to interact with GitHub and build/deploy your functions just seconds after your `git push`.
 
-![](https://pbs.twimg.com/media/DZiif9QXcAEd8If.jpg:large)
-
-Functions:
-
-* gh-push
+* Function: gh-push
 
 Receives events from the GitHub app and checks the origin via HMAC
 
-* git-tar
+* Function: git-tar
 
 Clones the git repo and checks out the SHA then uses the OpenFaaS CLI to shrinkwrap a tarball to be build with Docker
 
-* buildshiprun
+* Function: buildshiprun
 
 Submits the tar to the of-builder then configures an OpenFaaS deployment based upon stack.yml found in the Git repo. Finally starts a rolling deployment of the function.
 
 Calls garbage-collect
 
-* garbage-collect
+* Function: garbage-collect
 
 Function cleans up functions which were removed or renamed within the repo for the given user.
 
-* of-builder
+* Service: of-builder
 
 A buildkit HTTP daemon which builds the image and pushes it to the internal registry. The image is tagged with the SHA of the Git commit event.
+
+* Service: Docker open-source registry
+
+A private, local registry is deployed inside the cluster.
+
+![](https://pbs.twimg.com/media/DZiif9QXcAEd8If.jpg:large)
 
 ## Usage
 
