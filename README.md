@@ -100,7 +100,7 @@ https://github.com/openfaas/openfaas-cloud/tree/master/of-builder
 
 ```
 $ faas-cli build --parallel=4 \
-  && faas-cli push --parallel=4
+  && faas-cli push --parallel=4 \
   && faas-cli deploy
 ```
 
