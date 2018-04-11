@@ -14,8 +14,7 @@ docker run -d --net func_functions -p 8088:8080 --name of-builder --privileged a
 
 # Do a test build
 
-We specify a config file which is JSON and tells buildkit which image to publish to. In this example it's going to be `registry.local:5000/foo/bar:latest`. The container image has a Dockerfile added into it as an example. It also has an env-var set up.
-
+We specify a config file which is JSON and tells buildkit which image to publish to. In this example it's going to be `registry.local:5000/foo/bar:latest`. The container image has a README.md added into it as an example. It also has an env-var set up.
 
 ```
 mkdir image
@@ -24,15 +23,17 @@ cd image
 echo '{"Ref": "registry.local:5000/foo/bar:latest"}' > config
 
 mkdir -p context
-
+echo "## Made with buildkit" >> context/README.md
 cat >context/Dockerfile<<EOT                                                                                            
 FROM busybox
-ADD Dockerfile /
+ADD README.md /
 ENV foo bar
 EOT
 
 tar cvf req.tar .
 ```
+
+If `registry.local:5000` gives a DNS issue on Docker for Mac then change this to the public IP of your computer instead i.e. 192.168.0.100:5000.
 
 # Post the tar to the builder
 
@@ -44,7 +45,7 @@ curl -i localhost:8088/build -X POST --data-binary @req.tar
 
 # Test the image
 
-To test the image just type in `docker run -ti 127.0.0.1:5000/foo/bar:latest cat Dockerfile` for instance.
+To test the image just type in `docker run -ti 127.0.0.1:5000/foo/bar:latest cat /README.md` for instance.
 
 Outside of OpenFaaS:
 
@@ -61,7 +62,6 @@ docker run -p 8080:8080 -d --net builder --name of-builder --privileged alexelli
 Test:
 
 ```
-
 docker rm -f dind; docker run --name dind --privileged --net=builder -d docker:dind dockerd --insecure-registry registry:5000
 docker exec -ti dind docker pull registry:5000/jmkhael/figlet:latest-99745ca9f5a1a914384686e0e928a10854cc87d5
 ```
