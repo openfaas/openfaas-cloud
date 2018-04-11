@@ -1,27 +1,25 @@
 # Setup
 
-When deploying OpenFaaS make sure you update the network to "attachable" in the docker-compose.yml file:
-
-```
-networks:
-  functions:
-    driver: overlay
-    attachable: true
-```
-
 Now setup the registry and builder:
 
 ```
 docker service rm registry
 docker service create --network func_functions --name registry --detach=true -p 5000:5000  registry:latest
 
+cd of-builder/
 docker rm -f of-builder
 docker build -t alexellis2/of-builder:0.2 .
-docker run -d --net func_functions --name of-builder --privileged alexellis2/of-builder:0.2
+docker run -d --net func_functions -p 8088:8080 --name of-builder --privileged alexellis2/of-builder:0.2
+```
 
-rm req.tar
+# Do a test build
 
-# Prepare request tar
+We specify a config file which is JSON and tells buildkit which image to publish to. In this example it's going to be `registry.local:5000/foo/bar:latest`. The container image has a Dockerfile added into it as an example. It also has an env-var set up.
+
+
+```
+mkdir image
+cd image
 
 echo '{"Ref": "registry.local:5000/foo/bar:latest"}' > config
 
@@ -34,10 +32,19 @@ ENV foo bar
 EOT
 
 tar cvf req.tar .
-
-# query
-curl -i 192.168.10.98:8080/build -X POST --data-binary @req.tar
 ```
+
+# Post the tar to the builder
+
+Change the IP as required
+
+```
+curl -i localhost:8088/build -X POST --data-binary @req.tar
+```
+
+# Test the image
+
+To test the image just type in `docker run -ti 127.0.0.1:5000/foo/bar:latest cat Dockerfile` for instance.
 
 Outside of OpenFaaS:
 
