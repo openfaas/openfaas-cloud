@@ -54,7 +54,7 @@ func Handle(req []byte) string {
 				"Git-Cloud":      "1",
 				"Git-Owner":      owner,
 				"Git-Repo":       repo,
-				"Git-DeployTime": time.Now().String(),
+				"Git-DeployTime": time.Now().Format("2006-01-02-15-04-05"),
 			},
 			Limits: Limits{
 				Memory: defaultMemoryLimit,
