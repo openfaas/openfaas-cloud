@@ -6,7 +6,7 @@ ADD vendor  vendor
 
 RUN go build -o /usr/bin/of-builder .
 
-FROM tonistiigi/buildkit:standalone
+FROM alexellis2/buildkit:2018-04-17
 COPY --from=builder /usr/bin/of-builder /bin/
 
 EXPOSE 8080
