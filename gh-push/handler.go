@@ -19,7 +19,7 @@ const Source = "gh-push"
 func Handle(req []byte) string {
 
 	event := os.Getenv("Http_X_Github_Event")
-	log.Println("Got an event at devnet")
+
 	if event != "push" {
 
 		auditEvent := AuditEvent{
@@ -34,8 +34,7 @@ func Handle(req []byte) string {
 
 	xHubSignature := os.Getenv("Http_X_Hub_Signature")
 
-	shouldValidate := os.Getenv("validate_hmac")
-	if len(shouldValidate) > 0 && (shouldValidate == "1" || shouldValidate == "true") {
+	if readFlag("validate_hmac") == true {
 		validateErr := hmac.Validate(req, xHubSignature, os.Getenv("github_webhook_secret"))
 		if validateErr != nil {
 			log.Fatal(validateErr)
@@ -48,18 +47,24 @@ func Handle(req []byte) string {
 		return err.Error()
 	}
 
-	customersURL := os.Getenv("customers_url")
+	var found bool
 
-	customers, getErr := getCustomers(customersURL)
-	if getErr != nil {
-		return getErr.Error()
-	}
+	if readFlag("validate_customers") {
+		customersURL := os.Getenv("customers_url")
 
-	found := false
-	for _, customer := range customers {
-		if customer == pushEvent.Repository.Owner.Login {
-			found = true
+		customers, getErr := getCustomers(customersURL)
+		if getErr != nil {
+			return getErr.Error()
 		}
+
+		found := false
+		for _, customer := range customers {
+			if customer == pushEvent.Repository.Owner.Login {
+				found = true
+			}
+		}
+	} else {
+		found = true
 	}
 
 	if !found {
@@ -154,6 +159,13 @@ type PushEvent struct {
 
 func Init() {
 
+}
+
+func readFlag(key string) bool {
+	if val, exists := os.LookupEnv(key); val == "true" || val == "1" {
+		return true
+	}
+	return false
 }
 
 // Move method / struct to separate package

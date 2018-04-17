@@ -13,7 +13,9 @@ functions:
       write_timeout: 5
       write_debug: true
       read_debug: true
+      validate_customers: true
       customers_url: "https://raw.githubusercontent.com/openfaas/openfaas-cloud/master/CUSTOMERS"
+      
     environment_file:
       - gateway_config.yml
       - github.yml
