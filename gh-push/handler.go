@@ -13,55 +13,84 @@ import (
 	"github.com/alexellis/hmac"
 )
 
+const Source = "gh-push"
+
 // Handle a serverless request
 func Handle(req []byte) string {
 
 	event := os.Getenv("Http_X_Github_Event")
+	log.Println("Got an event at devnet")
+	if event != "push" {
 
-	if event == "push" {
-		xHubSignature := os.Getenv("Http_X_Hub_Signature")
-
-		shouldValidate := os.Getenv("validate_hmac")
-		if len(shouldValidate) > 0 && (shouldValidate == "1" || shouldValidate == "true") {
-			validateErr := hmac.Validate(req, xHubSignature, os.Getenv("github_webhook_secret"))
-			if validateErr != nil {
-				log.Fatal(validateErr)
-			}
+		auditEvent := AuditEvent{
+			Message: "bad event: " + event,
+			Source:  Source,
 		}
 
-		pushEvent := PushEvent{}
-		err := json.Unmarshal(req, &pushEvent)
-		if err != nil {
-			return err.Error()
-		}
+		postAudit(auditEvent)
 
-		customersURL := os.Getenv("customers_url")
-
-		customers, getErr := getCustomers(customersURL)
-		if getErr != nil {
-			return getErr.Error()
-		}
-
-		found := false
-		for _, customer := range customers {
-			if customer == pushEvent.Repository.Owner.Login {
-				found = true
-			}
-		}
-
-		if !found {
-			return fmt.Sprintf("Customer: %s not found in CUSTOMERS file via %s", pushEvent.Repository.Owner.Login, customersURL)
-		}
-
-		statusCode, postErr := postEvent(pushEvent)
-		if postErr != nil {
-			return postErr.Error()
-		}
-
-		return fmt.Sprintf("Push - %s, git-tar status: %d\n", pushEvent, statusCode)
+		return fmt.Sprintf("gh-push cannot handle event: %s", event)
 	}
 
-	return fmt.Sprintf("gh-push cannot handle event: %s", event)
+	xHubSignature := os.Getenv("Http_X_Hub_Signature")
+
+	shouldValidate := os.Getenv("validate_hmac")
+	if len(shouldValidate) > 0 && (shouldValidate == "1" || shouldValidate == "true") {
+		validateErr := hmac.Validate(req, xHubSignature, os.Getenv("github_webhook_secret"))
+		if validateErr != nil {
+			log.Fatal(validateErr)
+		}
+	}
+
+	pushEvent := PushEvent{}
+	err := json.Unmarshal(req, &pushEvent)
+	if err != nil {
+		return err.Error()
+	}
+
+	customersURL := os.Getenv("customers_url")
+
+	customers, getErr := getCustomers(customersURL)
+	if getErr != nil {
+		return getErr.Error()
+	}
+
+	found := false
+	for _, customer := range customers {
+		if customer == pushEvent.Repository.Owner.Login {
+			found = true
+		}
+	}
+
+	if !found {
+
+		auditEvent := AuditEvent{
+			Message: "Customer not found",
+			Owner:   pushEvent.Repository.Owner.Login,
+			Repo:    pushEvent.Repository.Name,
+			Source:  Source,
+		}
+
+		postAudit(auditEvent)
+
+		return fmt.Sprintf("Customer: %s not found in CUSTOMERS file via %s", pushEvent.Repository.Owner.Login, customersURL)
+	}
+
+	statusCode, postErr := postEvent(pushEvent)
+	if postErr != nil {
+		return postErr.Error()
+	}
+
+	auditEvent := AuditEvent{
+		Message: "Git-tar invoked",
+		Owner:   pushEvent.Repository.Owner.Login,
+		Repo:    pushEvent.Repository.Name,
+		Source:  Source,
+	}
+
+	postAudit(auditEvent)
+
+	return fmt.Sprintf("Push - %s, git-tar status: %d\n", pushEvent, statusCode)
 }
 
 // getCustomers reads a list of customers separated by new lines
@@ -125,4 +154,30 @@ type PushEvent struct {
 
 func Init() {
 
+}
+
+// Move method / struct to separate package
+
+func postAudit(auditEvent AuditEvent) {
+	c := http.Client{}
+	bytesOut, _ := json.Marshal(&auditEvent)
+	reader := bytes.NewBuffer(bytesOut)
+
+	req, _ := http.NewRequest(http.MethodPost, os.Getenv("audit_url"), reader)
+
+	res, err := c.Do(req)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	if res.Body != nil {
+		defer res.Body.Close()
+	}
+}
+
+type AuditEvent struct {
+	Source  string
+	Message string
+	Owner   string
+	Repo    string
 }
