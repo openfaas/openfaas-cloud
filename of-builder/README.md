@@ -1,15 +1,16 @@
 # Setup
 
-Now setup the registry and builder:
+Now setup the registry and builders:
 
 ```
 docker service rm registry
 docker service create --network func_functions --name registry --detach=true -p 5000:5000  registry:latest
+docker run -d --net func_functions  -d --privileged --name moby-builder tonistiigi/buildkit --addr tcp://0.0.0.0:1234
 
 cd of-builder/
 docker rm -f of-builder
-docker build -t alexellis2/of-builder:0.2 .
-docker run -d --net func_functions -p 8088:8080 --name of-builder --privileged alexellis2/of-builder:0.2
+docker build -t alexellis2/of-builder:0.3 .
+docker run -d --net func_functions -p 8088:8080 --name of-builder --privileged alexellis2/of-builder:0.3
 ```
 
 # Do a test build
@@ -24,7 +25,7 @@ echo '{"Ref": "registry.local:5000/foo/bar:latest"}' > config
 
 mkdir -p context
 echo "## Made with buildkit" >> context/README.md
-cat >context/Dockerfile<<EOT                                                                                            
+cat >context/Dockerfile<<EOT
 FROM busybox
 ADD README.md /
 ENV foo bar
