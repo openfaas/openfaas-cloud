@@ -6,9 +6,9 @@ functions:
   gh-push:
     lang: go
     handler: ./gh-push
-    image: alexellis2/gh-push:0.1.1
+    image: alexellis2/gh-push:0.2.0
     environment:
-      Http_X_Github_Event: push
+      # Http_X_Github_Event: push
       read_timeout: 5
       write_timeout: 5
       write_debug: true
@@ -76,4 +76,10 @@ functions:
     environment_file:
       - github.yml
       - gateway_config.yml
-
+  audit-event:
+    skip_build: true
+    image: functions/alpine:latest
+    fprocess: cat
+    environment:
+      write_debug: true
+      read_debug: true
