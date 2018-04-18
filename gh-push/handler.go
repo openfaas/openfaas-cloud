@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/alexellis/hmac"
+	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
 const Source = "gh-push"
@@ -19,29 +20,29 @@ const Source = "gh-push"
 func Handle(req []byte) string {
 
 	event := os.Getenv("Http_X_Github_Event")
-
 	if event != "push" {
 
-		auditEvent := AuditEvent{
+		auditEvent := sdk.AuditEvent{
 			Message: "bad event: " + event,
 			Source:  Source,
 		}
 
-		postAudit(auditEvent)
+		sdk.PostAudit(auditEvent)
 
 		return fmt.Sprintf("gh-push cannot handle event: %s", event)
 	}
 
 	xHubSignature := os.Getenv("Http_X_Hub_Signature")
 
-	if readFlag("validate_hmac") == true {
+	shouldValidate := readBool("validate_hmac")
+	if shouldValidate {
 		validateErr := hmac.Validate(req, xHubSignature, os.Getenv("github_webhook_secret"))
 		if validateErr != nil {
 			log.Fatal(validateErr)
 		}
 	}
 
-	pushEvent := PushEvent{}
+	pushEvent := sdk.PushEvent{}
 	err := json.Unmarshal(req, &pushEvent)
 	if err != nil {
 		return err.Error()
@@ -49,7 +50,8 @@ func Handle(req []byte) string {
 
 	var found bool
 
-	if readFlag("validate_customers") {
+	if readBool("validate_customers") {
+
 		customersURL := os.Getenv("customers_url")
 
 		customers, getErr := getCustomers(customersURL)
@@ -57,28 +59,25 @@ func Handle(req []byte) string {
 			return getErr.Error()
 		}
 
-		found := false
 		for _, customer := range customers {
 			if customer == pushEvent.Repository.Owner.Login {
 				found = true
 			}
 		}
-	} else {
-		found = true
-	}
+		if !found {
 
-	if !found {
+			auditEvent := sdk.AuditEvent{
+				Message: "Customer not found",
+				Owner:   pushEvent.Repository.Owner.Login,
+				Repo:    pushEvent.Repository.Name,
+				Source:  Source,
+			}
 
-		auditEvent := AuditEvent{
-			Message: "Customer not found",
-			Owner:   pushEvent.Repository.Owner.Login,
-			Repo:    pushEvent.Repository.Name,
-			Source:  Source,
+			sdk.PostAudit(auditEvent)
+
+			return fmt.Sprintf("Customer: %s not found in CUSTOMERS file via %s", pushEvent.Repository.Owner.Login, customersURL)
 		}
 
-		postAudit(auditEvent)
-
-		return fmt.Sprintf("Customer: %s not found in CUSTOMERS file via %s", pushEvent.Repository.Owner.Login, customersURL)
 	}
 
 	statusCode, postErr := postEvent(pushEvent)
@@ -86,14 +85,14 @@ func Handle(req []byte) string {
 		return postErr.Error()
 	}
 
-	auditEvent := AuditEvent{
+	auditEvent := sdk.AuditEvent{
 		Message: "Git-tar invoked",
 		Owner:   pushEvent.Repository.Owner.Login,
 		Repo:    pushEvent.Repository.Name,
 		Source:  Source,
 	}
 
-	postAudit(auditEvent)
+	sdk.PostAudit(auditEvent)
 
 	return fmt.Sprintf("Push - %s, git-tar status: %d\n", pushEvent, statusCode)
 }
@@ -122,7 +121,7 @@ func getCustomers(customerURL string) ([]string, error) {
 	return customers, nil
 }
 
-func postEvent(pushEvent PushEvent) (int, error) {
+func postEvent(pushEvent sdk.PushEvent) (int, error) {
 	gatewayURL := os.Getenv("gateway_url")
 
 	body, _ := json.Marshal(pushEvent)
@@ -143,53 +142,13 @@ func postEvent(pushEvent PushEvent) (int, error) {
 	return res.StatusCode, nil
 }
 
-// PushEvent as received from GitHub
-type PushEvent struct {
-	Repository struct {
-		Name     string `json:"name"`
-		FullName string `json:"full_name"`
-		CloneURL string `json:"clone_url"`
-		Owner    struct {
-			Login string `json:"login"`
-			Email string `json:"email"`
-		} `json:"owner"`
-	}
-	AfterCommitID string `json:"after"`
-}
-
-func Init() {
+func init() {
 
 }
 
-func readFlag(key string) bool {
-	if val, exists := os.LookupEnv(key); val == "true" || val == "1" {
-		return true
+func readBool(key string) bool {
+	if val, exists := os.LookupEnv(key); exists {
+		return val == "true" || val == "1"
 	}
 	return false
-}
-
-// Move method / struct to separate package
-
-func postAudit(auditEvent AuditEvent) {
-	c := http.Client{}
-	bytesOut, _ := json.Marshal(&auditEvent)
-	reader := bytes.NewBuffer(bytesOut)
-
-	req, _ := http.NewRequest(http.MethodPost, os.Getenv("audit_url"), reader)
-
-	res, err := c.Do(req)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	if res.Body != nil {
-		defer res.Body.Close()
-	}
-}
-
-type AuditEvent struct {
-	Source  string
-	Message string
-	Owner   string
-	Repo    string
 }
