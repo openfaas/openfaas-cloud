@@ -44,7 +44,11 @@ Function cleans up functions which were removed or renamed within the repo for t
 
 * Service: of-builder
 
-A buildkit HTTP daemon which builds the image and pushes it to the internal registry. The image is tagged with the SHA of the Git commit event.
+A builder daemon which exposes the GRPC of-buildkit service via HTTP.
+
+* Service: of-buildkit
+
+The buildkit GRPC daemon which builds the image and pushes it to the internal registry. The image is tagged with the SHA of the Git commit event.
 
 * Service: Docker open-source registry
 

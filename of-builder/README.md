@@ -5,12 +5,12 @@ Now setup the registry and builders:
 ```
 docker service rm registry
 docker service create --network func_functions --name registry --detach=true -p 5000:5000  registry:latest
-docker run -d --net func_functions  -d --privileged --name moby-builder tonistiigi/buildkit --addr tcp://0.0.0.0:1234
+docker run -d --net func_functions -d --privileged --name of-buildkit alexellis2/buildkit:2018-04-17 --addr tcp://0.0.0.0:1234
 
 cd of-builder/
 docker rm -f of-builder
 docker build -t alexellis2/of-builder:0.3 .
-docker run -d --net func_functions -p 8088:8080 --name of-builder --privileged alexellis2/of-builder:0.3
+docker run -d --net func_functions -p 8088:8080 --name of-builder alexellis2/of-builder:0.3
 ```
 
 # Do a test build
