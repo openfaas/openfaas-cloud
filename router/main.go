@@ -37,12 +37,12 @@ func main() {
 	s := &http.Server{
 		Addr:           ":" + port,
 		Handler:        router,
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
+		ReadTimeout:    60 * time.Second,
+		WriteTimeout:   60 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
-	log.Fatal(s.ListenAndServe())
 
+	log.Fatal(s.ListenAndServe())
 }
 
 func makeHandler(c *http.Client, upstreamURL string) func(w http.ResponseWriter, r *http.Request) {
