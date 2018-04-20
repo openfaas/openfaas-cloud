@@ -1,5 +1,5 @@
 #!/bin/sh
-export SQUASH=false
+export SQUASH=true
 
 cd ..
 
