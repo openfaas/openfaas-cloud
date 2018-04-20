@@ -1,4 +1,6 @@
 #!/bin/sh
+export SQUASH=false
+
 cd ..
 
 (cd of-builder && make) && \

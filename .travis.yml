@@ -12,13 +12,8 @@ addons:
     packages:
       - docker-ce
 
-install:
-
-before_install:
-
-script:
-    - sh contrib/ci.sh
-
+# script:
+#     - cd contrib && contrib/ci.sh
 
 after_success:
     - if [ ! -s "$TRAVIS_TAG" ] ; then 
