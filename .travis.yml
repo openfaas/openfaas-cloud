@@ -13,11 +13,7 @@ addons:
       - docker-ce
 
 before_install:
-  - "echo '{"experimental":true}' | sudo tee /etc/docker/daemon.json
-  - sudo service docker restart
-
-# script:
-#     - cd contrib && contrib/ci.sh
+  - sh ./contrib/set_experimental_docker.sh
 
 after_success:
     - if [ ! -s "$TRAVIS_TAG" ] ; then 
