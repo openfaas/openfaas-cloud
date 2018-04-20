@@ -12,6 +12,10 @@ addons:
     packages:
       - docker-ce
 
+before_install:
+  - "echo '{"experimental":true}' | sudo tee /etc/docker/daemon.json
+  - sudo service docker restart
+
 # script:
 #     - cd contrib && contrib/ci.sh
 
