@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -30,15 +31,16 @@ func main() {
 		log.Panicln("give an upstream_url as an env-var")
 	}
 
-	c := &http.Client{}
+	timeout := time.Second * 60
+	c := makeProxy(timeout)
 	router := http.NewServeMux()
 	router.HandleFunc("/", makeHandler(c, upstreamURL))
 
 	s := &http.Server{
 		Addr:           ":" + port,
 		Handler:        router,
-		ReadTimeout:    60 * time.Second,
-		WriteTimeout:   60 * time.Second,
+		ReadTimeout:    timeout,
+		WriteTimeout:   timeout,
 		MaxHeaderBytes: 1 << 20,
 	}
 
@@ -59,7 +61,7 @@ func makeHandler(c *http.Client, upstreamURL string) func(w http.ResponseWriter,
 
 		path := fmt.Sprintf("%sfunction/%s-%s", upstreamURL, r.Host[0:strings.Index(r.Host, ".")], requestURI)
 
-		fmt.Println("Proxying to: ", path)
+		fmt.Printf("Proxying to: %s\n", path)
 
 		if r.Body != nil {
 			defer r.Body.Close()
@@ -73,12 +75,12 @@ func makeHandler(c *http.Client, upstreamURL string) func(w http.ResponseWriter,
 			w.WriteHeader(http.StatusServiceUnavailable)
 			w.Write([]byte(resErr.Error()))
 
-			fmt.Printf("Upstream %s status: %d", path, http.StatusBadGateway)
+			fmt.Printf("Upstream %s status: %d\n", path, http.StatusBadGateway)
 			return
 		}
 
 		copyHeaders(w.Header(), &res.Header)
-		fmt.Printf("Upstream %s status: %d", path, res.StatusCode)
+		fmt.Printf("Upstream %s status: %d\n", path, res.StatusCode)
 
 		w.WriteHeader(res.StatusCode)
 		if res.Body != nil {
@@ -97,4 +99,21 @@ func copyHeaders(destination http.Header, source *http.Header) {
 		copy(vClone, v)
 		(destination)[k] = vClone
 	}
+}
+
+func makeProxy(timeout time.Duration) *http.Client {
+	proxyClient := http.Client{
+		Transport: &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+			DialContext: (&net.Dialer{
+				Timeout:   timeout,
+				KeepAlive: 1 * time.Second,
+			}).DialContext,
+			// MaxIdleConns:          1,
+			// DisableKeepAlives:     false,
+			IdleConnTimeout:       120 * time.Millisecond,
+			ExpectContinueTimeout: 1500 * time.Millisecond,
+		},
+	}
+	return &proxyClient
 }

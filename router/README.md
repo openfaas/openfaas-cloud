@@ -25,3 +25,23 @@ Test it:
 ```
 curl -H "Host: alexellis.domain.io" localhost:8081/kubecon-tester
 ```
+
+### Development
+
+```
+TAG=0.1 make build ; make push 
+```
+
+```
+TAG=0.1
+docker rm -f of-router
+docker service rm of-router
+docker run -e upstream_url=http://192.168.0.35:8080 -p 8082:8080 --name of-router -d openfaas/cloud-router:$TAG
+
+# Or as a service
+
+TAG=0.1
+docker rm -f of-router
+docker service rm of-router
+docker service create --env upstream_url=http://192.168.0.35:8080 --publish 8082:8080 --name of-router -d openfaas/cloud-router:$TAG
+```
