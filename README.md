@@ -3,6 +3,10 @@ OpenFaaS Cloud
 
 OpenFaaS Cloud - FaaS in a box with CI/CD for functions
 
+![https://pbs.twimg.com/media/DacWCtZVMAAJQ-u.jpg](https://pbs.twimg.com/media/DacWCtZVMAAJQ-u.jpg)
+
+*Announcement from Cisco's DevNet Create in Mountain View*
+
 ## Description
 
 OpenFaaS Cloud uses serverless functions to provide a closed-loop CI/CD system for functions built and hosted on your public GitHub repositories.
