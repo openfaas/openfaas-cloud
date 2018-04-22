@@ -65,6 +65,8 @@ func Handle(req []byte) []byte {
 func collect(pushEvent PushEvent, stack *stack.Services) error {
 	var err error
 
+	gatewayURL := os.Getenv("gateway_url")
+
 	garbageReq := GarbageRequest{
 		Owner: pushEvent.Repository.Owner.Login,
 		Repo:  pushEvent.Repository.Name,
@@ -80,7 +82,7 @@ func collect(pushEvent PushEvent, stack *stack.Services) error {
 
 	bytesReq, _ := json.Marshal(garbageReq)
 	bufferReader := bytes.NewBuffer(bytesReq)
-	request, _ := http.NewRequest(http.MethodPost, "http://gateway:8080/function/garbage-collect", bufferReader)
+	request, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/garbage-collect", bufferReader)
 
 	response, err := c.Do(request)
 

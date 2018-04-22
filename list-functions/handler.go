@@ -33,7 +33,9 @@ func Handle(req []byte) string {
 		Timeout: time.Second * 3,
 	}
 
-	request, _ := http.NewRequest(http.MethodGet, "http://gateway:8080/system/functions", nil)
+	gatewayURL := os.Getenv("gateway_url")
+
+	request, _ := http.NewRequest(http.MethodGet, gatewayURL+"system/functions", nil)
 
 	response, err := c.Do(request)
 	filtered := []function{}

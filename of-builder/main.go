@@ -23,7 +23,11 @@ func main() {
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/build", buildHandler)
-	server := &http.Server{Addr: "0.0.0.0:8080", Handler: router}
+
+	server := &http.Server{
+		Addr:    "0.0.0.0:8080",
+		Handler: router,
+	}
 
 	eg, ctx := errgroup.WithContext(appcontext.Context())
 

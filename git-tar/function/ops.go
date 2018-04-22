@@ -185,6 +185,7 @@ func clone(pushEvent PushEvent) (string, error) {
 func deploy(tars []tarEntry, owner string, repo string) error {
 
 	c := http.Client{}
+	gatewayURL := os.Getenv("gateway_url")
 
 	for _, tarEntry := range tars {
 		fmt.Println("Deploy service - " + tarEntry.functionName)
@@ -194,7 +195,7 @@ func deploy(tars []tarEntry, owner string, repo string) error {
 			return err
 		}
 
-		httpReq, _ := http.NewRequest(http.MethodPost, "http://gateway:8080/function/buildshiprun", fileOpen)
+		httpReq, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/buildshiprun", fileOpen)
 
 		httpReq.Header.Add("Repo", repo)
 		httpReq.Header.Add("Owner", owner)

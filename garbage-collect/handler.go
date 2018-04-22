@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -52,6 +53,8 @@ func deleteFunction(target string) error {
 	var err error
 	fmt.Println("Delete ", target)
 
+	gatewayURL := os.Getenv("gateway_url")
+
 	c := http.Client{
 		Timeout: time.Second * 3,
 	}
@@ -63,7 +66,7 @@ func deleteFunction(target string) error {
 
 	bytesReq, _ := json.Marshal(delReq)
 	bufferReader := bytes.NewBuffer(bytesReq)
-	request, _ := http.NewRequest(http.MethodDelete, "http://gateway:8080/system/functions", bufferReader)
+	request, _ := http.NewRequest(http.MethodDelete, gatewayURL+"system/functions", bufferReader)
 
 	response, err := c.Do(request)
 
@@ -88,8 +91,8 @@ func listFunctions(owner string) ([]string, error) {
 	c := http.Client{
 		Timeout: time.Second * 3,
 	}
-
-	request, _ := http.NewRequest(http.MethodGet, "http://gateway:8080/system/functions", nil)
+	gatewayURL := os.Getenv("gateway_url")
+	request, _ := http.NewRequest(http.MethodGet, gatewayURL+"system/functions", nil)
 
 	response, err := c.Do(request)
 

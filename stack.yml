@@ -1,6 +1,6 @@
 provider:
   name: faas
-  gateway: http://localhost:8080
+  gateway: http://127.0.0.1:8080
 
 functions:
   gh-push:
@@ -9,8 +9,8 @@ functions:
     image: alexellis2/gh-push:0.2.1
     environment:
       # Http_X_Github_Event: push
-      read_timeout: 5
-      write_timeout: 5
+      read_timeout: 10
+      write_timeout: 10
       write_debug: true
       read_debug: true
       validate_customers: true
@@ -23,7 +23,7 @@ functions:
   git-tar:
     lang: dockerfile
     handler: ./git-tar
-    image: alexellis2/of-git-tar:0.2.2
+    image: alexellis2/of-git-tar:0.3.0
     environment:
       read_timeout: 120
       write_timeout: 120
@@ -35,7 +35,7 @@ functions:
   buildshiprun:
     lang: go
     handler: ./buildshiprun
-    image: alexellis2/of-buildshiprun:0.0.2
+    image: alexellis2/of-buildshiprun:0.1.0
     environment:
       read_timeout: 300
       write_timeout: 300
@@ -49,7 +49,7 @@ functions:
   list-functions:
     lang: go
     handler: ./list-functions
-    image: alexellis2/list-functions:0.2
+    image: alexellis2/list-functions:0.3
     environment:
       write_debug: true
       read_debug: true

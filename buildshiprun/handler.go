@@ -29,13 +29,20 @@ func Handle(req []byte) string {
 	buildStatus, _ := ioutil.ReadAll(res.Body)
 	imageName := strings.TrimSpace(string(buildStatus))
 
+	repositoryURL := os.Getenv("repository_url")
+
+	if len(repositoryURL) == 0 {
+		fmt.Fprintf(os.Stderr, "repository_url env-var not set")
+		os.Exit(1)
+	}
+
 	if len(imageName) > 0 {
 		service := os.Getenv("Http_Service")
 		owner := os.Getenv("Http_Owner")
 		repo := os.Getenv("Http_Repo")
 
 		// Replace image name for "localhost" for deployment
-		imageName = "127.0.0.1" + imageName[strings.Index(imageName, ":"):]
+		imageName = repositoryURL + imageName[strings.Index(imageName, ":"):]
 
 		serviceValue := fmt.Sprintf("%s-%s", owner, service)
 

@@ -1,3 +1,4 @@
 environment:
   gateway_url: http://gateway:8080/
   audit_url: http://gateway:8080/function/audit-event
+  repository_url: 127.0.0.1
