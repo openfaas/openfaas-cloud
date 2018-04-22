@@ -204,7 +204,7 @@ func deploy(tars []tarEntry, owner string, repo string) error {
 
 		res, reqErr := c.Do(httpReq)
 		if reqErr != nil {
-			fmt.Fprintf(os.Stderr, fmt.Errorf("unable to deploy function via buildshiprun: %s", reqErr))
+			fmt.Fprintf(os.Stderr, fmt.Errorf("unable to deploy function via buildshiprun: %s", reqErr.Error()).Error())
 		}
 
 		fmt.Println("Service deployed ", tarEntry.functionName, res.Status, owner)
