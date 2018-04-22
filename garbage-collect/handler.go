@@ -46,7 +46,7 @@ func Handle(req []byte) string {
 		}
 	}
 
-	return fmt.Sprintf("Hello, Go. You said: %s", string(req))
+	return fmt.Sprintf("Garbage collection ran: %s", string(req))
 }
 
 func deleteFunction(target string) error {

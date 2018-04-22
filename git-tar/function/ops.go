@@ -188,7 +188,7 @@ func deploy(tars []tarEntry, owner string, repo string) error {
 	gatewayURL := os.Getenv("gateway_url")
 
 	for _, tarEntry := range tars {
-		fmt.Println("Deploy service - " + tarEntry.functionName)
+		fmt.Println("Deploying service - " + tarEntry.functionName)
 
 		fileOpen, err := os.Open(tarEntry.fileName)
 		if err != nil {
@@ -204,7 +204,7 @@ func deploy(tars []tarEntry, owner string, repo string) error {
 
 		res, reqErr := c.Do(httpReq)
 		if reqErr != nil {
-			return reqErr
+			fmt.Fprintf(os.Stderr, fmt.Errorf("unable to deploy function via buildshiprun: %s", reqErr))
 		}
 
 		fmt.Println("Service deployed ", tarEntry.functionName, res.Status, owner)
