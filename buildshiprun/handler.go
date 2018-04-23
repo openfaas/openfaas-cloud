@@ -15,6 +15,8 @@ import (
 // Handle a build / deploy request - returns empty string for an error
 func Handle(req []byte) string {
 
+	c := &http.Client{}
+
 	builderURL := os.Getenv("builder_url")
 
 	reader := bytes.NewBuffer(req)
@@ -37,6 +39,8 @@ func Handle(req []byte) string {
 	}
 
 	if len(imageName) > 0 {
+		gatewayURL := os.Getenv("gateway_url")
+
 		service := os.Getenv("Http_Service")
 		owner := os.Getenv("Http_Owner")
 		repo := os.Getenv("Http_Repo")
@@ -68,7 +72,7 @@ func Handle(req []byte) string {
 			},
 		}
 
-		result, err := deployFunction(deploy)
+		result, err := deployFunction(deploy, gatewayURL, c)
 
 		if err != nil {
 			log.Fatal(err.Error())
@@ -80,8 +84,7 @@ func Handle(req []byte) string {
 	return fmt.Sprintf("buildStatus %s %s %s", buildStatus, imageName, res.Status)
 }
 
-func functionExists(deploy deployment) (bool, error) {
-	gatewayURL := os.Getenv("gateway_url")
+func functionExists(deploy deployment, gatewayURL string, c *http.Client) (bool, error) {
 
 	res, err := http.Get(gatewayURL + "system/functions")
 
@@ -92,7 +95,7 @@ func functionExists(deploy deployment) (bool, error) {
 
 	defer res.Body.Close()
 
-	fmt.Println("Deploy status: " + res.Status)
+	fmt.Println("functionExists status: " + res.Status)
 	result, _ := ioutil.ReadAll(res.Body)
 
 	functions := []function{}
@@ -107,8 +110,8 @@ func functionExists(deploy deployment) (bool, error) {
 	return false, err
 }
 
-func deployFunction(deploy deployment) (string, error) {
-	exists, err := functionExists(deploy)
+func deployFunction(deploy deployment, gatewayURL string, c *http.Client) (string, error) {
+	exists, err := functionExists(deploy, gatewayURL, c)
 
 	bytesOut, _ := json.Marshal(deploy)
 	reader := bytes.NewBuffer(bytesOut)
@@ -123,9 +126,9 @@ func deployFunction(deploy deployment) (string, error) {
 		method = http.MethodPost
 	}
 
-	gatewayURL := os.Getenv("gateway_url")
 	httpReq, err = http.NewRequest(method, gatewayURL+"system/functions", reader)
-	c := http.Client{}
+	httpReq.Header.Set("Content-Type", "application/json")
+
 	res, err = c.Do(httpReq)
 
 	if err != nil {

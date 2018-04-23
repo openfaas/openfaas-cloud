@@ -35,7 +35,7 @@ functions:
   buildshiprun:
     lang: go
     handler: ./buildshiprun
-    image: alexellis2/of-buildshiprun:0.1.0
+    image: alexellis2/of-buildshiprun:0.1.1
     environment:
       read_timeout: 300
       write_timeout: 300
