@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -65,7 +66,7 @@ func Handle(req []byte) string {
 				"Git-Cloud":      "1",
 				"Git-Owner":      owner,
 				"Git-Repo":       repo,
-				"Git-DeployTime": time.Now().String(),
+				"Git-DeployTime": strconv.FormatInt(time.Now().Unix(), 10), //Unix Epoch string
 			},
 			Limits: Limits{
 				Memory: defaultMemoryLimit,
