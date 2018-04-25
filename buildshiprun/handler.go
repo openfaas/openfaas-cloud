@@ -69,7 +69,7 @@ func Handle(req []byte) string {
 		gatewayURL := os.Getenv("gateway_url")
 
 		// Replace image name for "localhost" for deployment
-		imageName = repositoryURL + imageName[strings.Index(imageName, ":"):]
+		imageName = getImageName(repositoryURL, imageName)
 
 		serviceValue = fmt.Sprintf("%s-%s", event.owner, event.service)
 
@@ -311,6 +311,10 @@ func getPrivateKey() string {
 
 func buildStatus(status string, desc string, context string, url string) *github.RepoStatus {
 	return &github.RepoStatus{State: &status, TargetURL: &url, Description: &desc, Context: &context}
+}
+
+func getImageName(repositoryURL, imageName string) string {
+	return repositoryURL + imageName[strings.Index(imageName, "/"):]
 }
 
 type eventInfo struct {

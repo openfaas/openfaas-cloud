@@ -65,7 +65,14 @@ func makeTar(pushEvent sdk.PushEvent, filePath string, services *stack.Services)
 
 		base := filepath.Join(filePath, filepath.Join("build", k))
 
-		imageName := formatImageShaTag("registry:5000", &v, pushEvent.AfterCommitID)
+		pushRepositoryURL := os.Getenv("push_repository_url")
+
+		if len(pushRepositoryURL) == 0 {
+			fmt.Fprintf(os.Stderr, "push_repository_url env-var not set")
+			os.Exit(1)
+		}
+
+		imageName := formatImageShaTag(pushRepositoryURL, &v, pushEvent.AfterCommitID)
 		config := cfg{
 			Ref: imageName,
 		}
