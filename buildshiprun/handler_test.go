@@ -112,5 +112,39 @@ func TestGetEvent_EmptyEnvVars(t *testing.T) {
 		t.Errorf(err.Error())
 		t.Fail()
 	}
+}
 
+var ImageNameTestcases = []struct {
+	Name          string
+	RepositoryURL string
+	ImageName     string
+	Output        string
+}{
+	{
+		"Testcase1",
+		"127.0.0.1:5000",
+		"registry:5000/username/function-name/",
+		"127.0.0.1:5000/username/function-name/",
+	},
+	{
+		"Testcase2",
+		"127.0.0.1:31115",
+		"registry:31115/username/function-name/",
+		"127.0.0.1:31115/username/function-name/",
+	},
+	{
+		"Testcase3",
+		"127.0.0.1",
+		"registry:31115/username/function-name/",
+		"127.0.0.1/username/function-name/",
+	},
+}
+
+func Test_GetImageName(t *testing.T) {
+	for _, testcase := range ImageNameTestcases {
+		output := getImageName(testcase.RepositoryURL, testcase.ImageName)
+		if output != testcase.Output {
+			t.Errorf("%s failed!. got: %s, want: %s", testcase.Name, output, testcase.Output)
+		}
+	}
 }
