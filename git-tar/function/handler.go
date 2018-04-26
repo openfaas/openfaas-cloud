@@ -49,7 +49,7 @@ func Handle(req []byte) []byte {
 		os.Exit(-1)
 	}
 
-	err = deploy(tars, pushEvent.Repository.Owner.Login, pushEvent.Repository.Name)
+	err = deploy(tars, pushEvent.Repository.Owner.Login, pushEvent.Repository.Name, pushEvent.AfterCommitID)
 	if err != nil {
 		log.Println(err)
 	}
