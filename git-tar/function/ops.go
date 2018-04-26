@@ -182,7 +182,7 @@ func clone(pushEvent PushEvent) (string, error) {
 	return destPath, err
 }
 
-func deploy(tars []tarEntry, owner string, repo string) error {
+func deploy(tars []tarEntry, owner, repo, afterCommitID string) error {
 
 	c := http.Client{}
 	gatewayURL := os.Getenv("gateway_url")
@@ -201,6 +201,7 @@ func deploy(tars []tarEntry, owner string, repo string) error {
 		httpReq.Header.Add("Owner", owner)
 		httpReq.Header.Add("Service", tarEntry.functionName)
 		httpReq.Header.Add("Image", tarEntry.imageName)
+		httpReq.Header.Add("Sha", afterCommitID)
 
 		res, reqErr := c.Do(httpReq)
 		if reqErr != nil {

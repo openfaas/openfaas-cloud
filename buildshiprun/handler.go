@@ -45,6 +45,7 @@ func Handle(req []byte) string {
 		service := os.Getenv("Http_Service")
 		owner := os.Getenv("Http_Owner")
 		repo := os.Getenv("Http_Repo")
+		sha := os.Getenv("Http_Sha")
 
 		// Replace image name for "localhost" for deployment
 		imageName = repositoryURL + imageName[strings.Index(imageName, ":"):]
@@ -67,6 +68,7 @@ func Handle(req []byte) string {
 				"Git-Owner":      owner,
 				"Git-Repo":       repo,
 				"Git-DeployTime": strconv.FormatInt(time.Now().Unix(), 10), //Unix Epoch string
+				"Git-SHA":        sha,
 			},
 			Limits: Limits{
 				Memory: defaultMemoryLimit,
