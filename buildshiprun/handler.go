@@ -100,7 +100,7 @@ func Handle(req []byte) string {
 	return fmt.Sprintf("buildStatus %s %s %s", buildStatus, imageName, res.Status)
 }
 
-func getEvent() (eventInfo, error) {
+func getEvent() (*eventInfo, error) {
 	var err error
 	info := eventInfo{}
 
@@ -111,7 +111,8 @@ func getEvent() (eventInfo, error) {
 	info.url = os.Getenv("Http_Url")
 	info.image = os.Getenv("Http_Image")
 	info.installationID, err = strconv.Atoi(os.Getenv("Http_Installation_id"))
-	return info, err
+
+	return &info, err
 }
 
 func functionExists(deploy deployment, gatewayURL string, c *http.Client) (bool, error) {
@@ -173,7 +174,7 @@ func deployFunction(deploy deployment, gatewayURL string, c *http.Client) (strin
 	return string(buildStatus), err
 }
 
-func reportStatus(status string, desc string, statusContext string, event eventInfo) {
+func reportStatus(status string, desc string, statusContext string, event *eventInfo) {
 
 	if os.Getenv("report_status") != "true" {
 		return
@@ -190,8 +191,6 @@ func reportStatus(status string, desc string, statusContext string, event eventI
 		}
 	}
 
-	repoStatus := createStatus(status, desc, statusContext, url)
-
 	ctx := context.Background()
 
 	// NOTE: currently vendored derek auth package doesn't take the private key as input;
@@ -202,6 +201,10 @@ func reportStatus(status string, desc string, statusContext string, event eventI
 	// privateKeyPath := getPrivateKey()
 	// token, tokenErr := auth.MakeAccessTokenForInstallation(os.Getenv("github_app_id"),
 	// 	event.installationID, privateKeyPath)
+
+	repoStatus := buildStatus(status, desc, statusContext, url)
+
+	log.Printf("Status: %s, GitHub AppID: %d, Repo: %s, Owner: %s", status, event.installationID, event.repository, event.owner)
 
 	token, tokenErr := auth.MakeAccessTokenForInstallation(os.Getenv("github_app_id"), event.installationID)
 	if tokenErr != nil {
@@ -216,7 +219,7 @@ func reportStatus(status string, desc string, statusContext string, event eventI
 
 	client := auth.MakeClient(ctx, token)
 
-	_, _, apiErr := client.Repositories.CreateStatus(ctx, event.owner, event.repo, event.sha, repoStatus)
+	_, _, apiErr := client.Repositories.CreateStatus(ctx, event.owner, event.repository, event.sha, repoStatus)
 	if apiErr != nil {
 		fmt.Printf("failed to report status %v, error: %s\n", repoStatus, apiErr.Error())
 		return
@@ -236,14 +239,13 @@ func getPrivateKey() string {
 	return privateKeyPath
 }
 
-func createStatus(status string, desc string, context string, url string) *github.RepoStatus {
+func buildStatus(status string, desc string, context string, url string) *github.RepoStatus {
 	return &github.RepoStatus{State: &status, TargetURL: &url, Description: &desc, Context: &context}
 }
 
 type eventInfo struct {
 	service        string
 	owner          string
-	repo           string
 	sha            string
 	url            string
 	repository     string
