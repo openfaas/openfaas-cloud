@@ -84,6 +84,7 @@ func Handle(req []byte) string {
 			Limits: Limits{
 				Memory: defaultMemoryLimit,
 			},
+			EnvVars: event.environment,
 		}
 
 		result, err := deployFunction(deploy, gatewayURL, c)
@@ -111,6 +112,18 @@ func getEvent() (*eventInfo, error) {
 	info.url = os.Getenv("Http_Url")
 	info.image = os.Getenv("Http_Image")
 	info.installationID, err = strconv.Atoi(os.Getenv("Http_Installation_id"))
+
+	envVars := make(map[string]string)
+	envErr := json.Unmarshal([]byte(os.Getenv("Http_Env")), &envVars)
+
+	if envErr == nil {
+		info.environment = envVars
+	} else {
+		log.Printf("Error un-marshaling env-vars for function %s, %s", info.service, envErr)
+		info.environment = make(map[string]string)
+	}
+
+	log.Printf("%d env-vars for %s", len(info.environment), info.service)
 
 	return &info, err
 }
@@ -145,6 +158,7 @@ func deployFunction(deploy deployment, gatewayURL string, c *http.Client) (strin
 	exists, err := functionExists(deploy, gatewayURL, c)
 
 	bytesOut, _ := json.Marshal(deploy)
+
 	reader := bytes.NewBuffer(bytesOut)
 
 	fmt.Println("Deploying: " + deploy.Image + " as " + deploy.Service)
@@ -246,11 +260,12 @@ func buildStatus(status string, desc string, context string, url string) *github
 type eventInfo struct {
 	service        string
 	owner          string
+	repository     string
+	image          string
 	sha            string
 	url            string
-	repository     string
 	installationID int
-	image          string
+	environment    map[string]string
 }
 
 type deployment struct {
@@ -259,6 +274,8 @@ type deployment struct {
 	Network string
 	Labels  map[string]string
 	Limits  Limits
+	// EnvVars provides overrides for functions.
+	EnvVars map[string]string `json:"envVars"`
 }
 
 type Limits struct {

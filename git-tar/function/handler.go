@@ -50,7 +50,7 @@ func Handle(req []byte) []byte {
 		os.Exit(-1)
 	}
 
-	err = deploy(tars, pushEvent)
+	err = deploy(tars, pushEvent, stack)
 	if err != nil {
 		log.Println(err)
 	}

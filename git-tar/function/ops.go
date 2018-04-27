@@ -170,7 +170,7 @@ func clone(pushEvent sdk.PushEvent) (string, error) {
 	return destPath, err
 }
 
-func deploy(tars []tarEntry, pushEvent sdk.PushEvent) error {
+func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services) error {
 
 	owner := pushEvent.Repository.Owner.Login
 	repoName := pushEvent.Repository.Name
@@ -198,6 +198,13 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent) error {
 		httpReq.Header.Add("Service", tarEntry.functionName)
 		httpReq.Header.Add("Image", tarEntry.imageName)
 		httpReq.Header.Add("Sha", afterCommitID)
+
+		envJSON, marshalErr := json.Marshal(stack.Functions[tarEntry.functionName].Environment)
+		if marshalErr != nil {
+			log.Printf("Error marshaling %d env-vars for function %s, %s", len(stack.Functions[tarEntry.functionName].Environment), tarEntry.functionName, marshalErr)
+		}
+
+		httpReq.Header.Add("Env", string(envJSON))
 
 		res, reqErr := c.Do(httpReq)
 		if reqErr != nil {
