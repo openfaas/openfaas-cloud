@@ -6,7 +6,7 @@ functions:
   gh-push:
     lang: go
     handler: ./gh-push
-    image: alexellis2/gh-push:0.2.1
+    image: alexellis2/gh-push:0.3.1
     environment:
       # Http_X_Github_Event: push
       read_timeout: 10
@@ -23,7 +23,7 @@ functions:
   git-tar:
     lang: dockerfile
     handler: ./git-tar
-    image: alexellis2/of-git-tar:0.3.0
+    image: alexellis2/of-git-tar:0.4.0
     environment:
       read_timeout: 120
       write_timeout: 120
@@ -35,7 +35,7 @@ functions:
   buildshiprun:
     lang: go
     handler: ./buildshiprun
-    image: alexellis2/of-buildshiprun:0.1.1
+    image: alexellis2/of-buildshiprun:0.2.1
     environment:
       read_timeout: 300
       write_timeout: 300
@@ -45,6 +45,9 @@ functions:
     environment_file:
       - buildshiprun_limits_swarm.yml
       - gateway_config.yml
+      - github.yml
+    secrets:
+      - derek-private-key
 
   list-functions:
     lang: go

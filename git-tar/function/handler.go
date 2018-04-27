@@ -11,12 +11,13 @@ import (
 	"time"
 
 	"github.com/openfaas/faas-cli/stack"
+	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
 // Handle a serverless request
 func Handle(req []byte) []byte {
 
-	pushEvent := PushEvent{}
+	pushEvent := sdk.PushEvent{}
 	err := json.Unmarshal(req, &pushEvent)
 	if err != nil {
 		log.Println(err.Error())
@@ -49,7 +50,7 @@ func Handle(req []byte) []byte {
 		os.Exit(-1)
 	}
 
-	err = deploy(tars, pushEvent.Repository.Owner.Login, pushEvent.Repository.Name, pushEvent.AfterCommitID)
+	err = deploy(tars, pushEvent)
 	if err != nil {
 		log.Println(err)
 	}
@@ -62,7 +63,7 @@ func Handle(req []byte) []byte {
 	return []byte(fmt.Sprintf("Deployed tar from: %s", tars))
 }
 
-func collect(pushEvent PushEvent, stack *stack.Services) error {
+func collect(pushEvent sdk.PushEvent, stack *stack.Services) error {
 	var err error
 
 	gatewayURL := os.Getenv("gateway_url")
