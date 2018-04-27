@@ -16,7 +16,7 @@ func CheckMAC(message, messageMAC, key []byte) bool {
 	return hmac.Equal(messageMAC, expectedMAC)
 }
 
-// ValidateHMAC validate a digest from Github via xHubSignature
+// Validate validate a digest from Github via xHubSignature
 func Validate(bytesIn []byte, xHubSignature string, secretKey string) error {
 	var validated error
 
@@ -28,6 +28,8 @@ func Validate(bytesIn []byte, xHubSignature string, secretKey string) error {
 		if res == false {
 			validated = fmt.Errorf("invalid message digest or secret")
 		}
+	} else {
+		return fmt.Errorf("invalid xHubSignature, should have at least 5 characters")
 	}
 
 	return validated
@@ -36,5 +38,3 @@ func Validate(bytesIn []byte, xHubSignature string, secretKey string) error {
 func init() {
 
 }
-
-

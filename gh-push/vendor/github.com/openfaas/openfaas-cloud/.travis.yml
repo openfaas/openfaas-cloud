@@ -1,0 +1,26 @@
+sudo: required
+
+language: go
+go:
+  - "1.9"
+
+services:
+      - docker
+
+addons:
+  apt:
+    packages:
+      - docker-ce
+
+install:
+
+before_install:
+
+script:
+    - sh contrib/ci.sh
+
+
+after_success:
+    - if [ ! -s "$TRAVIS_TAG" ] ; then 
+        echo "Time to tag images as $TRAVIS_TAG and push remote"
+      fi

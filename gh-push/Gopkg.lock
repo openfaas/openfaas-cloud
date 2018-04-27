@@ -2,14 +2,20 @@
 
 
 [[projects]]
-  branch = "master"
   name = "github.com/alexellis/hmac"
   packages = ["."]
-  revision = "e0dc7926d5bc9fefa88db6ff8681f78a25bd78f0"
+  revision = "e723a8b631da81c24dcba021834c6acb0ba2347f"
+  version = "1.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/openfaas/openfaas-cloud"
+  packages = ["sdk"]
+  revision = "b6e72c761219988730b6ee81b33818f30a75130e"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "697939724d379edb9528593f7848c8a3e364f063ba6965d22f9f4a27f7efb807"
+  inputs-digest = "e4754524bd6666171fbf1bce5417c60509b6921fe94011bc5654d180b68a5e97"
   solver-name = "gps-cdcl"
   solver-version = 1
