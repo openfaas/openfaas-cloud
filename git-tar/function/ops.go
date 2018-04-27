@@ -15,20 +15,8 @@ import (
 	"strings"
 
 	"github.com/openfaas/faas-cli/stack"
+	"github.com/openfaas/openfaas-cloud/sdk"
 )
-
-type PushEvent struct {
-	Repository struct {
-		Name     string `json:"name"`
-		FullName string `json:"full_name"`
-		CloneURL string `json:"clone_url"`
-		Owner    struct {
-			Login string `json:"login"`
-			Email string `json:"email"`
-		} `json:"owner"`
-	}
-	AfterCommitID string `json:"after"`
-}
 
 type tarEntry struct {
 	fileName     string
@@ -41,12 +29,12 @@ type cfg struct {
 	Frontend *string `json:"frontend,omitempty"`
 }
 
-func parseYAML(pushEvent PushEvent, filePath string) (*stack.Services, error) {
+func parseYAML(pushEvent sdk.PushEvent, filePath string) (*stack.Services, error) {
 	parsed, err := stack.ParseYAMLFile(path.Join(filePath, "stack.yml"), "", "")
 	return parsed, err
 }
 
-func shrinkwrap(pushEvent PushEvent, filePath string) (string, error) {
+func shrinkwrap(pushEvent sdk.PushEvent, filePath string) (string, error) {
 	buildCmd := exec.Command("faas-cli", "build", "-f", "stack.yml", "--shrinkwrap")
 	buildCmd.Dir = filePath
 	err := buildCmd.Start()
@@ -58,7 +46,7 @@ func shrinkwrap(pushEvent PushEvent, filePath string) (string, error) {
 	return filePath, err
 }
 
-func makeTar(pushEvent PushEvent, filePath string, services *stack.Services) ([]tarEntry, error) {
+func makeTar(pushEvent sdk.PushEvent, filePath string, services *stack.Services) ([]tarEntry, error) {
 	tars := []tarEntry{}
 
 	fmt.Printf("Tar up %s\n", filePath)
@@ -153,7 +141,7 @@ func formatImageShaTag(registry string, function *stack.Function, sha string) st
 	return imageName
 }
 
-func clone(pushEvent PushEvent) (string, error) {
+func clone(pushEvent sdk.PushEvent) (string, error) {
 	workDir := os.TempDir()
 	destPath := path.Join(workDir, pushEvent.Repository.Name)
 	if _, err := os.Stat(destPath); err == nil {
@@ -182,7 +170,13 @@ func clone(pushEvent PushEvent) (string, error) {
 	return destPath, err
 }
 
-func deploy(tars []tarEntry, owner, repo, afterCommitID string) error {
+func deploy(tars []tarEntry, pushEvent sdk.PushEvent) error {
+
+	owner := pushEvent.Repository.Owner.Login
+	repoName := pushEvent.Repository.Name
+	url := pushEvent.Repository.CloneURL
+	afterCommitID := pushEvent.AfterCommitID
+	installationId := pushEvent.Installation.Id
 
 	c := http.Client{}
 	gatewayURL := os.Getenv("gateway_url")
@@ -197,8 +191,10 @@ func deploy(tars []tarEntry, owner, repo, afterCommitID string) error {
 
 		httpReq, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/buildshiprun", fileOpen)
 
-		httpReq.Header.Add("Repo", repo)
+		httpReq.Header.Add("Repo", repoName)
 		httpReq.Header.Add("Owner", owner)
+		httpReq.Header.Add("Url", url)
+		httpReq.Header.Add("Installation_id", fmt.Sprintf("%d", installationId))
 		httpReq.Header.Add("Service", tarEntry.functionName)
 		httpReq.Header.Add("Image", tarEntry.imageName)
 		httpReq.Header.Add("Sha", afterCommitID)
