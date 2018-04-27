@@ -5,8 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/alexellis/derek/auth"
-	"github.com/google/go-github/github"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -14,14 +12,13 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/alexellis/derek/auth"
+	"github.com/google/go-github/github"
 )
 
 const (
 	defaultPrivateKeyName = "private_key.pem"
-)
-
-var (
-	event eventInfo
 )
 
 // Handle a build / deploy request - returns empty string for an error
@@ -31,19 +28,16 @@ func Handle(req []byte) string {
 
 	builderURL := os.Getenv("builder_url")
 
-	event.service = os.Getenv("Http_Service")
-	event.owner = os.Getenv("Http_Owner")
-	event.repo = os.Getenv("Http_Repo")
-	event.sha = os.Getenv("Http_Sha")
-	event.url = os.Getenv("Http_Url")
-	event.image = os.Getenv("Http_Image")
-	event.installationId, _ = strconv.Atoi(os.Getenv("Http_Installation_id"))
+	event, eventErr := getEvent()
+	if eventErr != nil {
+		log.Panic(eventErr)
+	}
 
 	reader := bytes.NewBuffer(req)
 	res, err := http.Post(builderURL+"build", "application/octet-stream", reader)
 	if err != nil {
 		fmt.Println(err)
-		reportStatus("failure", err.Error(), "BUILD")
+		reportStatus("failure", err.Error(), "BUILD", event)
 		return ""
 	}
 
@@ -83,7 +77,7 @@ func Handle(req []byte) string {
 			Labels: map[string]string{
 				"Git-Cloud":      "1",
 				"Git-Owner":      event.owner,
-				"Git-Repo":       event.repo,
+				"Git-Repo":       event.repository,
 				"Git-DeployTime": strconv.FormatInt(time.Now().Unix(), 10), //Unix Epoch string
 				"Git-SHA":        event.sha,
 			},
@@ -95,15 +89,29 @@ func Handle(req []byte) string {
 		result, err := deployFunction(deploy, gatewayURL, c)
 
 		if err != nil {
-			reportStatus("failure", err.Error(), "DEPLOY")
+			reportStatus("failure", err.Error(), "DEPLOY", event)
 			log.Fatal(err.Error())
 		}
 
 		log.Println(result)
 	}
 
-	reportStatus("success", fmt.Sprintf("function successfully deployed as: %s", serviceValue), "DEPLOY")
+	reportStatus("success", fmt.Sprintf("function successfully deployed as: %s", serviceValue), "DEPLOY", event)
 	return fmt.Sprintf("buildStatus %s %s %s", buildStatus, imageName, res.Status)
+}
+
+func getEvent() (eventInfo, error) {
+	var err error
+	info := eventInfo{}
+
+	info.service = os.Getenv("Http_Service")
+	info.owner = os.Getenv("Http_Owner")
+	info.repository = os.Getenv("Http_Repo")
+	info.sha = os.Getenv("Http_Sha")
+	info.url = os.Getenv("Http_Url")
+	info.image = os.Getenv("Http_Image")
+	info.installationID, err = strconv.Atoi(os.Getenv("Http_Installation_id"))
+	return info, err
 }
 
 func functionExists(deploy deployment, gatewayURL string, c *http.Client) (bool, error) {
@@ -165,7 +173,7 @@ func deployFunction(deploy deployment, gatewayURL string, c *http.Client) (strin
 	return string(buildStatus), err
 }
 
-func reportStatus(status string, desc string, statusContext string) {
+func reportStatus(status string, desc string, statusContext string, event eventInfo) {
 
 	if os.Getenv("report_status") != "true" {
 		return
@@ -173,16 +181,16 @@ func reportStatus(status string, desc string, statusContext string) {
 
 	url := event.url
 	if status == "success" {
-		publicUrl := os.Getenv("gateway_public_url")
+		publicURL := os.Getenv("gateway_public_url")
 		// for success status if gateway's public url id set the deployed
 		// function url is used in the commit status
-		if publicUrl != "" {
+		if publicURL != "" {
 			serviceValue := fmt.Sprintf("%s-%s", event.owner, event.service)
-			url = publicUrl + "function/" + serviceValue
+			url = publicURL + "function/" + serviceValue
 		}
 	}
 
-	repostatus := createStatus(status, desc, statusContext, url)
+	repoStatus := createStatus(status, desc, statusContext, url)
 
 	ctx := context.Background()
 
@@ -193,24 +201,24 @@ func reportStatus(status string, desc string, statusContext string) {
 	// the below lines should  be uncommented once the package is updated in derek project
 	// privateKeyPath := getPrivateKey()
 	// token, tokenErr := auth.MakeAccessTokenForInstallation(os.Getenv("github_app_id"),
-	// 	event.installationId, privateKeyPath)
+	// 	event.installationID, privateKeyPath)
 
-	token, tokenErr := auth.MakeAccessTokenForInstallation(os.Getenv("github_app_id"), event.installationId)
+	token, tokenErr := auth.MakeAccessTokenForInstallation(os.Getenv("github_app_id"), event.installationID)
 	if tokenErr != nil {
-		fmt.Printf("failed to report status %v, error: %s\n", repostatus, tokenErr.Error())
+		fmt.Printf("failed to report status %v, error: %s\n", repoStatus, tokenErr.Error())
 		return
 	}
 
 	if token == "" {
-		fmt.Printf("failed to report status %v, error: authentication failed Invalid token\n", repostatus)
+		fmt.Printf("failed to report status %v, error: authentication failed Invalid token\n", repoStatus)
 		return
 	}
 
 	client := auth.MakeClient(ctx, token)
 
-	_, _, apiErr := client.Repositories.CreateStatus(ctx, event.owner, event.repo, event.sha, repostatus)
+	_, _, apiErr := client.Repositories.CreateStatus(ctx, event.owner, event.repo, event.sha, repoStatus)
 	if apiErr != nil {
-		fmt.Printf("failed to report status %v, error: %s\n", repostatus, apiErr.Error())
+		fmt.Printf("failed to report status %v, error: %s\n", repoStatus, apiErr.Error())
 		return
 	}
 }
@@ -238,9 +246,11 @@ type eventInfo struct {
 	repo           string
 	sha            string
 	url            string
-	installationId int
+	repository     string
+	installationID int
 	image          string
 }
+
 type deployment struct {
 	Service string
 	Image   string
