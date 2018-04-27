@@ -80,7 +80,8 @@ OpenFaaS Cloud leverages OpenFaaS functions so will work with Kubernetes, but a 
 
 Before you start you'll need to create a free GitHub app and select the relevant OAuth permissions. Right now those are just read-only and subscriptions to "push" events.
 
-The GitHub app will deliver webhooks to your OpenFaaS Cloud instance every time code is pushed in a user's function repository. Make sure you provide the public URL for your OpenFaaS gateway to the GitHub app.
+The GitHub app will deliver webhooks to your OpenFaaS Cloud instance every time code is pushed in a user's function repository. Make sure you provide the public URL for your OpenFaaS gateway to the GitHub app. Like:  
+`http://my.openfaas.cloud/function/gh-push`
 
 * Create `github.yml` and populate it with your secrets as configured on the GitHub App:
 
@@ -88,8 +89,21 @@ The GitHub app will deliver webhooks to your OpenFaaS Cloud instance every time 
 environment:
     github_webhook_secret: "Long-Password-Goes-Here"
 ```
-
 The shared secret is used to securely verify each message came from GitHub and not a third party.
+
+* Add github appId to `github.yml`
+```
+environment:
+    github_webhook_secret: "Long-Password-Goes-Here"
+    github_app_id: "<app_id>"
+```
+
+* Create Private-Key secret with the private key form Github App:
+
+Create Docker secret
+```
+docker secret create derek-private-key <your_private_key_file>.pem
+```
 
 * Update the remote gateway URL in `stack.yml` or set the `OPENFAAS_URL` environmental variable.
 
