@@ -98,7 +98,15 @@ environment:
     github_app_id: "<app_id>"
 ```
 
-* Create Private-Key secret with the private key form Github App:
+### Status updates
+
+OpenFaaS Cloud can update the statuses of your commits when a build passes or fails.
+
+To enable this set `report_status: "true"` in `github.yml` before deploying the stack.
+
+A private key must also be mounted as a Docker / Kubernetes secret so that the code can authenticate and update statuses.
+
+* Find the .pem file from the GitHub App page
 
 Create Docker secret
 ```
@@ -139,3 +147,4 @@ Within a few seconds you'll have your function deployed and live with a prefix o
 * Find out more
 
 For more information get in touch directly for a private trial of the public service.
+
