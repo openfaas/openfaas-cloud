@@ -21,9 +21,21 @@ Features:
 * Secured through HMAC - the public facing function "gh-push" uses HMAC to verify the origin of events
 * HTTPS endpoint and build notifications for your commits
 
-Conceptual diagram
+## Road map
 
-![](https://pbs.twimg.com/media/DZ7SX6gX4AA5dS7.jpg:large)
+- [x] Quick deployment on Docker Swarm
+- [x] GitHub Status API integration for commits
+- [x] Kubernetes deployment YAML/helm (in progress)
+- [x] Automatic secure HTTPS endpoints
+- [x] Free, private-trial with CUSTOMER list
+- [x] HMAC with GitHub App for security
+- [x] Rate limiting for functions
+- [x] CI/CD for OpenFaaS Cloud
+- [x] Builds with BuildKit
+- [ ] Unprivileged builds with BuildKit (help wanted)
+- [ ] Isolation between functions
+- [ ] Support for private repos (help wanted)
+- [ ] Integration with on-prem GitLab/BitBucket (help wanted)
 
 ## Functions
 
@@ -59,9 +71,11 @@ The buildkit GRPC daemon which builds the image and pushes it to the internal re
 
 A private, local registry is deployed inside the cluster.
 
-![](https://pbs.twimg.com/media/DZiif9QXcAEd8If.jpg:large)
-
 ## Try it out
+
+![](https://pbs.twimg.com/media/DZ7SX6gX4AA5dS7.jpg:large)
+
+*Conceptual diagram of how OpenFaaS Cloud integrates with GitHub*
 
 You can set up and host your own *OpenFaaS Cloud* or contact alex@openfaas.com for instructions on how to participate in a public trial of a fully-hosted service.
 

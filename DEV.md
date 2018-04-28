@@ -1,5 +1,11 @@
 # OpenFaaS Cloud
 
+## Conceptual diagram
+
+This diagram shows the interactions between the functions that make up the OpenFaaS Cloud
+
+![](https://pbs.twimg.com/media/DZiif9QXcAEd8If.jpg:large)
+
 ## Development
 
 * Before you start
