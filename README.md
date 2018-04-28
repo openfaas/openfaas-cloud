@@ -32,6 +32,8 @@ Features:
 - [x] Rate limiting for functions
 - [x] CI/CD for OpenFaaS Cloud
 - [x] Builds with BuildKit
+- [ ] Gateway deployments/promotions - i.e. only upon GitHub tag or "release"
+- [ ] Make detailed logs available to show build / unit test failures
 - [ ] Unprivileged builds with BuildKit (help wanted)
 - [ ] Isolation between functions
 - [ ] Support for private repos (help wanted)
