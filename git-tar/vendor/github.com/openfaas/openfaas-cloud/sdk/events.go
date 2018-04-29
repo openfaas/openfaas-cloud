@@ -13,6 +13,6 @@ type PushEvent struct {
 	}
 	AfterCommitID string `json:"after"`
 	Installation  struct {
-		Id int `json:"id"`
+		ID int `json:"id"`
 	}
 }

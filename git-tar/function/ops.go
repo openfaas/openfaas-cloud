@@ -176,7 +176,7 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services) err
 	repoName := pushEvent.Repository.Name
 	url := pushEvent.Repository.CloneURL
 	afterCommitID := pushEvent.AfterCommitID
-	installationId := pushEvent.Installation.Id
+	installationID := pushEvent.Installation.ID
 
 	c := http.Client{}
 	gatewayURL := os.Getenv("gateway_url")
@@ -194,7 +194,7 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services) err
 		httpReq.Header.Add("Repo", repoName)
 		httpReq.Header.Add("Owner", owner)
 		httpReq.Header.Add("Url", url)
-		httpReq.Header.Add("Installation_id", fmt.Sprintf("%d", installationId))
+		httpReq.Header.Add("Installation_id", fmt.Sprintf("%d", installationID))
 		httpReq.Header.Add("Service", tarEntry.functionName)
 		httpReq.Header.Add("Image", tarEntry.imageName)
 		httpReq.Header.Add("Sha", afterCommitID)
