@@ -14,6 +14,10 @@ const (
 	defaultPrivateKeyName = "private_key.pem"
 )
 
+var (
+	token = ""
+)
+
 type EventInfo struct {
 	Service        string
 	Owner          string
@@ -43,24 +47,27 @@ func ReportStatus(status string, desc string, statusContext string, event *Event
 
 	log.Printf("Status: %s, Context: %s, Service: %s, GitHub AppID: %d, Repo: %s, Owner: %s", status, statusContext, serviceValue, event.InstallationID, event.Repository, event.Owner)
 
-	// NOTE: currently vendored derek auth package doesn't take the private key as input;
-	// but expect it to be present at : "/run/secrets/derek-private-key"
-	// as docker /secrets dir has limited permission we are bound to use secret named
-	// as "derek-private-key"
-	// the below lines should  be uncommented once the package is updated in derek project
-	// privateKeyPath := getPrivateKey()
-	// token, tokenErr := auth.MakeAccessTokenForInstallation(os.Getenv("github_app_id"),
-	//      event.installationID, privateKeyPath)
-
-	token, tokenErr := auth.MakeAccessTokenForInstallation(os.Getenv("github_app_id"), event.InstallationID)
-	if tokenErr != nil {
-		fmt.Printf("failed to report status %v, error: %s\n", repoStatus, tokenErr.Error())
-		return
-	}
-
 	if token == "" {
-		fmt.Printf("failed to report status %v, error: authentication failed Invalid token\n", repoStatus)
-		return
+		var tokenErr error
+		// NOTE: currently vendored derek auth package doesn't take the private key as input;
+		// but expect it to be present at : "/run/secrets/derek-private-key"
+		// as docker /secrets dir has limited permission we are bound to use secret named
+		// as "derek-private-key"
+		// the below lines should  be uncommented once the package is updated in derek project
+		// privateKeyPath := getPrivateKey()
+		// token, tokenErr = auth.MakeAccessTokenForInstallation(os.Getenv("github_app_id"),
+		//      event.installationID, privateKeyPath)
+
+		token, tokenErr = auth.MakeAccessTokenForInstallation(os.Getenv("github_app_id"), event.InstallationID)
+		if tokenErr != nil {
+			fmt.Printf("failed to report status %v, error: %s\n", repoStatus, tokenErr.Error())
+			return
+		}
+
+		if token == "" {
+			fmt.Printf("failed to report status %v, error: authentication failed Invalid token\n", repoStatus)
+			return
+		}
 	}
 
 	client := auth.MakeClient(ctx, token)
