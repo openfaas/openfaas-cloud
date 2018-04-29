@@ -80,8 +80,14 @@ func Handle(req []byte) string {
 
 	}
 
+	serviceValue := fmt.Sprintf("%s-%s", pushEvent.Repository.Owner.Login, pushEvent.Repository.Name)
+
+	statusEvent := buildStatusEvent(pushEvent)
+	reportStatus("pending", fmt.Sprintf("%s build is in progress", serviceValue), "BUILD", statusEvent)
+
 	statusCode, postErr := postEvent(pushEvent)
 	if postErr != nil {
+		reportStatus("failure", postErr.Error(), "BUILD", statusEvent)
 		return postErr.Error()
 	}
 
@@ -151,4 +157,26 @@ func readBool(key string) bool {
 		return val == "true" || val == "1"
 	}
 	return false
+}
+
+func reportStatus(status string, desc string, statusContext string, event *sdk.EventInfo) {
+
+	if os.Getenv("report_status") != "true" {
+		return
+	}
+
+	sdk.ReportStatus(status, desc, statusContext, event)
+}
+
+func buildStatusEvent(pushEvent sdk.PushEvent) *sdk.EventInfo {
+	info := sdk.EventInfo{}
+
+	info.Service = pushEvent.Repository.Name
+	info.Owner = pushEvent.Repository.Owner.Login
+	info.Repository = pushEvent.Repository.Name
+	info.Sha = pushEvent.AfterCommitID
+	info.URL = pushEvent.Repository.CloneURL
+	info.InstallationID = pushEvent.Installation.ID
+
+	return &info
 }

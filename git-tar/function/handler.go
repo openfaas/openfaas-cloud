@@ -24,15 +24,19 @@ func Handle(req []byte) []byte {
 		os.Exit(-1)
 	}
 
+	statusEvent := buildStatusEvent(pushEvent)
+
 	clonePath, err := clone(pushEvent)
 	if err != nil {
 		log.Println("Clone ", err.Error())
+		reportStatus("failure", "Clone"+err.Error(), "BUILD", statusEvent)
 		os.Exit(-1)
 	}
 
 	stack, err := parseYAML(pushEvent, clonePath)
 	if err != nil {
 		log.Println("parseYAML ", err.Error())
+		reportStatus("failure", "parseYAML"+err.Error(), "BUILD", statusEvent)
 		os.Exit(-1)
 	}
 
@@ -40,6 +44,7 @@ func Handle(req []byte) []byte {
 	shrinkWrapPath, err = shrinkwrap(pushEvent, clonePath)
 	if err != nil {
 		log.Println("Shrinkwrap ", err.Error())
+		reportStatus("failure", "Shrinkwrap"+err.Error(), "BUILD", statusEvent)
 		os.Exit(-1)
 	}
 
@@ -47,11 +52,13 @@ func Handle(req []byte) []byte {
 	tars, err = makeTar(pushEvent, shrinkWrapPath, stack)
 	if err != nil {
 		log.Println("Error creating tar(s): ", err.Error())
+		reportStatus("failure", "Error creating tar(s) : "+err.Error(), "BUILD", statusEvent)
 		os.Exit(-1)
 	}
 
 	err = deploy(tars, pushEvent, stack)
 	if err != nil {
+		reportStatus("failure", err.Error(), "BUILD", statusEvent)
 		log.Println(err)
 	}
 
@@ -105,4 +112,26 @@ type GarbageRequest struct {
 	Functions []string `json:"functions"`
 	Repo      string   `json:"repo"`
 	Owner     string   `json:"owner"`
+}
+
+func reportStatus(status string, desc string, statusContext string, event *sdk.EventInfo) {
+
+	if os.Getenv("report_status") != "true" {
+		return
+	}
+
+	sdk.ReportStatus(status, desc, statusContext, event)
+}
+
+func buildStatusEvent(pushEvent sdk.PushEvent) *sdk.EventInfo {
+	info := sdk.EventInfo{}
+
+	info.Service = pushEvent.Repository.Name
+	info.Owner = pushEvent.Repository.Owner.Login
+	info.Repository = pushEvent.Repository.Name
+	info.Sha = pushEvent.AfterCommitID
+	info.URL = pushEvent.Repository.CloneURL
+	info.InstallationID = pushEvent.Installation.ID
+
+	return &info
 }

@@ -19,6 +19,8 @@ functions:
     environment_file:
       - gateway_config.yml
       - github.yml
+    secrets:
+      - derek-private-key
 
   git-tar:
     lang: dockerfile
@@ -31,6 +33,9 @@ functions:
       read_debug: true
     environment_file:
       - gateway_config.yml
+      - github.yml
+    secrets:
+      - derek-private-key
 
   buildshiprun:
     lang: go
