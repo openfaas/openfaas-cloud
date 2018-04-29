@@ -77,7 +77,19 @@ func Handle(req []byte) string {
 
 			return fmt.Sprintf("Customer: %s not found in CUSTOMERS file via %s", pushEvent.Repository.Owner.Login, customersURL)
 		}
+	}
 
+	if pushEvent.Ref != "refs/heads/master" {
+		msg := "refusing to build non-master branch: " + pushEvent.Ref
+		auditEvent := sdk.AuditEvent{
+			Message: msg,
+			Owner:   pushEvent.Repository.Owner.Login,
+			Repo:    pushEvent.Repository.Name,
+			Source:  Source,
+		}
+
+		sdk.PostAudit(auditEvent)
+		return msg
 	}
 
 	statusCode, postErr := postEvent(pushEvent)
@@ -94,7 +106,7 @@ func Handle(req []byte) string {
 
 	sdk.PostAudit(auditEvent)
 
-	return fmt.Sprintf("Push - %s, git-tar status: %d\n", pushEvent, statusCode)
+	return fmt.Sprintf("Push - %v, git-tar status: %d\n", pushEvent, statusCode)
 }
 
 // getCustomers reads a list of customers separated by new lines
