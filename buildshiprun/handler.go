@@ -44,6 +44,7 @@ func Handle(req []byte) string {
 
 	imageName := strings.TrimSpace(string(buildStatus))
 
+	reportStatus("success", fmt.Sprintf("%s build is successful", serviceValue), "BUILD", event)
 	// report pending on deploy status
 	reportStatus("pending", fmt.Sprintf("%s deploy is in progress", serviceValue), "DEPLOY", event)
 
