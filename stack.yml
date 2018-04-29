@@ -82,10 +82,17 @@ functions:
       - github.yml
       - gateway_config.yml
 
-  audit-event:
+  echo:
     skip_build: true
     image: functions/alpine:latest
     fprocess: cat
     environment:
       write_debug: true
       read_debug: true
+
+  audit-event:
+    lang: go
+    handler: ./audit-event
+    image: functions/audit-event:0.1.0
+    environment_file:
+      - slack.yml
