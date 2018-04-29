@@ -2,7 +2,6 @@ package function
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -12,9 +11,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/alexellis/derek/auth"
-	"github.com/google/go-github/github"
 )
 
 const (
@@ -37,7 +33,7 @@ func Handle(req []byte) string {
 	res, err := http.Post(builderURL+"build", "application/octet-stream", reader)
 	if err != nil {
 		fmt.Println(err)
-		reportStatus("failure", err.Error(), "BUILD", event)
+		//reportStatus("failure", err.Error(), "BUILD", event)
 		return ""
 	}
 
@@ -90,14 +86,14 @@ func Handle(req []byte) string {
 		result, err := deployFunction(deploy, gatewayURL, c)
 
 		if err != nil {
-			reportStatus("failure", err.Error(), "DEPLOY", event)
+			//reportStatus("failure", err.Error(), "DEPLOY", event)
 			log.Fatal(err.Error())
 		}
 
 		log.Println(result)
 	}
 
-	reportStatus("success", fmt.Sprintf("function successfully deployed as: %s", serviceValue), "DEPLOY", event)
+	//reportStatus("success", fmt.Sprintf("function successfully deployed as: %s", serviceValue), "DEPLOY", event)
 	return fmt.Sprintf("buildStatus %s %s %s", buildStatus, imageName, res.Status)
 }
 
@@ -188,6 +184,7 @@ func deployFunction(deploy deployment, gatewayURL string, c *http.Client) (strin
 	return string(buildStatus), err
 }
 
+/*
 func reportStatus(status string, desc string, statusContext string, event *eventInfo) {
 
 	if os.Getenv("report_status") != "true" {
@@ -256,7 +253,7 @@ func getPrivateKey() string {
 func buildStatus(status string, desc string, context string, url string) *github.RepoStatus {
 	return &github.RepoStatus{State: &status, TargetURL: &url, Description: &desc, Context: &context}
 }
-
+*/
 type eventInfo struct {
 	service        string
 	owner          string

@@ -31,6 +31,9 @@ functions:
       read_debug: true
     environment_file:
       - gateway_config.yml
+      - github.yml
+    secrets:
+      - derek-private-key
 
   buildshiprun:
     lang: go
@@ -45,9 +48,7 @@ functions:
     environment_file:
       - buildshiprun_limits_swarm.yml
       - gateway_config.yml
-      - github.yml
-    secrets:
-      - derek-private-key
+        #- github.yml
 
   list-functions:
     lang: go
