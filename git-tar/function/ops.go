@@ -2,6 +2,7 @@ package function
 
 import (
 	"archive/tar"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -16,6 +17,9 @@ import (
 
 	"github.com/openfaas/faas-cli/stack"
 	"github.com/openfaas/openfaas-cloud/sdk"
+
+	"github.com/alexellis/derek/auth"
+	"github.com/google/go-github/github"
 )
 
 type tarEntry struct {
@@ -28,6 +32,21 @@ type cfg struct {
 	Ref      string  `json:"ref"`
 	Frontend *string `json:"frontend,omitempty"`
 }
+
+type eventInfo struct {
+	service    string
+	owner      string
+	repository string
+	//image          string
+	sha            string
+	url            string
+	installationID int
+	//	environment    map[string]string
+}
+
+const (
+	defaultPrivateKeyName = "private_key.pem"
+)
 
 func parseYAML(pushEvent sdk.PushEvent, filePath string) (*stack.Services, error) {
 	parsed, err := stack.ParseYAMLFile(path.Join(filePath, "stack.yml"), "", "")
@@ -181,6 +200,14 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services) err
 	c := http.Client{}
 	gatewayURL := os.Getenv("gateway_url")
 
+	event := getEvent(pushEvent)
+	serviceValue := owner + "-" + repoName
+
+	reportStatus("pending", fmt.Sprintf("%s build and deploy is in progress", serviceValue), "DEPLOY", event)
+
+	hasFailure := false
+	failedFunctions := make(map[string]string)
+
 	for _, tarEntry := range tars {
 		fmt.Println("Deploying service - " + tarEntry.functionName)
 
@@ -209,9 +236,100 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services) err
 		res, reqErr := c.Do(httpReq)
 		if reqErr != nil {
 			fmt.Fprintf(os.Stderr, fmt.Errorf("unable to deploy function via buildshiprun: %s", reqErr.Error()).Error())
+			hasFailure = true
+			failedFunctions[tarEntry.functionName] = reqErr.Error()
 		}
 
 		fmt.Println("Service deployed ", tarEntry.functionName, res.Status, owner)
 	}
+
+	if !hasFailure {
+		reportStatus("success", fmt.Sprintf("service successfully deployed as: %s", serviceValue), "DEPLOY", event)
+	} else {
+		reportStatus("failure", fmt.Sprintf("failed to deploy service %s: %v", serviceValue, failedFunctions), "DEPLOY", event)
+	}
+
 	return nil
+}
+
+func reportStatus(status string, desc string, statusContext string, event *eventInfo) {
+
+	if os.Getenv("report_status") != "true" {
+		return
+	}
+
+	url := event.url
+	if status == "success" {
+		publicURL := os.Getenv("gateway_public_url")
+		// for success status if gateway's public url id set the deployed
+		// function url is used in the commit status
+		if publicURL == "" {
+			publicURL = os.Getenv("gateway_url")
+		}
+		url = publicURL + "overview?user=" + event.owner + "&sha=" + event.sha + "&repo=" + event.repository
+	}
+
+	ctx := context.Background()
+
+	// NOTE: currently vendored derek auth package doesn't take the private key as input;
+	// but expect it to be present at : "/run/secrets/derek-private-key"
+	// as docker /secrets dir has limited permission we are bound to use secret named
+	// as "derek-private-key"
+	// the below lines should  be uncommented once the package is updated in derek project
+	// privateKeyPath := getPrivateKey()
+	// token, tokenErr := auth.MakeAccessTokenForInstallation(os.Getenv("github_app_id"),
+	//      event.installationID, privateKeyPath)
+
+	repoStatus := buildStatus(status, desc, statusContext, url)
+
+	log.Printf("Status: %s, GitHub AppID: %d, Repo: %s, Owner: %s", status, event.installationID, event.repository, event.owner)
+
+	token, tokenErr := auth.MakeAccessTokenForInstallation(os.Getenv("github_app_id"), event.installationID)
+	if tokenErr != nil {
+		fmt.Printf("failed to report status %v, error: %s\n", repoStatus, tokenErr.Error())
+		return
+	}
+
+	if token == "" {
+		fmt.Printf("failed to report status %v, error: authentication failed Invalid token\n", repoStatus)
+		return
+	}
+
+	client := auth.MakeClient(ctx, token)
+
+	_, _, apiErr := client.Repositories.CreateStatus(ctx, event.owner, event.repository, event.sha, repoStatus)
+	if apiErr != nil {
+		fmt.Printf("failed to report status %v, error: %s\n", repoStatus, apiErr.Error())
+		return
+	}
+}
+
+func getPrivateKey() string {
+	// we are taking the secrets name from the env, by default it is fixed
+	// to private_key.pem.
+	// Although user can make the secret with a specific name and provide
+	// it in the stack.yaml and also specify the secret name in github.yml
+	privateKeyName := os.Getenv("private_key")
+	if privateKeyName == "" {
+		privateKeyName = defaultPrivateKeyName
+	}
+	privateKeyPath := "/run/secrets/" + privateKeyName
+	return privateKeyPath
+}
+
+func buildStatus(status string, desc string, context string, url string) *github.RepoStatus {
+	return &github.RepoStatus{State: &status, TargetURL: &url, Description: &desc, Context: &context}
+}
+
+func getEvent(pushEvent sdk.PushEvent) *eventInfo {
+	info := eventInfo{}
+
+	info.service = pushEvent.Repository.Name
+	info.owner = pushEvent.Repository.Owner.Login
+	info.repository = pushEvent.Repository.Name
+	info.sha = pushEvent.AfterCommitID
+	info.url = pushEvent.Repository.CloneURL
+	info.installationID = pushEvent.Installation.Id
+
+	return &info
 }
