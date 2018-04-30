@@ -33,6 +33,14 @@ func Handle(req []byte) string {
 		log.Panic(eventErr)
 	}
 
+	defer func() {
+		if r := recover(); r != nil {
+			msg := "failed to build function, check builder log for details"
+			reportStatus("failure", msg, "BUILD", event)
+			log.Fatal(msg, r)
+		}
+	}()
+
 	reader := bytes.NewBuffer(req)
 	res, err := http.Post(builderURL+"build", "application/octet-stream", reader)
 	if err != nil {
