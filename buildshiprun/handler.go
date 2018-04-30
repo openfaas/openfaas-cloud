@@ -35,6 +35,7 @@ func Handle(req []byte) string {
 
 	reader := bytes.NewBuffer(req)
 	res, err := http.Post(builderURL+"build", "application/octet-stream", reader)
+
 	if err != nil {
 		fmt.Println(err)
 		reportStatus("failure", err.Error(), "BUILD", event)
@@ -54,6 +55,15 @@ func Handle(req []byte) string {
 	}
 
 	serviceValue := ""
+
+	log.Printf("buildshiprun: image '%s'\n", imageName)
+
+	if strings.Contains(imageName, "exit status") == true {
+		msg := "Unable to build image, check builder logs"
+		reportStatus("failure", msg, "DEPLOY", event)
+		log.Fatal(msg)
+		return msg
+	}
 
 	if len(imageName) > 0 {
 		gatewayURL := os.Getenv("gateway_url")
