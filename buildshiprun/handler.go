@@ -198,22 +198,42 @@ func deployFunction(deploy deployment, gatewayURL string, c *http.Client) (strin
 	return string(buildStatus), err
 }
 
-func reportStatus(status string, desc string, statusContext string, event *eventInfo) {
+func enableStatusReporting() bool {
+	return os.Getenv("report_status") == "true"
+}
 
-	if os.Getenv("report_status") != "true" {
-		return
-	}
-
+func buildPublicStatusURL(status string, event *eventInfo) string {
 	url := event.url
+
 	if status == "success" {
 		publicURL := os.Getenv("gateway_public_url")
-		// for success status if gateway's public url id set the deployed
-		// function url is used in the commit status
-		if publicURL != "" {
+		gatewayPrettyURL := os.Getenv("gateway_pretty_url")
+
+		if len(gatewayPrettyURL) > 0 {
+			// https://user.get-faas.com/function
+			url = strings.Replace(gatewayPrettyURL, "user", event.owner, 1)
+			url = strings.Replace(url, "function", event.service, 1)
+		} else if len(publicURL) > 0 {
+			if strings.HasSuffix(publicURL, "/") == false {
+				publicURL = publicURL + "/"
+			}
+			// for success status if gateway's public url id set the deployed
+			// function url is used in the commit status
 			serviceValue := fmt.Sprintf("%s-%s", event.owner, event.service)
 			url = publicURL + "function/" + serviceValue
 		}
 	}
+
+	return url
+}
+
+func reportStatus(status string, desc string, statusContext string, event *eventInfo) {
+
+	if !enableStatusReporting() {
+		return
+	}
+
+	url := buildPublicStatusURL(status, event)
 
 	ctx := context.Background()
 
