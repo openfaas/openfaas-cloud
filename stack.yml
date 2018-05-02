@@ -8,19 +8,16 @@ functions:
     handler: ./gh-push
     image: alexellis2/gh-push:0.3.1
     environment:
-      # Http_X_Github_Event: push
+      Http_X_Github_Event: push
       read_timeout: 10
       write_timeout: 10
       write_debug: true
       read_debug: true
       validate_customers: true
       customers_url: "https://raw.githubusercontent.com/openfaas/openfaas-cloud/master/CUSTOMERS"
-      
     environment_file:
       - gateway_config.yml
       - github.yml
-    secrets:
-      - derek-private-key
 
   git-tar:
     lang: dockerfile
@@ -34,8 +31,6 @@ functions:
     environment_file:
       - gateway_config.yml
       - github.yml
-    secrets:
-      - derek-private-key
 
   buildshiprun:
     lang: go
@@ -51,8 +46,6 @@ functions:
       - buildshiprun_limits_swarm.yml
       - gateway_config.yml
       - github.yml
-    secrets:
-      - derek-private-key
 
   list-functions:
     lang: go
@@ -75,7 +68,17 @@ functions:
       write_timeout: 30
     environment_file:
       - gateway_config.yml
-      
+
+  git-status:
+    lang: go
+    handler: ./git-status
+    image: alexellis2/git-status:0.1
+    environment_file:
+      - gateway_config.yml
+      - github.yml
+    secrets:
+      - derek-private-key
+
   git-event:
     lang: go
     handler: ./git-event
@@ -94,3 +97,5 @@ functions:
     environment:
       write_debug: true
       read_debug: true
+
+

@@ -21,42 +21,41 @@ func Handle(req []byte) string {
 
 	builderURL := os.Getenv("builder_url")
 
-	event, eventErr := getEvent()
+	event, eventErr := sdk.BuildEventFromEnv()
 	if eventErr != nil {
 		log.Panic(eventErr)
 	}
 
 	serviceValue := fmt.Sprintf("%s-%s", event.Owner, event.Service)
 
-	envVars := getEnv(event.Service)
-	log.Printf("%d env-vars for %s", len(envVars), serviceValue)
+	log.Printf("%d env-vars for %s", len(event.Environment), serviceValue)
+
+	status := sdk.BuildStatus(event, "")
 
 	reader := bytes.NewBuffer(req)
 	res, err := http.Post(builderURL+"build", "application/octet-stream", reader)
 	if err != nil {
 		fmt.Println(err)
-		reportStatus("failure", err.Error(), "BUILD", event)
+		status.AddStatus(sdk.Failure, err.Error(), sdk.FunctionContext(event.Service))
+		reportStatus(status)
 		return ""
 	}
 
 	defer res.Body.Close()
 	buildStatus, _ := ioutil.ReadAll(res.Body)
-
 	imageName := strings.TrimSpace(string(buildStatus))
-
-	reportStatus("success", fmt.Sprintf("%s build is successful", serviceValue), "BUILD", event)
-	// report pending on deploy status
-	reportStatus("pending", fmt.Sprintf("%s deploy is in progress", serviceValue), "DEPLOY", event)
 
 	repositoryURL := os.Getenv("repository_url")
 
 	if len(repositoryURL) == 0 {
-		fmt.Fprintf(os.Stderr, "repository_url env-var not set")
+		msg := "repository_url env-var not set"
+		fmt.Fprintf(os.Stderr, msg)
+		status.AddStatus(sdk.Failure, msg, sdk.FunctionContext(event.Service))
+		reportStatus(status)
 		os.Exit(1)
 	}
 
 	if len(imageName) > 0 {
-		gatewayURL := os.Getenv("gateway_url")
 
 		// Replace image name for "localhost" for deployment
 		imageName = repositoryURL + imageName[strings.Index(imageName, ":"):]
@@ -82,47 +81,26 @@ func Handle(req []byte) string {
 			Limits: Limits{
 				Memory: defaultMemoryLimit,
 			},
-			EnvVars: envVars,
+			EnvVars: event.Environment,
 		}
+
+		gatewayURL := os.Getenv("gateway_url")
 
 		result, err := deployFunction(deploy, gatewayURL, c)
 
 		if err != nil {
-			reportStatus("failure", err.Error(), "DEPLOY", event)
+			status.AddStatus(sdk.Failure, err.Error(), sdk.FunctionContext(event.Service))
+			reportStatus(status)
 			log.Fatal(err.Error())
 		}
 
 		log.Println(result)
 	}
 
-	reportStatus("success", fmt.Sprintf("function successfully deployed as: %s", serviceValue), "DEPLOY", event)
+	status.AddStatus(sdk.Success, fmt.Sprintf("function successfully deployed as: %s", serviceValue), sdk.FunctionContext(event.Service))
+	reportStatus(status)
+
 	return fmt.Sprintf("buildStatus %s %s %s", buildStatus, imageName, res.Status)
-}
-
-func getEvent() (*sdk.EventInfo, error) {
-	var err error
-	info := sdk.EventInfo{}
-
-	info.Service = os.Getenv("Http_Service")
-	info.Owner = os.Getenv("Http_Owner")
-	info.Repository = os.Getenv("Http_Repo")
-	info.Sha = os.Getenv("Http_Sha")
-	info.URL = os.Getenv("Http_Url")
-	info.InstallationID, err = strconv.Atoi(os.Getenv("Http_Installation_id"))
-	info.PublicURL = os.Getenv("gateway_public_url")
-
-	return &info, err
-}
-
-func getEnv(service string) map[string]string {
-	envVars := make(map[string]string)
-	envErr := json.Unmarshal([]byte(os.Getenv("Http_Env")), &envVars)
-
-	if envErr != nil {
-		log.Printf("Error un-marshaling env-vars for function %s, %s", service, envErr)
-		envVars = make(map[string]string)
-	}
-	return envVars
 }
 
 func functionExists(deploy deployment, gatewayURL string, c *http.Client) (bool, error) {
@@ -130,8 +108,6 @@ func functionExists(deploy deployment, gatewayURL string, c *http.Client) (bool,
 	res, err := http.Get(gatewayURL + "system/functions")
 
 	if err != nil {
-		fmt.Println(err)
-		return false, err
 	}
 
 	defer res.Body.Close()
@@ -185,13 +161,18 @@ func deployFunction(deploy deployment, gatewayURL string, c *http.Client) (strin
 	return string(buildStatus), err
 }
 
-func reportStatus(status string, desc string, statusContext string, event *sdk.EventInfo) {
+func reportStatus(status *sdk.Status) {
 
 	if os.Getenv("report_status") != "true" {
 		return
 	}
 
-	sdk.ReportStatus(status, desc, statusContext, event)
+	gatewayURL := os.Getenv("gateway_url")
+
+	_, reportErr := status.Report(gatewayURL)
+	if reportErr != nil {
+		fmt.Printf("failed to report status %v, error: %s", status.CommitStatuses, reportErr.Error())
+	}
 }
 
 type deployment struct {

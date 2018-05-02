@@ -82,12 +82,15 @@ func Handle(req []byte) string {
 
 	serviceValue := fmt.Sprintf("%s-%s", pushEvent.Repository.Owner.Login, pushEvent.Repository.Name)
 
-	statusEvent := buildStatusEvent(pushEvent)
-	reportStatus("pending", fmt.Sprintf("%s build is in progress", serviceValue), "BUILD", statusEvent)
+	eventInfo := sdk.BuildEventFromPushEvent(pushEvent)
+	status := sdk.BuildStatus(eventInfo, "")
+	status.AddStatus(sdk.Pending, fmt.Sprintf("%s stack deploy is in progress", serviceValue), sdk.Stack)
+	reportStatus(status)
 
 	statusCode, postErr := postEvent(pushEvent)
 	if postErr != nil {
-		reportStatus("failure", postErr.Error(), "BUILD", statusEvent)
+		status.AddStatus(sdk.Failure, postErr.Error(), sdk.Stack)
+		reportStatus(status)
 		return postErr.Error()
 	}
 
@@ -159,24 +162,16 @@ func readBool(key string) bool {
 	return false
 }
 
-func reportStatus(status string, desc string, statusContext string, event *sdk.EventInfo) {
+func reportStatus(status *sdk.Status) {
 
 	if os.Getenv("report_status") != "true" {
 		return
 	}
 
-	sdk.ReportStatus(status, desc, statusContext, event)
-}
+	gatewayURL := os.Getenv("gateway_url")
 
-func buildStatusEvent(pushEvent sdk.PushEvent) *sdk.EventInfo {
-	info := sdk.EventInfo{}
-
-	info.Service = pushEvent.Repository.Name
-	info.Owner = pushEvent.Repository.Owner.Login
-	info.Repository = pushEvent.Repository.Name
-	info.Sha = pushEvent.AfterCommitID
-	info.URL = pushEvent.Repository.CloneURL
-	info.InstallationID = pushEvent.Installation.ID
-
-	return &info
+	_, reportErr := status.Report(gatewayURL)
+	if reportErr != nil {
+		fmt.Printf("failed to report status %v, error: %s", status.CommitStatuses, reportErr.Error())
+	}
 }

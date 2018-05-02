@@ -24,19 +24,22 @@ func Handle(req []byte) []byte {
 		os.Exit(-1)
 	}
 
-	statusEvent := buildStatusEvent(pushEvent)
+	statusEvent := sdk.BuildEventFromPushEvent(pushEvent)
+	status := sdk.BuildStatus(statusEvent, "")
 
 	clonePath, err := clone(pushEvent)
 	if err != nil {
 		log.Println("Clone ", err.Error())
-		reportStatus("failure", "Clone"+err.Error(), "BUILD", statusEvent)
+		status.AddStatus(sdk.Failure, "clone error : "+err.Error(), sdk.Stack)
+		reportStatus(status)
 		os.Exit(-1)
 	}
 
 	stack, err := parseYAML(pushEvent, clonePath)
 	if err != nil {
 		log.Println("parseYAML ", err.Error())
-		reportStatus("failure", "parseYAML"+err.Error(), "BUILD", statusEvent)
+		status.AddStatus(sdk.Failure, "parseYAML error : "+err.Error(), sdk.Stack)
+		reportStatus(status)
 		os.Exit(-1)
 	}
 
@@ -44,7 +47,8 @@ func Handle(req []byte) []byte {
 	shrinkWrapPath, err = shrinkwrap(pushEvent, clonePath)
 	if err != nil {
 		log.Println("Shrinkwrap ", err.Error())
-		reportStatus("failure", "Shrinkwrap"+err.Error(), "BUILD", statusEvent)
+		status.AddStatus(sdk.Failure, "shrinkwrap error : "+err.Error(), sdk.Stack)
+		reportStatus(status)
 		os.Exit(-1)
 	}
 
@@ -52,15 +56,20 @@ func Handle(req []byte) []byte {
 	tars, err = makeTar(pushEvent, shrinkWrapPath, stack)
 	if err != nil {
 		log.Println("Error creating tar(s): ", err.Error())
-		reportStatus("failure", "Error creating tar(s) : "+err.Error(), "BUILD", statusEvent)
+		status.AddStatus(sdk.Failure, "tar(s) creation failed, error : "+err.Error(), sdk.Stack)
+		reportStatus(status)
 		os.Exit(-1)
 	}
 
 	err = deploy(tars, pushEvent, stack)
 	if err != nil {
-		reportStatus("failure", err.Error(), "BUILD", statusEvent)
+		status.AddStatus(sdk.Failure, "stack deploy failed, error : "+err.Error(), sdk.Stack)
+		reportStatus(status)
 		log.Println(err)
 	}
+
+	status.AddStatus(sdk.Success, "stack is successfully deployed", sdk.Stack)
+	reportStatus(status)
 
 	err = collect(pushEvent, stack)
 	if err != nil {
@@ -114,24 +123,16 @@ type GarbageRequest struct {
 	Owner     string   `json:"owner"`
 }
 
-func reportStatus(status string, desc string, statusContext string, event *sdk.EventInfo) {
+func reportStatus(status *sdk.Status) {
 
 	if os.Getenv("report_status") != "true" {
 		return
 	}
 
-	sdk.ReportStatus(status, desc, statusContext, event)
-}
+	gatewayURL := os.Getenv("gateway_url")
 
-func buildStatusEvent(pushEvent sdk.PushEvent) *sdk.EventInfo {
-	info := sdk.EventInfo{}
-
-	info.Service = pushEvent.Repository.Name
-	info.Owner = pushEvent.Repository.Owner.Login
-	info.Repository = pushEvent.Repository.Name
-	info.Sha = pushEvent.AfterCommitID
-	info.URL = pushEvent.Repository.CloneURL
-	info.InstallationID = pushEvent.Installation.ID
-
-	return &info
+	_, reportErr := status.Report(gatewayURL)
+	if reportErr != nil {
+		fmt.Printf("failed to report status %v, error: %s", status.CommitStatuses, reportErr.Error())
+	}
 }
