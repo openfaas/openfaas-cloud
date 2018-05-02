@@ -133,6 +133,6 @@ func reportStatus(status *sdk.Status) {
 
 	_, reportErr := status.Report(gatewayURL)
 	if reportErr != nil {
-		fmt.Printf("failed to report status %v, error: %s", status.CommitStatuses, reportErr.Error())
+		fmt.Printf("failed to report status, error: %s", reportErr.Error())
 	}
 }

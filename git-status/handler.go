@@ -32,6 +32,8 @@ func Handle(req []byte) string {
 		log.Fatal("failed commit statuses are empty: ", status.CommitStatuses)
 	}
 
+	serviceValue = status.EventInfo.Owner + "-" + status.EventInfo.Repository
+
 	// use auth token if provided
 	if status.AuthToken != "" {
 		token = status.AuthToken
@@ -46,7 +48,7 @@ func Handle(req []byte) string {
 		// privateKeyPath := getPrivateKey()
 		// token, tokenErr = auth.MakeAccessTokenForInstallation(os.Getenv("github_app_id"),
 		//      event.installationID, privateKeyPath)
-		token, tokenErr := auth.MakeAccessTokenForInstallation(os.Getenv("github_app_id"), status.EventInfo.InstallationID)
+		token, tokenErr = auth.MakeAccessTokenForInstallation(os.Getenv("github_app_id"), status.EventInfo.InstallationID)
 		if tokenErr != nil {
 			log.Fatalf("failed to report status %v, error: %s\n", status, tokenErr.Error())
 		}
@@ -61,7 +63,7 @@ func Handle(req []byte) string {
 	for _, commitStatus := range status.CommitStatuses {
 		err := ReportStatus(commitStatus.Status, commitStatus.Description, commitStatus.Context, &status.EventInfo)
 		if err != nil {
-			log.Printf("failed to report status %v, error: %s", status, err.Error())
+			log.Fatalf("failed to report status %v, error: %s", status, err.Error())
 		}
 	}
 

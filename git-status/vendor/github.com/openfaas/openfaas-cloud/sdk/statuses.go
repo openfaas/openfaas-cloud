@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 // status constant
@@ -81,15 +82,21 @@ func (status *Status) Report(gateway string) (string, error) {
 
 	res, err := c.Do(httpReq)
 	if err != nil {
-		fmt.Println(err)
 		return "", err
 	}
-	defer res.Body.Close()
-	token, _ := ioutil.ReadAll(res.Body)
 
-	if string(token) != "" {
-		status.AuthToken = string(token)
+	defer res.Body.Close()
+	resData, _ := ioutil.ReadAll(res.Body)
+	token := ""
+	if resData != nil {
+		token = string(resData)
 	}
+
+	if token == "" || strings.Contains(token, "failure") {
+		return "", fmt.Errorf(token)
+	}
+
+	status.AuthToken = string(token)
 
 	// reset old status
 	status.CommitStatuses = make(map[string]CommitStatus)
