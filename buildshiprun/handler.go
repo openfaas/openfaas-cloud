@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/openfaas/openfaas-cloud/sdk"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -12,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
 // Handle a build / deploy request - returns empty string for an error
@@ -31,15 +32,6 @@ func Handle(req []byte) string {
 	log.Printf("%d env-vars for %s", len(event.Environment), serviceValue)
 
 	status := sdk.BuildStatus(event, "")
-
-	defer func() {
-		if r := recover(); r != nil {
-			msg := "failed to build function, check builder log for details : "
-			status.AddStatus(sdk.Failure, msg, sdk.FunctionContext(event.Service))
-			reportStatus(status)
-			log.Fatal(msg, r)
-		}
-	}()
 
 	reader := bytes.NewBuffer(req)
 	res, err := http.Post(builderURL+"build", "application/octet-stream", reader)
@@ -63,6 +55,16 @@ func Handle(req []byte) string {
 		status.AddStatus(sdk.Failure, msg, sdk.FunctionContext(event.Service))
 		reportStatus(status)
 		os.Exit(1)
+	}
+
+	log.Printf("buildshiprun: image '%s'\n", imageName)
+
+	if strings.Contains(imageName, "exit status") == true {
+		msg := "Unable to build image, check builder logs"
+		status.AddStatus(sdk.Failure, msg, sdk.FunctionContext(event.Service))
+		reportStatus(status)
+		log.Fatal(msg)
+		return msg
 	}
 
 	if len(imageName) > 0 {
@@ -171,7 +173,15 @@ func deployFunction(deploy deployment, gatewayURL string, c *http.Client) (strin
 	return string(buildStatus), err
 }
 
+func enableStatusReporting() bool {
+	return os.Getenv("report_status") == "true"
+}
+
 func reportStatus(status *sdk.Status) {
+
+	if !enableStatusReporting() {
+		return
+	}
 
 	if os.Getenv("report_status") != "true" {
 		return

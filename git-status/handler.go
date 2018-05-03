@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/alexellis/derek/auth"
 	"github.com/google/go-github/github"
@@ -70,23 +71,48 @@ func Handle(req []byte) string {
 	return token
 }
 
+func buildPublicStatusURL(status string, statusContext string, event *sdk.Event) string {
+	url := event.URL
+
+	if status == "success" {
+		publicURL := os.Getenv("gateway_public_url")
+		gatewayPrettyURL := os.Getenv("gateway_pretty_url")
+		if statusContext != sdk.Stack {
+			if len(gatewayPrettyURL) > 0 {
+				// https://user.get-faas.com/function
+				url = strings.Replace(gatewayPrettyURL, "user", event.Owner, 1)
+				url = strings.Replace(url, "function", event.Service, 1)
+			} else if len(publicURL) > 0 {
+				if strings.HasSuffix(publicURL, "/") == false {
+					publicURL = publicURL + "/"
+				}
+				// for success status if gateway's public url id set the deployed
+				// function url is used in the commit status
+				serviceValue := fmt.Sprintf("%s-%s", event.Owner, event.Service)
+				url = publicURL + "function/" + serviceValue
+			}
+		} else { // For context Stack on success the gateway url is used
+			if len(gatewayPrettyURL) > 0 {
+				// https://user.get-faas.com/function
+				url = strings.Replace(gatewayPrettyURL, "user", event.Owner, 1)
+				url = strings.Replace(url, "function", "", 1)
+			} else if len(publicURL) > 0 {
+				if strings.HasSuffix(publicURL, "/") == false {
+					publicURL = publicURL + "/"
+				}
+				url = publicURL
+			}
+		}
+	}
+
+	return url
+}
+
 func ReportStatus(status string, desc string, statusContext string, event *sdk.Event) error {
 
 	ctx := context.Background()
 
-	url := event.URL
-
-	publicURL := os.Getenv("gateway_public_url")
-
-	if publicURL != "" {
-		url = publicURL
-		// for function success we use the function link
-		if status == "success" && statusContext != sdk.Stack {
-			// for success status if gateway's public url id set the deployed
-			// function url is used in the commit status
-			url = url + "function/" + serviceValue
-		}
-	}
+	url := buildPublicStatusURL(status, statusContext, event)
 
 	repoStatus := buildStatus(status, desc, statusContext, url)
 

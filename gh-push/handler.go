@@ -174,9 +174,13 @@ func readBool(key string) bool {
 	return false
 }
 
+func enableStatusReporting() bool {
+	return os.Getenv("report_status") == "true"
+}
+
 func reportStatus(status *sdk.Status) {
 
-	if os.Getenv("report_status") != "true" {
+	if !enableStatusReporting() {
 		return
 	}
 
