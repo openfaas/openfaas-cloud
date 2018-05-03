@@ -32,7 +32,6 @@ type Event struct {
 	Image          string            `json:"image"`
 	Sha            string            `json:"sha"`
 	URL            string            `json:"url"`
-	PublicURL      string            `json:"publicURL"`
 	InstallationID int               `json:"installationID"`
 	Environment    map[string]string `json:"environment"`
 }
@@ -62,7 +61,6 @@ func BuildEventFromEnv() (*Event, error) {
 	info.Sha = os.Getenv("Http_Sha")
 	info.URL = os.Getenv("Http_Url")
 	info.InstallationID, err = strconv.Atoi(os.Getenv("Http_Installation_id"))
-	info.PublicURL = os.Getenv("gateway_public_url")
 	info.Environment = GetEnv(info.Service)
 
 	return &info, err

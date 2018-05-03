@@ -32,6 +32,15 @@ func Handle(req []byte) string {
 
 	status := sdk.BuildStatus(event, "")
 
+	defer func() {
+		if r := recover(); r != nil {
+			msg := "failed to build function, check builder log for details : "
+			status.AddStatus(sdk.Failure, msg, sdk.FunctionContext(event.Service))
+			reportStatus(status)
+			log.Fatal(msg, r)
+		}
+	}()
+
 	reader := bytes.NewBuffer(req)
 	res, err := http.Post(builderURL+"build", "application/octet-stream", reader)
 	if err != nil {
@@ -42,6 +51,7 @@ func Handle(req []byte) string {
 	}
 
 	defer res.Body.Close()
+
 	buildStatus, _ := ioutil.ReadAll(res.Body)
 	imageName := strings.TrimSpace(string(buildStatus))
 

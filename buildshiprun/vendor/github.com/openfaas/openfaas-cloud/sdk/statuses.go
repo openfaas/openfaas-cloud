@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
-	"strings"
+	"regexp"
 )
 
 // status constant
@@ -22,6 +23,10 @@ const (
 	Deploy = "%s_deploy"
 	Stack  = "stack-deploy"
 )
+
+const authTokenPattern = "^[A-Za-z0-9-_=]+.[A-Za-z0-9-_=]+.?[A-Za-z0-9-_.+=]*$"
+
+var validToken = regexp.MustCompile(authTokenPattern)
 
 type CommitStatus struct {
 	Status      string `json:"status"`
@@ -87,21 +92,31 @@ func (status *Status) Report(gateway string) (string, error) {
 
 	defer res.Body.Close()
 	resData, _ := ioutil.ReadAll(res.Body)
-	token := ""
-	if resData != nil {
-		token = string(resData)
+	if resData == nil {
+		return "", fmt.Errorf("empty token received")
 	}
 
-	if token == "" || strings.Contains(token, "failure") {
-		return "", fmt.Errorf(token)
+	token := string(resData)
+	if !ValidToken(token) {
+		log.Printf(`invalid auth token received, token : ( %s ),
+make sure logs are disabled for git-status`, token)
+		status.AuthToken = ""
+	} else {
+		status.AuthToken = token
 	}
-
-	status.AuthToken = string(token)
-
 	// reset old status
 	status.CommitStatuses = make(map[string]CommitStatus)
 
 	return string(token), nil
+}
+
+func ValidToken(token string) bool {
+	match := validToken.FindString(token)
+	// token should be the whole string
+	if len(match) == len(token) {
+		return true
+	}
+	return false
 }
 
 // build a github context for a function

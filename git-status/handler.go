@@ -35,9 +35,9 @@ func Handle(req []byte) string {
 	serviceValue = status.EventInfo.Owner + "-" + status.EventInfo.Repository
 
 	// use auth token if provided
-	if status.AuthToken != "" {
+	if status.AuthToken != "" && sdk.ValidToken(status.AuthToken) {
 		token = status.AuthToken
-		log.Printf("reusing provided token")
+		log.Printf("reusing provided auth token: %s", token)
 	} else {
 		var tokenErr error
 		// NOTE: currently vendored derek auth package doesn't take the private key as input;
@@ -73,13 +73,18 @@ func Handle(req []byte) string {
 func ReportStatus(status string, desc string, statusContext string, event *sdk.Event) error {
 
 	ctx := context.Background()
+
 	url := event.URL
 
-	if status == "success" {
-		// for success status if gateway's public url id set the deployed
-		// function url is used in the commit status
-		if event.PublicURL != "" {
-			url = event.PublicURL + "function/" + serviceValue
+	publicURL := os.Getenv("gateway_public_url")
+
+	if publicURL != "" {
+		url = publicURL
+		// for function success we use the function link
+		if status == "success" && statusContext != sdk.Stack {
+			// for success status if gateway's public url id set the deployed
+			// function url is used in the commit status
+			url = url + "function/" + serviceValue
 		}
 	}
 
