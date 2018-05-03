@@ -61,7 +61,7 @@ func Handle(req []byte) []byte {
 		os.Exit(-1)
 	}
 
-	err = deploy(tars, pushEvent, stack)
+	err = deploy(tars, pushEvent, stack, status)
 	if err != nil {
 		status.AddStatus(sdk.Failure, "stack deploy failed, error : "+err.Error(), sdk.Stack)
 		reportStatus(status)

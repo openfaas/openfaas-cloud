@@ -170,7 +170,7 @@ func clone(pushEvent sdk.PushEvent) (string, error) {
 	return destPath, err
 }
 
-func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services) error {
+func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, status *sdk.Status) error {
 
 	owner := pushEvent.Repository.Owner.Login
 	repoName := pushEvent.Repository.Name
@@ -181,15 +181,13 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services) err
 	c := http.Client{}
 	gatewayURL := os.Getenv("gateway_url")
 
-	statusEvent := sdk.BuildEventFromPushEvent(pushEvent)
-	status := sdk.BuildStatus(statusEvent, "")
-
 	for _, tarEntry := range tars {
 		fmt.Println("Deploying service - " + tarEntry.functionName)
 
 		status.AddStatus(sdk.Pending, fmt.Sprintf("%s function deploy is in progress", tarEntry.functionName),
 			sdk.FunctionContext(tarEntry.functionName))
 		reportStatus(status)
+		log.Printf(status.AuthToken)
 
 		fileOpen, err := os.Open(tarEntry.fileName)
 		if err != nil {

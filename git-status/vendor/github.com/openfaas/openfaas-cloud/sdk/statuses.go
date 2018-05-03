@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"strings"
 )
 
 // status constant
@@ -96,6 +97,7 @@ func (status *Status) Report(gateway string) (string, error) {
 	}
 
 	token := string(resData)
+	token = strings.TrimSuffix(token, "\n")
 	if !ValidToken(token) {
 		log.Printf(`invalid auth token received, token : ( %s ),
 make sure combine_output is disabled for git-status`, token)

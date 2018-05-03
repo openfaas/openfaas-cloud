@@ -37,7 +37,7 @@ func Handle(req []byte) string {
 	// use auth token if provided
 	if status.AuthToken != "" && sdk.ValidToken(status.AuthToken) {
 		token = status.AuthToken
-		log.Printf("reusing provided auth token: %s", token)
+		log.Printf("reusing provided auth token\n")
 	} else {
 		var tokenErr error
 		// NOTE: currently vendored derek auth package doesn't take the private key as input;
