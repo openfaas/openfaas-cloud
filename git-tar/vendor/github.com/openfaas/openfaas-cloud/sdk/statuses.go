@@ -19,8 +19,8 @@ const (
 
 // context constant
 const (
-	Build  = "%s_build"
-	Deploy = "%s_deploy"
+	Build  = "%s-build"
+	Deploy = "%s-deploy"
 	Stack  = "stack-deploy"
 )
 
