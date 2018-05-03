@@ -6,9 +6,9 @@ functions:
   gh-push:
     lang: go
     handler: ./gh-push
-    image: alexellis2/gh-push:0.3.1
+    image: alexellis2/gh-push:0.3.2
     environment:
-      Http_X_Github_Event: push
+      # Http_X_Github_Event: push
       read_timeout: 10
       write_timeout: 10
       write_debug: true
@@ -93,7 +93,7 @@ functions:
       - github.yml
       - gateway_config.yml
 
-  audit-event:
+  echo:
     skip_build: true
     image: functions/alpine:latest
     fprocess: cat
@@ -101,4 +101,9 @@ functions:
       write_debug: true
       read_debug: true
 
-
+  audit-event:
+    lang: go
+    handler: ./audit-event
+    image: functions/audit-event:0.1.0
+    environment_file:
+      - slack.yml

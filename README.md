@@ -1,7 +1,7 @@
 OpenFaaS Cloud
 ==============
 
-OpenFaaS Cloud - FaaS in a box with CI/CD for your functions
+OpenFaaS Cloud - GitOps for your functions with native GitHub integrations
 
 ![https://pbs.twimg.com/media/DacWCtZVMAAJQ-u.jpg](https://pbs.twimg.com/media/DacWCtZVMAAJQ-u.jpg)
 
@@ -20,6 +20,10 @@ Features:
 * Subscription to OpenFaaS Cloud is done via a single click using a GitHub App
 * Secured through HMAC - the public facing function "gh-push" uses HMAC to verify the origin of events
 * HTTPS endpoint and build notifications for your commits
+
+## Blog post
+
+Read my [introducing OpenFaaS Cloud](https://blog.alexellis.io/introducing-openfaas-cloud/) blog post for an overview of the idea with examples, screenshots and background on the project.
 
 ## Road map
 
