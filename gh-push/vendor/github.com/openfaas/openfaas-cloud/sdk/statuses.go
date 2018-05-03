@@ -20,7 +20,7 @@ const (
 // context constant
 const (
 	Deploy = "%s"
-	Stack  = "stack-submit"
+	Stack  = "stack-deploy"
 )
 
 const authTokenPattern = "^[A-Za-z0-9-_=]+.[A-Za-z0-9-_=]+.?[A-Za-z0-9-_.+=]*$"
