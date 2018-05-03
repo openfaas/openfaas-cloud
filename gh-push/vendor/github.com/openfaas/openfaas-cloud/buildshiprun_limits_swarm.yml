@@ -1,3 +1,0 @@
-environment:
-  default_memory_limit: 30m   # Kubernetes needs a different style of memory limit i.e. 30 Mi
-

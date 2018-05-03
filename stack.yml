@@ -15,7 +15,6 @@ functions:
       read_debug: true
       validate_customers: true
       customers_url: "https://raw.githubusercontent.com/openfaas/openfaas-cloud/master/CUSTOMERS"
-      
     environment_file:
       - gateway_config.yml
       - github.yml
@@ -31,6 +30,7 @@ functions:
       read_debug: true
     environment_file:
       - gateway_config.yml
+      - github.yml
 
   buildshiprun:
     lang: go
@@ -46,8 +46,6 @@ functions:
       - buildshiprun_limits_swarm.yml
       - gateway_config.yml
       - github.yml
-    secrets:
-      - derek-private-key
 
   list-functions:
     lang: go
@@ -70,7 +68,21 @@ functions:
       write_timeout: 30
     environment_file:
       - gateway_config.yml
-      
+
+  git-status:
+    lang: go
+    handler: ./git-status
+    image: alexellis2/git-status:0.1
+    environment:
+      write_debug: true
+      read_debug: true
+      combine_output: false
+    environment_file:
+      - gateway_config.yml
+      - github.yml
+    secrets:
+      - derek-private-key
+
   git-event:
     lang: go
     handler: ./git-event
