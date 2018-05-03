@@ -68,15 +68,6 @@ func Handle(req []byte) string {
 		return msg
 	}
 
-	log.Printf("buildshiprun: image '%s'\n", imageName)
-
-	if strings.Contains(imageName, "exit status") == true {
-		msg := "Unable to build image, check builder logs"
-		reportStatus("failure", msg, "DEPLOY", event)
-		log.Fatal(msg)
-		return msg
-	}
-
 	if len(imageName) > 0 {
 
 		// Replace image name for "localhost" for deployment
