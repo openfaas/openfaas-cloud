@@ -19,9 +19,8 @@ const (
 
 // context constant
 const (
-	Build  = "%s-build"
-	Deploy = "%s-deploy"
-	Stack  = "stack-deploy"
+	Deploy = "%s"
+	Stack  = "stack-submit"
 )
 
 const authTokenPattern = "^[A-Za-z0-9-_=]+.[A-Za-z0-9-_=]+.?[A-Za-z0-9-_.+=]*$"
@@ -99,7 +98,7 @@ func (status *Status) Report(gateway string) (string, error) {
 	token := string(resData)
 	if !ValidToken(token) {
 		log.Printf(`invalid auth token received, token : ( %s ),
-make sure logs are disabled for git-status`, token)
+make sure combine_output is disabled for git-status`, token)
 		status.AuthToken = ""
 	} else {
 		status.AuthToken = token
@@ -121,7 +120,7 @@ func ValidToken(token string) bool {
 
 // build a github context for a function
 // a context for function build can be created as:
-//   sdk.GetContext(functionName, sdk.Build)
+//   sdk.GetContext(functionName)
 func FunctionContext(function string) string {
 	return fmt.Sprintf(Deploy, function)
 }

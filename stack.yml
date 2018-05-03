@@ -76,6 +76,7 @@ functions:
     environment:
       write_debug: true
       read_debug: true
+      combine_output: false
     environment_file:
       - gateway_config.yml
       - github.yml
