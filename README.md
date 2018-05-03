@@ -36,6 +36,8 @@ Read my [introducing OpenFaaS Cloud](https://blog.alexellis.io/introducing-openf
 - [x] Rate limiting for functions
 - [x] CI/CD for OpenFaaS Cloud
 - [x] Builds with BuildKit
+- [x] UI: [Overview user functions](https://github.com/alexellis/of-cloud-fns) via of-cloud-fns repo
+- [ ] Make build logs available publicly
 - [ ] Gateway deployments/promotions - i.e. only upon GitHub tag or "release"
 - [ ] Make detailed logs available to show build / unit test failures
 - [ ] Unprivileged builds with BuildKit (help wanted)

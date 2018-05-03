@@ -35,6 +35,7 @@ func Handle(req []byte) string {
 
 	reader := bytes.NewBuffer(req)
 	res, err := http.Post(builderURL+"build", "application/octet-stream", reader)
+
 	if err != nil {
 		fmt.Println(err)
 		status.AddStatus(sdk.Failure, err.Error(), sdk.FunctionContext(event.Service))
@@ -63,6 +64,15 @@ func Handle(req []byte) string {
 		msg := "Unable to build image, check builder logs"
 		status.AddStatus(sdk.Failure, msg, sdk.FunctionContext(event.Service))
 		reportStatus(status)
+		log.Fatal(msg)
+		return msg
+	}
+
+	log.Printf("buildshiprun: image '%s'\n", imageName)
+
+	if strings.Contains(imageName, "exit status") == true {
+		msg := "Unable to build image, check builder logs"
+		reportStatus("failure", msg, "DEPLOY", event)
 		log.Fatal(msg)
 		return msg
 	}
