@@ -24,15 +24,22 @@ func Handle(req []byte) []byte {
 		os.Exit(-1)
 	}
 
+	statusEvent := sdk.BuildEventFromPushEvent(pushEvent)
+	status := sdk.BuildStatus(statusEvent, "")
+
 	clonePath, err := clone(pushEvent)
 	if err != nil {
 		log.Println("Clone ", err.Error())
+		status.AddStatus(sdk.Failure, "clone error : "+err.Error(), sdk.Stack)
+		reportStatus(status)
 		os.Exit(-1)
 	}
 
 	stack, err := parseYAML(pushEvent, clonePath)
 	if err != nil {
 		log.Println("parseYAML ", err.Error())
+		status.AddStatus(sdk.Failure, "parseYAML error : "+err.Error(), sdk.Stack)
+		reportStatus(status)
 		os.Exit(-1)
 	}
 
@@ -40,6 +47,8 @@ func Handle(req []byte) []byte {
 	shrinkWrapPath, err = shrinkwrap(pushEvent, clonePath)
 	if err != nil {
 		log.Println("Shrinkwrap ", err.Error())
+		status.AddStatus(sdk.Failure, "shrinkwrap error : "+err.Error(), sdk.Stack)
+		reportStatus(status)
 		os.Exit(-1)
 	}
 
@@ -47,13 +56,20 @@ func Handle(req []byte) []byte {
 	tars, err = makeTar(pushEvent, shrinkWrapPath, stack)
 	if err != nil {
 		log.Println("Error creating tar(s): ", err.Error())
+		status.AddStatus(sdk.Failure, "tar(s) creation failed, error : "+err.Error(), sdk.Stack)
+		reportStatus(status)
 		os.Exit(-1)
 	}
 
-	err = deploy(tars, pushEvent, stack)
+	err = deploy(tars, pushEvent, stack, status)
 	if err != nil {
+		status.AddStatus(sdk.Failure, "stack deploy failed, error : "+err.Error(), sdk.Stack)
+		reportStatus(status)
 		log.Println(err)
 	}
+
+	status.AddStatus(sdk.Success, "stack is successfully deployed", sdk.Stack)
+	reportStatus(status)
 
 	err = collect(pushEvent, stack)
 	if err != nil {
@@ -105,4 +121,22 @@ type GarbageRequest struct {
 	Functions []string `json:"functions"`
 	Repo      string   `json:"repo"`
 	Owner     string   `json:"owner"`
+}
+
+func enableStatusReporting() bool {
+	return os.Getenv("report_status") == "true"
+}
+
+func reportStatus(status *sdk.Status) {
+
+	if !enableStatusReporting() {
+		return
+	}
+
+	gatewayURL := os.Getenv("gateway_url")
+
+	_, reportErr := status.Report(gatewayURL)
+	if reportErr != nil {
+		fmt.Printf("failed to report status, error: %s", reportErr.Error())
+	}
 }
