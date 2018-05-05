@@ -7,9 +7,15 @@
   packages = ["."]
   revision = "e0dc7926d5bc9fefa88db6ff8681f78a25bd78f0"
 
+[[projects]]
+  branch = "master"
+  name = "github.com/openfaas/openfaas-cloud"
+  packages = ["sdk"]
+  revision = "633b10fc2d2ce310b8a209f5d4ded914bb721d7b"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "ebab5fe070f09351a743f5feff04b9ec68cb35c51bc9f5278c87e73da8bc2c5d"
+  inputs-digest = "e4754524bd6666171fbf1bce5417c60509b6921fe94011bc5654d180b68a5e97"
   solver-name = "gps-cdcl"
   solver-version = 1
