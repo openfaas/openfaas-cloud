@@ -15,6 +15,7 @@ import (
 
 	"github.com/alexellis/derek/auth"
 	"github.com/google/go-github/github"
+	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
 const (
@@ -106,6 +107,15 @@ func Handle(req []byte) string {
 
 		log.Println(result)
 	}
+
+	auditEvent := sdk.AuditEvent{
+		Message: "BuildShipRun completed",
+		Owner:   event.owner,
+		Repo:    event.repository,
+		Source:  "buildshiprun",
+	}
+
+	sdk.PostAudit(auditEvent)
 
 	reportStatus("success", fmt.Sprintf("function successfully deployed as: %s", serviceValue), "DEPLOY", event)
 	return fmt.Sprintf("buildStatus %s %s %s", buildStatus, imageName, res.Status)
