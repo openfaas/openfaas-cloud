@@ -58,7 +58,6 @@ func Handle(req []byte) string {
 				if k == "Git-Owner" && v == user {
 					// Hide internal-repo details
 					fn.Image = fn.Image[strings.Index(fn.Image, "/")+1:]
-
 					filtered = append(filtered, fn)
 				}
 			}
@@ -70,7 +69,9 @@ func Handle(req []byte) string {
 }
 
 type function struct {
-	Name   string            `json:"name"`
-	Image  string            `json:"image"`
-	Labels map[string]string `json:"labels"`
+	Name            string            `json:"name"`
+	Image           string            `json:"image"`
+	InvocationCount float64           `json:"invocationCount"`
+	Replicas        uint64            `json:"replicas"`
+	Labels          map[string]string `json:"labels"`
 }
