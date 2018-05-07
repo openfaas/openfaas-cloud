@@ -40,3 +40,21 @@
 [[constraint]]
   branch = "master"
   name = "golang.org/x/sync"
+
+[[override]]
+  name = "github.com/docker/distribution"
+  revision = "30578ca32960a4d368bf6db67b0a33c2a1f3dc6f"
+
+[[override]]
+  name = "google.golang.org/grpc"
+  version = "v1.7.4"
+
+[[override]]
+  # pr#25
+  name = "github.com/grpc-ecosystem/grpc-opentracing"
+  revision = "420e5c3331a082e0c873adeeab1819fe1749dd0b"
+  source = "github.com/tonistiigi/grpc-opentracing"
+
+[prune]
+  go-tests = true
+  unused-packages = true

@@ -6,13 +6,16 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/docker/docker/pkg/archive"
 	"github.com/gorilla/mux"
+	"github.com/moby/buildkit/client"
+	"github.com/moby/buildkit/session"
+	"github.com/moby/buildkit/session/auth/authprovider"
 	"github.com/moby/buildkit/util/appcontext"
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
@@ -88,17 +91,50 @@ func build(w http.ResponseWriter, r *http.Request) ([]byte, error) {
 	if cfg.Frontend == "" {
 		cfg.Frontend = "tonistiigi/dockerfile:v0"
 	}
-
-	cmd := exec.Command("buildctl", "--debug", "build", "--frontend=gateway.v0", "--frontend-opt=source="+cfg.Frontend, "--local=context="+filepath.Join(tmpdir, "context"), "--local=dockerfile="+filepath.Join(tmpdir, "context"), "--no-progress", "--exporter=image",
-		"--exporter-opt=name="+cfg.Ref, "--exporter-opt=push=true", "--exporter-opt=registry.insecure=true")
-	env := os.Environ()
-	env = append(env, "BUILDKIT_HOST=tcp://of-buildkit:1234")
-	cmd.Env = env
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
+	contextDir := filepath.Join(tmpdir, "context")
+	solveOpt := client.SolveOpt{
+		Exporter: "image",
+		ExporterAttrs: map[string]string{
+			"name":              cfg.Ref,
+			"push":              "true",
+			"registry.insecure": "true",
+		},
+		LocalDirs: map[string]string{
+			"context":    contextDir,
+			"dockerfile": contextDir,
+		},
+		Frontend: "gateway.v0",
+		FrontendAttrs: map[string]string{
+			"source": cfg.Frontend,
+		},
+		// ~/.docker/config.json could be provided as Kube or Swarm's secret
+		Session: []session.Attachable{authprovider.NewDockerAuthProvider()},
+	}
+	c, err := client.New("tcp://of-buildkit:1234", client.WithBlock())
+	if err != nil {
 		return nil, err
 	}
-
+	ch := make(chan *client.SolveStatus)
+	eg, ctx := errgroup.WithContext(context.Background())
+	eg.Go(func() error {
+		return c.Solve(ctx, nil, solveOpt, ch)
+	})
+	eg.Go(func() error {
+		for s := range ch {
+			for _, v := range s.Vertexes {
+				log.Printf("vertex: %s %s %v %v", v.Digest, v.Name, v.Started, v.Completed)
+			}
+			for _, s := range s.Statuses {
+				log.Printf("status: %s %s %d", s.Vertex, s.ID, s.Current)
+			}
+			for _, l := range s.Logs {
+				log.Printf("log: %s\n%s", l.Vertex, l.Data)
+			}
+		}
+		return nil
+	})
+	if err := eg.Wait(); err != nil {
+		return nil, err
+	}
 	return []byte(cfg.Ref), nil
 }

@@ -17,7 +17,7 @@ type Output interface {
 
 type Vertex interface {
 	Validate() error
-	Marshal() ([]byte, *pb.OpMetadata, error)
+	Marshal() (digest.Digest, []byte, *OpMetadata, error)
 	Output() Output
 	Inputs() []Output
 }
@@ -48,11 +48,14 @@ func (s State) Value(k interface{}) interface{} {
 	return s.ctx.Value(k)
 }
 
-func (s State) Marshal() (*Definition, error) {
+func (s State) Marshal(md ...MetadataOpt) (*Definition, error) {
 	def := &Definition{
 		Metadata: make(map[digest.Digest]OpMetadata, 0),
 	}
-	def, err := marshal(s.Output().Vertex(), def, map[digest.Digest]struct{}{}, map[Vertex]struct{}{})
+	if s.Output() == nil {
+		return def, nil
+	}
+	def, err := marshal(s.Output().Vertex(), def, map[digest.Digest]struct{}{}, map[Vertex]struct{}{}, md)
 	if err != nil {
 		return def, err
 	}
@@ -69,31 +72,34 @@ func (s State) Marshal() (*Definition, error) {
 	return def, nil
 }
 
-func marshal(v Vertex, def *Definition, cache map[digest.Digest]struct{}, vertexCache map[Vertex]struct{}) (*Definition, error) {
+func marshal(v Vertex, def *Definition, cache map[digest.Digest]struct{}, vertexCache map[Vertex]struct{}, md []MetadataOpt) (*Definition, error) {
+	if _, ok := vertexCache[v]; ok {
+		return def, nil
+	}
 	for _, inp := range v.Inputs() {
 		var err error
-		def, err = marshal(inp.Vertex(), def, cache, vertexCache)
+		def, err = marshal(inp.Vertex(), def, cache, vertexCache, md)
 		if err != nil {
 			return def, err
 		}
 	}
-	if _, ok := vertexCache[v]; ok {
-		return def, nil
-	}
 
-	dt, opMeta, err := v.Marshal()
+	dgst, dt, opMeta, err := v.Marshal()
 	if err != nil {
 		return def, err
 	}
 	vertexCache[v] = struct{}{}
-	dgst := digest.FromBytes(dt)
+	if opMeta != nil {
+		m := mergeMetadata(def.Metadata[dgst], *opMeta)
+		for _, f := range md {
+			f.SetMetadataOption(&m)
+		}
+		def.Metadata[dgst] = m
+	}
 	if _, ok := cache[dgst]; ok {
 		return def, nil
 	}
 	def.Def = append(def.Def, dt)
-	if opMeta != nil {
-		def.Metadata[dgst] = OpMetadata{*opMeta}
-	}
 	cache[dgst] = struct{}{}
 	return def, nil
 }
@@ -114,17 +120,18 @@ func (s State) WithOutput(o Output) State {
 }
 
 func (s State) Run(ro ...RunOption) ExecState {
-	ei := ExecInfo{State: s}
+	ei := &ExecInfo{State: s}
 	for _, o := range ro {
-		ei = o(ei)
+		o.SetRunOption(ei)
 	}
 	meta := Meta{
 		Args: getArgs(ei.State),
 		Cwd:  getDir(ei.State),
 		Env:  getEnv(ei.State),
+		User: getUser(ei.State),
 	}
 
-	exec := NewExecOp(s.Output(), meta, ei.ReadonlyRootFS)
+	exec := NewExecOp(s.Output(), meta, ei.ReadonlyRootFS, ei.Metadata())
 	for _, m := range ei.Mounts {
 		exec.AddMount(m.Target, m.Source, m.Opts...)
 	}
@@ -166,6 +173,10 @@ func (s State) Reset(s2 State) State {
 	return reset(s2)(s)
 }
 
+func (s State) User(v string) State {
+	return user(v)(s)
+}
+
 func (s State) With(so ...StateOption) State {
 	for _, o := range so {
 		s = o(s)
@@ -187,15 +198,85 @@ func (o *output) ToInput() (*pb.Input, error) {
 			return nil, err
 		}
 	}
-	dt, opMeta, err := o.vertex.Marshal()
-	_ = opMeta
+	dgst, _, _, err := o.vertex.Marshal()
 	if err != nil {
 		return nil, err
 	}
-	dgst := digest.FromBytes(dt)
 	return &pb.Input{Digest: dgst, Index: index}, nil
 }
 
 func (o *output) Vertex() Vertex {
 	return o.vertex
+}
+
+type MetadataOpt interface {
+	SetMetadataOption(*OpMetadata)
+	RunOption
+	LocalOption
+	HTTPOption
+	ImageOption
+	GitOption
+}
+
+type metadataOptFunc func(m *OpMetadata)
+
+func (fn metadataOptFunc) SetMetadataOption(m *OpMetadata) {
+	fn(m)
+}
+
+func (fn metadataOptFunc) SetRunOption(ei *ExecInfo) {
+	ei.ApplyMetadata(fn)
+}
+
+func (fn metadataOptFunc) SetLocalOption(li *LocalInfo) {
+	li.ApplyMetadata(fn)
+}
+
+func (fn metadataOptFunc) SetHTTPOption(hi *HTTPInfo) {
+	hi.ApplyMetadata(fn)
+}
+
+func (fn metadataOptFunc) SetImageOption(ii *ImageInfo) {
+	ii.ApplyMetadata(fn)
+}
+
+func (fn metadataOptFunc) SetGitOption(gi *GitInfo) {
+	gi.ApplyMetadata(fn)
+}
+
+func mergeMetadata(m1, m2 OpMetadata) OpMetadata {
+	if m2.IgnoreCache {
+		m1.IgnoreCache = true
+	}
+	if len(m2.Description) > 0 {
+		if m1.Description == nil {
+			m1.Description = make(map[string]string)
+		}
+		for k, v := range m2.Description {
+			m1.Description[k] = v
+		}
+	}
+	return m1
+}
+
+var IgnoreCache = metadataOptFunc(func(md *OpMetadata) {
+	md.IgnoreCache = true
+})
+
+func WithDescription(m map[string]string) MetadataOpt {
+	return metadataOptFunc(func(md *OpMetadata) {
+		md.Description = m
+	})
+}
+
+type opMetaWrapper struct {
+	OpMetadata
+}
+
+func (mw *opMetaWrapper) ApplyMetadata(f func(m *OpMetadata)) {
+	f(&mw.OpMetadata)
+}
+
+func (mw *opMetaWrapper) Metadata() OpMetadata {
+	return mw.OpMetadata
 }
