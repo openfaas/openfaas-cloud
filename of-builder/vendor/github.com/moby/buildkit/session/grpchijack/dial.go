@@ -1,6 +1,8 @@
 package grpchijack
 
 import (
+	"context"
+	"io"
 	"net"
 	"strings"
 	"sync"
@@ -8,16 +10,9 @@ import (
 
 	controlapi "github.com/moby/buildkit/api/services/control"
 	"github.com/moby/buildkit/session"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
-
-var bufPool = sync.Pool{
-	New: func() interface{} {
-		return make([]byte, 32*1<<10)
-	},
-}
 
 func Dialer(api controlapi.ControlClient) session.Dialer {
 	return func(ctx context.Context, proto string, meta map[string][]string) (net.Conn, error) {
@@ -26,28 +21,39 @@ func Dialer(api controlapi.ControlClient) session.Dialer {
 
 		md := metadata.MD(meta)
 
-		ctx = metadata.NewContext(context.Background(), md)
+		ctx = metadata.NewOutgoingContext(ctx, md)
 
 		stream, err := api.Session(ctx)
 		if err != nil {
 			return nil, err
 		}
 
-		return streamToConn(stream), nil
+		c, _ := streamToConn(stream)
+		return c, nil
 	}
 }
 
-func streamToConn(stream grpc.Stream) net.Conn {
-	return &conn{stream: stream, buf: make([]byte, 32*1<<10)}
+func streamToConn(stream grpc.Stream) (net.Conn, <-chan struct{}) {
+	closeCh := make(chan struct{})
+	c := &conn{stream: stream, buf: make([]byte, 32*1<<10), closeCh: closeCh}
+	return c, closeCh
 }
 
 type conn struct {
 	stream  grpc.Stream
 	buf     []byte
 	lastBuf []byte
+
+	closedOnce sync.Once
+	readMu     sync.Mutex
+	err        error
+	closeCh    chan struct{}
 }
 
-func (c *conn) Read(b []byte) (int, error) {
+func (c *conn) Read(b []byte) (n int, err error) {
+	c.readMu.Lock()
+	defer c.readMu.Unlock()
+
 	if c.lastBuf != nil {
 		n := copy(b, c.lastBuf)
 		c.lastBuf = c.lastBuf[n:]
@@ -64,7 +70,7 @@ func (c *conn) Read(b []byte) (int, error) {
 	}
 	c.buf = m.Data[:cap(m.Data)]
 
-	n := copy(b, m.Data)
+	n = copy(b, m.Data)
 	if n < len(m.Data) {
 		c.lastBuf = m.Data[n:]
 	}
@@ -80,26 +86,53 @@ func (c *conn) Write(b []byte) (int, error) {
 	return len(b), nil
 }
 
-func (s *conn) Close() error {
-	if cs, ok := s.stream.(grpc.ClientStream); ok {
-		return cs.CloseSend()
-	}
+func (c *conn) Close() (err error) {
+	c.closedOnce.Do(func() {
+		defer func() {
+			close(c.closeCh)
+		}()
+
+		if cs, ok := c.stream.(grpc.ClientStream); ok {
+			err = cs.CloseSend()
+			if err != nil {
+				return
+			}
+		}
+
+		c.readMu.Lock()
+		for {
+			m := new(controlapi.BytesMessage)
+			m.Data = c.buf
+			err = c.stream.RecvMsg(m)
+			if err != nil {
+				if err != io.EOF {
+					return
+				}
+				err = nil
+				break
+			}
+			c.buf = m.Data[:cap(m.Data)]
+			c.lastBuf = append(c.lastBuf, c.buf...)
+		}
+		c.readMu.Unlock()
+
+	})
 	return nil
 }
 
-func (s *conn) LocalAddr() net.Addr {
+func (c *conn) LocalAddr() net.Addr {
 	return dummyAddr{}
 }
-func (s *conn) RemoteAddr() net.Addr {
+func (c *conn) RemoteAddr() net.Addr {
 	return dummyAddr{}
 }
-func (s *conn) SetDeadline(t time.Time) error {
+func (c *conn) SetDeadline(t time.Time) error {
 	return nil
 }
-func (s *conn) SetReadDeadline(t time.Time) error {
+func (c *conn) SetReadDeadline(t time.Time) error {
 	return nil
 }
-func (s *conn) SetWriteDeadline(t time.Time) error {
+func (c *conn) SetWriteDeadline(t time.Time) error {
 	return nil
 }
 

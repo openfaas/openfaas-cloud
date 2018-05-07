@@ -1,8 +1,8 @@
 package client
 
 const (
-	ExporterImage = "image"
-	ExporterLocal = "local"
-
-	exporterLocalOutputDir = "output"
+	ExporterImage  = "image"
+	ExporterLocal  = "local"
+	ExporterOCI    = "oci"
+	ExporterDocker = "docker"
 )

@@ -12,33 +12,32 @@ var (
 	keyArgs = contextKeyT("llb.exec.args")
 	keyDir  = contextKeyT("llb.exec.dir")
 	keyEnv  = contextKeyT("llb.exec.env")
+	keyUser = contextKeyT("llb.exec.user")
 )
 
 func addEnv(key, value string) StateOption {
 	return addEnvf(key, value)
 }
+
 func addEnvf(key, value string, v ...interface{}) StateOption {
 	return func(s State) State {
 		return s.WithValue(keyEnv, getEnv(s).AddOrReplace(key, fmt.Sprintf(value, v...)))
-	}
-}
-func clearEnv() StateOption {
-	return func(s State) State {
-		return s.WithValue(keyEnv, EnvList{})
-	}
-}
-func delEnv(key string) StateOption {
-	return func(s State) State {
-		return s.WithValue(keyEnv, getEnv(s).Delete(key))
 	}
 }
 
 func dir(str string) StateOption {
 	return dirf(str)
 }
+
 func dirf(str string, v ...interface{}) StateOption {
 	return func(s State) State {
 		return s.WithValue(keyDir, fmt.Sprintf(str, v...))
+	}
+}
+
+func user(str string) StateOption {
+	return func(s State) State {
+		return s.WithValue(keyUser, str)
 	}
 }
 
@@ -72,6 +71,14 @@ func getArgs(s State) []string {
 		return v.([]string)
 	}
 	return nil
+}
+
+func getUser(s State) string {
+	v := s.Value(keyUser)
+	if v != nil {
+		return v.(string)
+	}
+	return ""
 }
 
 func args(args ...string) StateOption {
