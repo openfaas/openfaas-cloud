@@ -20,7 +20,14 @@ OpenFaaS Cloud leverages OpenFaaS functions so will work with Kubernetes, but a 
 
 * Create a GitHub app
 
-Before you start you'll need to create a free GitHub app and select the relevant OAuth permissions. Right now those are just read-only and subscriptions to "push" events.
+Create a GitHub app from your GitHub profile page.
+
+Before you start you'll need to create a free GitHub app and select these OAuth permissions: 
+
+- "Repository contents" read-only
+- "Commit statuses" read and write
+
+Now select only the "push" event.
 
 The GitHub app will deliver webhooks to your OpenFaaS Cloud instance every time code is pushed in a user's function repository. Make sure you provide the public URL for your OpenFaaS gateway to the GitHub app. Like:  
 `http://my.openfaas.cloud/function/gh-push`
