@@ -14,6 +14,8 @@ import (
 	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
+const Source = "gh-tar"
+
 // Handle a serverless request
 func Handle(req []byte) []byte {
 
@@ -59,6 +61,15 @@ func Handle(req []byte) []byte {
 	if err != nil {
 		log.Println(err)
 	}
+
+	auditEvent := sdk.AuditEvent{
+		Message: "Tar Completed",
+		Owner:   pushEvent.Repository.Owner.Login,
+		Repo:    pushEvent.Repository.Name,
+		Source:  Source,
+	}
+
+	sdk.PostAudit(auditEvent)
 
 	return []byte(fmt.Sprintf("Deployed tar from: %s", tars))
 }

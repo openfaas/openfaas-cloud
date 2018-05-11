@@ -10,11 +10,13 @@ import (
 	"os"
 
 	"github.com/alexellis/hmac"
+	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
 // Handle a serverless request
 func Handle(req []byte) string {
 	eventHeader := os.Getenv("Http_X_Github_Event")
+	event := InstallationRepositoriesEvent{}
 
 	if eventHeader == "installation_repositories" {
 		xHubSignature := os.Getenv("Http_X_Hub_Signature")
@@ -27,7 +29,6 @@ func Handle(req []byte) string {
 			}
 		}
 
-		event := InstallationRepositoriesEvent{}
 		err := json.Unmarshal(req, &event)
 		if err != nil {
 			return err.Error()
@@ -50,6 +51,14 @@ func Handle(req []byte) string {
 				)
 			}
 			garbageCollect(garbageRequests)
+
+			auditEvent := sdk.AuditEvent{
+				Message: "Garbage Collection Completed",
+				Owner:   event.Installation.Account.Login,
+				Source:  "git-event",
+			}
+			sdk.PostAudit(auditEvent)
+
 			break
 		}
 

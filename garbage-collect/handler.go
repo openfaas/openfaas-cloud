@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/openfaas/openfaas-cloud/sdk"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -45,6 +46,15 @@ func Handle(req []byte) string {
 			}
 		}
 	}
+
+	auditEvent := sdk.AuditEvent{
+		Message: "Garbage Collection Completed",
+		Owner:   garbageReq.Owner,
+		Repo:    garbageReq.Repo,
+		Source:  "garbage-collect",
+	}
+
+	sdk.PostAudit(auditEvent)
 
 	return fmt.Sprintf("Garbage collection ran: %s", string(req))
 }
