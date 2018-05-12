@@ -143,7 +143,8 @@ func formatImageShaTag(registry string, function *stack.Function, sha string) st
 
 func clone(pushEvent sdk.PushEvent) (string, error) {
 	workDir := os.TempDir()
-	destPath := path.Join(workDir, pushEvent.Repository.Name)
+	destPath := path.Join(workDir, path.Join(pushEvent.Repository.Owner.Login, pushEvent.Repository.Name))
+
 	if _, err := os.Stat(destPath); err == nil {
 		truncateErr := os.RemoveAll(destPath)
 		if truncateErr != nil {
@@ -151,12 +152,21 @@ func clone(pushEvent sdk.PushEvent) (string, error) {
 		}
 	}
 
+	userDir := path.Join(workDir, pushEvent.Repository.Owner.Login)
+	err := os.MkdirAll(userDir, 0777)
+
+	if err != nil {
+		return "", fmt.Errorf("cannot create user-dir: %s", userDir)
+	}
+
 	git := exec.Command("git", "clone", pushEvent.Repository.CloneURL)
-	git.Dir = workDir
-	err := git.Start()
+	git.Dir = path.Join(workDir, pushEvent.Repository.Owner.Login)
+	log.Println(git.Dir)
+	err = git.Start()
 	if err != nil {
 		return "", fmt.Errorf("Cannot start git: %t", err)
 	}
+
 	err = git.Wait()
 
 	git = exec.Command("git", "checkout", pushEvent.AfterCommitID)
