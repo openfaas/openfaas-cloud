@@ -62,7 +62,7 @@ functions:
   garbage-collect:
     lang: go
     handler: ./garbage-collect
-    image: alexellis2/garbage-collect:0.2
+    image: alexellis2/garbage-collect:0.3
     environment:
       write_debug: true
       read_debug: true
