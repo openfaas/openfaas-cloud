@@ -68,9 +68,9 @@ func deleteFunction(target, gatewayURL string) error {
 		Timeout: time.Second * 3,
 	}
 	delReq := struct {
-		Name string
+		FunctionName string
 	}{
-		Name: target,
+		FunctionName: target,
 	}
 
 	bytesReq, _ := json.Marshal(delReq)
