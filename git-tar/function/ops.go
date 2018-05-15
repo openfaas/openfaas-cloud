@@ -216,6 +216,13 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services) err
 
 		httpReq.Header.Add("Env", string(envJSON))
 
+		secretsJSON, marshalErr := json.Marshal(stack.Functions[tarEntry.functionName].Secrets)
+		if marshalErr != nil {
+			log.Printf("Error marshaling secrets for function %s, %s", tarEntry.functionName, marshalErr)
+		}
+
+		httpReq.Header.Add("Secrets", string(secretsJSON))
+
 		res, reqErr := c.Do(httpReq)
 		if reqErr != nil {
 			fmt.Fprintf(os.Stderr, fmt.Errorf("unable to deploy function via buildshiprun: %s", reqErr.Error()).Error())
