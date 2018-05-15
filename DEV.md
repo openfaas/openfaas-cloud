@@ -98,3 +98,12 @@ Within a few seconds you'll have your function deployed and live with a prefix o
 * Find out more
 
 For more information get in touch directly for a private trial of the public service.
+
+### Appendix for Kubernetes
+
+The functions which make up OpenFaaS Cloud are compatible with Kubernetes but some additional work is needed for the registry to make it work as seamlessly as it does on Swarm. The of-builder should also be brought up using a Kubernetes YAML file instead of `docker run` / `docker service create`.
+
+You will need to edit `buildshiprun_limits_swarm.yml` and change the unit value from `30m` to `30Mi` so that Kubernetes can make use of the value.
+
+The way Kubernetes accesses the Docker registry will need a NodePort and a TLS cert (or an insecure-registry setting in the kubelet), so bear this in mind when working through the `of-builder` README.
+
