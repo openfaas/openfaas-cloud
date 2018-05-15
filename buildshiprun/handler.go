@@ -95,6 +95,7 @@ func Handle(req []byte) string {
 				Memory: defaultMemoryLimit,
 			},
 			EnvVars: event.environment,
+			Secrets: event.secrets,
 		}
 
 		result, err := deployFunction(deploy, gatewayURL, c)
@@ -121,16 +122,41 @@ func getEvent() (*eventInfo, error) {
 	info.sha = os.Getenv("Http_Sha")
 	info.url = os.Getenv("Http_Url")
 	info.image = os.Getenv("Http_Image")
-	info.installationID, err = strconv.Atoi(os.Getenv("Http_Installation_id"))
 
+	if len(os.Getenv("Http_Installation_id")) > 0 {
+		info.installationID, err = strconv.Atoi(os.Getenv("Http_Installation_id"))
+	}
+
+	httpEnv := os.Getenv("Http_Env")
 	envVars := make(map[string]string)
-	envErr := json.Unmarshal([]byte(os.Getenv("Http_Env")), &envVars)
 
-	if envErr == nil {
-		info.environment = envVars
-	} else {
-		log.Printf("Error un-marshaling env-vars for function %s, %s", info.service, envErr)
-		info.environment = make(map[string]string)
+	if len(httpEnv) > 0 {
+		envErr := json.Unmarshal([]byte(httpEnv), &envVars)
+
+		if envErr == nil {
+			info.environment = envVars
+		} else {
+			log.Printf("Error un-marshaling env-vars for function %s, %s", info.service, envErr)
+			info.environment = make(map[string]string)
+		}
+	}
+
+	secretVars := []string{}
+	secretsStr := os.Getenv("Http_Secrets")
+
+	if len(secretsStr) > 0 {
+		secretErr := json.Unmarshal([]byte(secretsStr), &secretVars)
+
+		if secretErr != nil {
+			log.Println(secretErr)
+		}
+
+	}
+
+	info.secrets = secretVars
+
+	for i := 0; i < len(info.secrets); i++ {
+		info.secrets[i] = info.owner + "-" + info.secrets[i]
 	}
 
 	log.Printf("%d env-vars for %s", len(info.environment), info.service)
@@ -296,6 +322,7 @@ type eventInfo struct {
 	url            string
 	installationID int
 	environment    map[string]string
+	secrets        []string
 }
 
 type deployment struct {
@@ -306,6 +333,7 @@ type deployment struct {
 	Limits  Limits
 	// EnvVars provides overrides for functions.
 	EnvVars map[string]string `json:"envVars"`
+	Secrets []string
 }
 
 type Limits struct {

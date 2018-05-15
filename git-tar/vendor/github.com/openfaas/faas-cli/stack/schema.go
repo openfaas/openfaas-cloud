@@ -35,6 +35,8 @@ type Function struct {
 	EnvironmentFile []string `yaml:"environment_file"`
 
 	Labels *map[string]string `yaml:"labels"`
+
+	Secrets *[]string `yaml:"secrets"`
 }
 
 // EnvironmentFile represents external file for environment data
