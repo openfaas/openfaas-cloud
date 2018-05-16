@@ -86,7 +86,7 @@ func Handle(req []byte) string {
 			Network: "func_functions",
 			Labels: map[string]string{
 				"Git-Cloud":      "1",
-				"Git-Owner":      event.owner,
+				"Git-Owner":      strings.ToLower(event.owner),
 				"Git-Repo":       event.repository,
 				"Git-DeployTime": strconv.FormatInt(time.Now().Unix(), 10), //Unix Epoch string
 				"Git-SHA":        event.sha,
