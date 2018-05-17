@@ -12,25 +12,27 @@ import (
 	"github.com/moby/buildkit/client/llb"
 	"github.com/moby/buildkit/identity"
 	"github.com/moby/buildkit/session"
-	"github.com/moby/buildkit/session/auth"
 	"github.com/moby/buildkit/session/filesync"
 	"github.com/moby/buildkit/session/grpchijack"
 	"github.com/moby/buildkit/solver/pb"
+	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 )
 
 type SolveOpt struct {
-	Exporter      string
-	ExporterAttrs map[string]string
-	LocalDirs     map[string]string
-	SharedKey     string
-	Frontend      string
-	FrontendAttrs map[string]string
-	ExportCache   string
-	ImportCache   string
-	// Session string
+	Exporter          string
+	ExporterAttrs     map[string]string
+	ExporterOutput    io.WriteCloser // for ExporterOCI and ExporterDocker
+	ExporterOutputDir string         // for ExporterLocal
+	LocalDirs         map[string]string
+	SharedKey         string
+	Frontend          string
+	FrontendAttrs     map[string]string
+	ExportCache       string
+	ImportCache       string
+	Session           []session.Attachable
 }
 
 // Solve calls Solve on the controller.
@@ -60,7 +62,11 @@ func (c *Client) Solve(ctx context.Context, def *llb.Definition, opt SolveOpt, s
 	statusContext, cancelStatus := context.WithCancel(context.Background())
 	defer cancelStatus()
 
-	s, err := session.NewSession(defaultSessionName(), opt.SharedKey)
+	if span := opentracing.SpanFromContext(ctx); span != nil {
+		statusContext = opentracing.ContextWithSpan(statusContext, span)
+	}
+
+	s, err := session.NewSession(statusContext, defaultSessionName(), opt.SharedKey)
 	if err != nil {
 		return errors.Wrap(err, "failed to create session")
 	}
@@ -69,18 +75,38 @@ func (c *Client) Solve(ctx context.Context, def *llb.Definition, opt SolveOpt, s
 		s.Allow(filesync.NewFSSyncProvider(syncedDirs))
 	}
 
-	s.Allow(auth.NewDockerAuthProvider())
+	for _, a := range opt.Session {
+		s.Allow(a)
+	}
 
-	if opt.Exporter == ExporterLocal {
-		outputDir, ok := opt.ExporterAttrs[exporterLocalOutputDir]
-		if !ok {
-			return errors.Errorf("output directory is required for local exporter")
+	switch opt.Exporter {
+	case ExporterLocal:
+		if opt.ExporterOutput != nil {
+			return errors.New("output file writer is not supported by local exporter")
 		}
-		s.Allow(filesync.NewFSSyncTarget(outputDir))
+		if opt.ExporterOutputDir == "" {
+			return errors.New("output directory is required for local exporter")
+		}
+		s.Allow(filesync.NewFSSyncTargetDir(opt.ExporterOutputDir))
+	case ExporterOCI, ExporterDocker:
+		if opt.ExporterOutputDir != "" {
+			return errors.Errorf("output directory %s is not supported by %s exporter", opt.ExporterOutputDir, opt.Exporter)
+		}
+		if opt.ExporterOutput == nil {
+			return errors.Errorf("output file writer is required for %s exporter", opt.Exporter)
+		}
+		s.Allow(filesync.NewFSSyncTarget(opt.ExporterOutput))
+	default:
+		if opt.ExporterOutput != nil {
+			return errors.Errorf("output file writer is not supported by %s exporter", opt.Exporter)
+		}
+		if opt.ExporterOutputDir != "" {
+			return errors.Errorf("output directory %s is not supported by %s exporter", opt.ExporterOutputDir, opt.Exporter)
+		}
 	}
 
 	eg.Go(func() error {
-		return s.Run(ctx, grpchijack.Dialer(c.controlClient()))
+		return s.Run(statusContext, grpchijack.Dialer(c.controlClient()))
 	})
 
 	eg.Go(func() error {

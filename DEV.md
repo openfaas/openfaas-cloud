@@ -20,7 +20,16 @@ OpenFaaS Cloud leverages OpenFaaS functions so will work with Kubernetes, but a 
 
 * Create a GitHub app
 
-Before you start you'll need to create a free GitHub app and select the relevant OAuth permissions. Right now those are just read-only and subscriptions to "push" events.
+Create a GitHub app from your GitHub profile page.
+
+Before you start you'll need to create a free GitHub app and select these OAuth permissions: 
+
+- "Repository contents" read-only
+- "Commit statuses" read and write
+
+Now select only the "push" event.
+
+Now download the private key for your GitHub App which we will use later in the guide for allowing OpenFaaS Cloud to write to commit statuses when a build passes or fails.
 
 The GitHub app will deliver webhooks to your OpenFaaS Cloud instance every time code is pushed in a user's function repository. Make sure you provide the public URL for your OpenFaaS gateway to the GitHub app. Like:  
 `http://my.openfaas.cloud/function/gh-push`
@@ -89,3 +98,12 @@ Within a few seconds you'll have your function deployed and live with a prefix o
 * Find out more
 
 For more information get in touch directly for a private trial of the public service.
+
+### Appendix for Kubernetes
+
+The functions which make up OpenFaaS Cloud are compatible with Kubernetes but some additional work is needed for the registry to make it work as seamlessly as it does on Swarm. The of-builder should also be brought up using a Kubernetes YAML file instead of `docker run` / `docker service create`.
+
+You will need to edit `buildshiprun_limits_swarm.yml` and change the unit value from `30m` to `30Mi` so that Kubernetes can make use of the value.
+
+The way Kubernetes accesses the Docker registry will need a NodePort and a TLS cert (or an insecure-registry setting in the kubelet), so bear this in mind when working through the `of-builder` README.
+

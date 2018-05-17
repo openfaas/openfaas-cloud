@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"github.com/moby/buildkit/solver/pb"
+	digest "github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
 )
 
@@ -12,10 +13,11 @@ type Meta struct {
 	Args []string
 	Env  EnvList
 	Cwd  string
+	User string
 }
 
-func NewExecOp(root Output, meta Meta, readOnly bool) *ExecOp {
-	e := &ExecOp{meta: meta}
+func NewExecOp(root Output, meta Meta, readOnly bool, md OpMetadata) *ExecOp {
+	e := &ExecOp{meta: meta, cachedOpMetadata: md}
 	rootMount := &mount{
 		target:   pb.RootMount,
 		source:   root,
@@ -45,8 +47,10 @@ type ExecOp struct {
 	root             Output
 	mounts           []*mount
 	meta             Meta
+	cachedPBDigest   digest.Digest
 	cachedPB         []byte
-	cachedOpMetadata *pb.OpMetadata
+	cachedOpMetadata OpMetadata
+	isValidated      bool
 }
 
 func (e *ExecOp) AddMount(target string, source Output, opt ...MountOption) Output {
@@ -64,6 +68,7 @@ func (e *ExecOp) AddMount(target string, source Output, opt ...MountOption) Outp
 		m.output = &output{vertex: e, getIndex: e.getMountIndexFn(m)}
 	}
 	e.cachedPB = nil
+	e.isValidated = false
 	return m.output
 }
 
@@ -77,6 +82,9 @@ func (e *ExecOp) GetMount(target string) Output {
 }
 
 func (e *ExecOp) Validate() error {
+	if e.isValidated {
+		return nil
+	}
 	if len(e.meta.Args) == 0 {
 		return errors.Errorf("arguments are required")
 	}
@@ -86,19 +94,20 @@ func (e *ExecOp) Validate() error {
 	for _, m := range e.mounts {
 		if m.source != nil {
 			if err := m.source.Vertex().Validate(); err != nil {
-				return nil
+				return err
 			}
 		}
 	}
+	e.isValidated = true
 	return nil
 }
 
-func (e *ExecOp) Marshal() ([]byte, *pb.OpMetadata, error) {
+func (e *ExecOp) Marshal() (digest.Digest, []byte, *OpMetadata, error) {
 	if e.cachedPB != nil {
-		return e.cachedPB, e.cachedOpMetadata, nil
+		return e.cachedPBDigest, e.cachedPB, &e.cachedOpMetadata, nil
 	}
 	if err := e.Validate(); err != nil {
-		return nil, nil, err
+		return "", nil, nil, err
 	}
 	// make sure mounts are sorted
 	sort.Slice(e.mounts, func(i, j int) bool {
@@ -110,6 +119,7 @@ func (e *ExecOp) Marshal() ([]byte, *pb.OpMetadata, error) {
 			Args: e.meta.Args,
 			Env:  e.meta.Env.ToArray(),
 			Cwd:  e.meta.Cwd,
+			User: e.meta.User,
 		},
 	}
 
@@ -125,7 +135,7 @@ func (e *ExecOp) Marshal() ([]byte, *pb.OpMetadata, error) {
 		if m.source != nil {
 			inp, err := m.source.ToInput()
 			if err != nil {
-				return nil, nil, err
+				return "", nil, nil, err
 			}
 
 			newInput := true
@@ -163,11 +173,11 @@ func (e *ExecOp) Marshal() ([]byte, *pb.OpMetadata, error) {
 
 	dt, err := pop.Marshal()
 	if err != nil {
-		return nil, nil, err
+		return "", nil, nil, err
 	}
+	e.cachedPBDigest = digest.FromBytes(dt)
 	e.cachedPB = dt
-	e.cachedOpMetadata = &pb.OpMetadata{}
-	return dt, e.cachedOpMetadata, nil
+	return e.cachedPBDigest, dt, &e.cachedOpMetadata, nil
 }
 
 func (e *ExecOp) Output() Output {
@@ -237,23 +247,29 @@ func SourcePath(src string) MountOption {
 	}
 }
 
-type RunOption func(es ExecInfo) ExecInfo
+type RunOption interface {
+	SetRunOption(es *ExecInfo)
+}
+
+type runOptionFunc func(*ExecInfo)
+
+func (fn runOptionFunc) SetRunOption(ei *ExecInfo) {
+	fn(ei)
+}
 
 func Shlex(str string) RunOption {
 	return Shlexf(str)
 }
 func Shlexf(str string, v ...interface{}) RunOption {
-	return func(ei ExecInfo) ExecInfo {
+	return runOptionFunc(func(ei *ExecInfo) {
 		ei.State = shlexf(str, v...)(ei.State)
-		return ei
-	}
+	})
 }
 
 func Args(a []string) RunOption {
-	return func(ei ExecInfo) ExecInfo {
+	return runOptionFunc(func(ei *ExecInfo) {
 		ei.State = args(a...)(ei.State)
-		return ei
-	}
+	})
 }
 
 func AddEnv(key, value string) RunOption {
@@ -261,49 +277,52 @@ func AddEnv(key, value string) RunOption {
 }
 
 func AddEnvf(key, value string, v ...interface{}) RunOption {
-	return func(ei ExecInfo) ExecInfo {
+	return runOptionFunc(func(ei *ExecInfo) {
 		ei.State = ei.State.AddEnvf(key, value, v...)
-		return ei
-	}
+	})
+}
+
+func User(str string) RunOption {
+	return runOptionFunc(func(ei *ExecInfo) {
+		ei.State = ei.State.User(str)
+	})
 }
 
 func Dir(str string) RunOption {
 	return Dirf(str)
 }
 func Dirf(str string, v ...interface{}) RunOption {
-	return func(ei ExecInfo) ExecInfo {
+	return runOptionFunc(func(ei *ExecInfo) {
 		ei.State = ei.State.Dirf(str, v...)
-		return ei
-	}
+	})
 }
 
 func Reset(s State) RunOption {
-	return func(ei ExecInfo) ExecInfo {
+	return runOptionFunc(func(ei *ExecInfo) {
 		ei.State = ei.State.Reset(s)
-		return ei
-	}
+	})
 }
 
 func With(so ...StateOption) RunOption {
-	return func(ei ExecInfo) ExecInfo {
+	return runOptionFunc(func(ei *ExecInfo) {
 		ei.State = ei.State.With(so...)
-		return ei
-	}
+	})
 }
 
 func AddMount(dest string, mountState State, opts ...MountOption) RunOption {
-	return func(ei ExecInfo) ExecInfo {
+	return runOptionFunc(func(ei *ExecInfo) {
 		ei.Mounts = append(ei.Mounts, MountInfo{dest, mountState.Output(), opts})
-		return ei
-	}
+	})
 }
 
-func ReadonlyRootFS(ei ExecInfo) ExecInfo {
-	ei.ReadonlyRootFS = true
-	return ei
+func ReadonlyRootFS() RunOption {
+	return runOptionFunc(func(ei *ExecInfo) {
+		ei.ReadonlyRootFS = true
+	})
 }
 
 type ExecInfo struct {
+	opMetaWrapper
 	State          State
 	Mounts         []MountInfo
 	ReadonlyRootFS bool

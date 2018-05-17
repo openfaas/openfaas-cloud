@@ -95,6 +95,7 @@ func Handle(req []byte) string {
 				Memory: defaultMemoryLimit,
 			},
 			EnvVars: event.Environment,
+			Secrets: event.Secrets,
 		}
 
 		gatewayURL := os.Getenv("gateway_url")
@@ -112,7 +113,6 @@ func Handle(req []byte) string {
 
 	status.AddStatus(sdk.Success, fmt.Sprintf("function successfully deployed as: %s", serviceValue), sdk.FunctionContext(event.Service))
 	reportStatus(status)
-
 	return fmt.Sprintf("buildStatus %s %s %s", buildStatus, imageName, res.Status)
 }
 
@@ -186,10 +186,6 @@ func reportStatus(status *sdk.Status) {
 		return
 	}
 
-	if os.Getenv("report_status") != "true" {
-		return
-	}
-
 	gatewayURL := os.Getenv("gateway_url")
 
 	_, reportErr := status.Report(gatewayURL)
@@ -206,6 +202,7 @@ type deployment struct {
 	Limits  Limits
 	// EnvVars provides overrides for functions.
 	EnvVars map[string]string `json:"envVars"`
+	Secrets []string
 }
 
 type Limits struct {

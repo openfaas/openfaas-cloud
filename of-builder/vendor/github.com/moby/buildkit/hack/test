@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-
-set -eu -o pipefail -x
-
-./hack/test-unit
-./hack/test-integration

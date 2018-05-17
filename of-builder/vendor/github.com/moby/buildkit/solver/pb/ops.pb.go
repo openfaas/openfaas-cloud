@@ -4,6 +4,9 @@
 /*
 	Package pb is a generated protocol buffer package.
 
+	Package pb provides the protobuf definition of LLB: low-level builder instruction.
+	LLB is DAG-structured; Op represents a vertex, and Definition represents a graph.
+
 	It is generated from these files:
 		ops.proto
 
@@ -19,6 +22,7 @@
 		BuildOp
 		BuildInput
 		OpMetadata
+		WorkerConstraint
 		Definition
 */
 package pb
@@ -43,7 +47,9 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
+// Op represents a vertex of the LLB DAG.
 type Op struct {
+	// inputs is a set of input edges.
 	Inputs []*Input `protobuf:"bytes,1,rep,name=inputs" json:"inputs,omitempty"`
 	// Types that are valid to be assigned to Op:
 	//	*Op_Exec
@@ -236,9 +242,12 @@ func _Op_OneofSizer(msg proto.Message) (n int) {
 	return n
 }
 
+// Input represents an input edge for an Op.
 type Input struct {
+	// digest of the marshaled input Op
 	Digest github_com_opencontainers_go_digest.Digest `protobuf:"bytes,1,opt,name=digest,proto3,customtype=github.com/opencontainers/go-digest.Digest" json:"digest"`
-	Index  OutputIndex                                `protobuf:"varint,2,opt,name=index,proto3,customtype=OutputIndex" json:"index"`
+	// output index of the input Op
+	Index OutputIndex `protobuf:"varint,2,opt,name=index,proto3,customtype=OutputIndex" json:"index"`
 }
 
 func (m *Input) Reset()                    { *m = Input{} }
@@ -246,6 +255,7 @@ func (m *Input) String() string            { return proto.CompactTextString(m) }
 func (*Input) ProtoMessage()               {}
 func (*Input) Descriptor() ([]byte, []int) { return fileDescriptorOps, []int{1} }
 
+// ExecOp executes a command in a container.
 type ExecOp struct {
 	Meta   *Meta    `protobuf:"bytes,1,opt,name=meta" json:"meta,omitempty"`
 	Mounts []*Mount `protobuf:"bytes,2,rep,name=mounts" json:"mounts,omitempty"`
@@ -270,12 +280,14 @@ func (m *ExecOp) GetMounts() []*Mount {
 	return nil
 }
 
+// Meta is a set of arguments for ExecOp.
 // Meta is unrelated to LLB metadata.
 // FIXME: rename (ExecContext? ExecArgs?)
 type Meta struct {
 	Args []string `protobuf:"bytes,1,rep,name=args" json:"args,omitempty"`
 	Env  []string `protobuf:"bytes,2,rep,name=env" json:"env,omitempty"`
 	Cwd  string   `protobuf:"bytes,3,opt,name=cwd,proto3" json:"cwd,omitempty"`
+	User string   `protobuf:"bytes,4,opt,name=user,proto3" json:"user,omitempty"`
 }
 
 func (m *Meta) Reset()                    { *m = Meta{} }
@@ -304,6 +316,14 @@ func (m *Meta) GetCwd() string {
 	return ""
 }
 
+func (m *Meta) GetUser() string {
+	if m != nil {
+		return m.User
+	}
+	return ""
+}
+
+// Mount specifies how to mount an input Op as a filesystem.
 type Mount struct {
 	Input    InputIndex  `protobuf:"varint,1,opt,name=input,proto3,customtype=InputIndex" json:"input"`
 	Selector string      `protobuf:"bytes,2,opt,name=selector,proto3" json:"selector,omitempty"`
@@ -338,6 +358,7 @@ func (m *Mount) GetReadonly() bool {
 	return false
 }
 
+// CopyOp copies files across Ops.
 type CopyOp struct {
 	Src  []*CopySource `protobuf:"bytes,1,rep,name=src" json:"src,omitempty"`
 	Dest string        `protobuf:"bytes,2,opt,name=dest,proto3" json:"dest,omitempty"`
@@ -362,6 +383,7 @@ func (m *CopyOp) GetDest() string {
 	return ""
 }
 
+// CopySource specifies a source for CopyOp.
 type CopySource struct {
 	Input    InputIndex `protobuf:"varint,1,opt,name=input,proto3,customtype=InputIndex" json:"input"`
 	Selector string     `protobuf:"bytes,2,opt,name=selector,proto3" json:"selector,omitempty"`
@@ -379,10 +401,13 @@ func (m *CopySource) GetSelector() string {
 	return ""
 }
 
+// SourceOp specifies a source such as build contexts and images.
 type SourceOp struct {
-	// source type?
-	Identifier string            `protobuf:"bytes,1,opt,name=identifier,proto3" json:"identifier,omitempty"`
-	Attrs      map[string]string `protobuf:"bytes,2,rep,name=attrs" json:"attrs,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	// TODO: use source type or any type instead of URL protocol.
+	// identifier e.g. local://, docker-image://, git://, https://...
+	Identifier string `protobuf:"bytes,1,opt,name=identifier,proto3" json:"identifier,omitempty"`
+	// attrs are defined in attr.go
+	Attrs map[string]string `protobuf:"bytes,2,rep,name=attrs" json:"attrs,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (m *SourceOp) Reset()                    { *m = SourceOp{} }
@@ -404,6 +429,7 @@ func (m *SourceOp) GetAttrs() map[string]string {
 	return nil
 }
 
+// BuildOp is used for nested build invocation.
 type BuildOp struct {
 	Builder InputIndex             `protobuf:"varint,1,opt,name=builder,proto3,customtype=InputIndex" json:"builder"`
 	Inputs  map[string]*BuildInput `protobuf:"bytes,2,rep,name=inputs" json:"inputs,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value"`
@@ -437,6 +463,7 @@ func (m *BuildOp) GetAttrs() map[string]string {
 	return nil
 }
 
+// BuildInput is used for BuildOp.
 type BuildInput struct {
 	Input InputIndex `protobuf:"varint,1,opt,name=input,proto3,customtype=InputIndex" json:"input"`
 }
@@ -446,9 +473,13 @@ func (m *BuildInput) String() string            { return proto.CompactTextString
 func (*BuildInput) ProtoMessage()               {}
 func (*BuildInput) Descriptor() ([]byte, []int) { return fileDescriptorOps, []int{9} }
 
-// OpMetadata is a per-vertex metadata entry, which can be defined for arbitrary Op vertex by both "script" and build client (e.g. buildctl).
+// OpMetadata is a per-vertex metadata entry, which can be defined for arbitrary Op vertex and overridable on the run time.
 type OpMetadata struct {
+	// ignore_cache specifies to ignore the cache for this Op.
 	IgnoreCache bool `protobuf:"varint,1,opt,name=ignore_cache,json=ignoreCache,proto3" json:"ignore_cache,omitempty"`
+	// Description can be used for keeping any text fields that builder doesn't parse
+	Description      map[string]string `protobuf:"bytes,2,rep,name=description" json:"description,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	WorkerConstraint *WorkerConstraint `protobuf:"bytes,3,opt,name=worker_constraint,json=workerConstraint" json:"worker_constraint,omitempty"`
 }
 
 func (m *OpMetadata) Reset()                    { *m = OpMetadata{} }
@@ -463,17 +494,50 @@ func (m *OpMetadata) GetIgnoreCache() bool {
 	return false
 }
 
+func (m *OpMetadata) GetDescription() map[string]string {
+	if m != nil {
+		return m.Description
+	}
+	return nil
+}
+
+func (m *OpMetadata) GetWorkerConstraint() *WorkerConstraint {
+	if m != nil {
+		return m.WorkerConstraint
+	}
+	return nil
+}
+
+// WorkerConstraint is experimental and likely to be changed.
+type WorkerConstraint struct {
+	Filter []string `protobuf:"bytes,1,rep,name=filter" json:"filter,omitempty"`
+}
+
+func (m *WorkerConstraint) Reset()                    { *m = WorkerConstraint{} }
+func (m *WorkerConstraint) String() string            { return proto.CompactTextString(m) }
+func (*WorkerConstraint) ProtoMessage()               {}
+func (*WorkerConstraint) Descriptor() ([]byte, []int) { return fileDescriptorOps, []int{11} }
+
+func (m *WorkerConstraint) GetFilter() []string {
+	if m != nil {
+		return m.Filter
+	}
+	return nil
+}
+
 // Definition is the LLB definition structure with per-vertex metadata entries
 type Definition struct {
+	// def is a list of marshaled Op messages
 	Def [][]byte `protobuf:"bytes,1,rep,name=def" json:"def,omitempty"`
-	// key = LLB op digest string. Currently, empty string is not expected but may change in the future.
+	// metadata contains metadata for the each of the Op messages.
+	// A key must be an LLB op digest string. Currently, empty string is not expected as a key, but it may change in the future.
 	Metadata map[github_com_opencontainers_go_digest.Digest]OpMetadata `protobuf:"bytes,2,rep,name=metadata,castkey=github.com/opencontainers/go-digest.Digest" json:"metadata" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value"`
 }
 
 func (m *Definition) Reset()                    { *m = Definition{} }
 func (m *Definition) String() string            { return proto.CompactTextString(m) }
 func (*Definition) ProtoMessage()               {}
-func (*Definition) Descriptor() ([]byte, []int) { return fileDescriptorOps, []int{11} }
+func (*Definition) Descriptor() ([]byte, []int) { return fileDescriptorOps, []int{12} }
 
 func (m *Definition) GetDef() [][]byte {
 	if m != nil {
@@ -501,6 +565,7 @@ func init() {
 	proto.RegisterType((*BuildOp)(nil), "pb.BuildOp")
 	proto.RegisterType((*BuildInput)(nil), "pb.BuildInput")
 	proto.RegisterType((*OpMetadata)(nil), "pb.OpMetadata")
+	proto.RegisterType((*WorkerConstraint)(nil), "pb.WorkerConstraint")
 	proto.RegisterType((*Definition)(nil), "pb.Definition")
 }
 func (m *Op) Marshal() (dAtA []byte, err error) {
@@ -715,6 +780,12 @@ func (m *Meta) MarshalTo(dAtA []byte) (int, error) {
 		i++
 		i = encodeVarintOps(dAtA, i, uint64(len(m.Cwd)))
 		i += copy(dAtA[i:], m.Cwd)
+	}
+	if len(m.User) > 0 {
+		dAtA[i] = 0x22
+		i++
+		i = encodeVarintOps(dAtA, i, uint64(len(m.User)))
+		i += copy(dAtA[i:], m.User)
 	}
 	return i, nil
 }
@@ -1001,6 +1072,66 @@ func (m *OpMetadata) MarshalTo(dAtA []byte) (int, error) {
 		}
 		i++
 	}
+	if len(m.Description) > 0 {
+		for k, _ := range m.Description {
+			dAtA[i] = 0x12
+			i++
+			v := m.Description[k]
+			mapSize := 1 + len(k) + sovOps(uint64(len(k))) + 1 + len(v) + sovOps(uint64(len(v)))
+			i = encodeVarintOps(dAtA, i, uint64(mapSize))
+			dAtA[i] = 0xa
+			i++
+			i = encodeVarintOps(dAtA, i, uint64(len(k)))
+			i += copy(dAtA[i:], k)
+			dAtA[i] = 0x12
+			i++
+			i = encodeVarintOps(dAtA, i, uint64(len(v)))
+			i += copy(dAtA[i:], v)
+		}
+	}
+	if m.WorkerConstraint != nil {
+		dAtA[i] = 0x1a
+		i++
+		i = encodeVarintOps(dAtA, i, uint64(m.WorkerConstraint.Size()))
+		n9, err := m.WorkerConstraint.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n9
+	}
+	return i, nil
+}
+
+func (m *WorkerConstraint) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *WorkerConstraint) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Filter) > 0 {
+		for _, s := range m.Filter {
+			dAtA[i] = 0xa
+			i++
+			l = len(s)
+			for l >= 1<<7 {
+				dAtA[i] = uint8(uint64(l)&0x7f | 0x80)
+				l >>= 7
+				i++
+			}
+			dAtA[i] = uint8(l)
+			i++
+			i += copy(dAtA[i:], s)
+		}
+	}
 	return i, nil
 }
 
@@ -1046,34 +1177,16 @@ func (m *Definition) MarshalTo(dAtA []byte) (int, error) {
 			dAtA[i] = 0x12
 			i++
 			i = encodeVarintOps(dAtA, i, uint64((&v).Size()))
-			n9, err := (&v).MarshalTo(dAtA[i:])
+			n10, err := (&v).MarshalTo(dAtA[i:])
 			if err != nil {
 				return 0, err
 			}
-			i += n9
+			i += n10
 		}
 	}
 	return i, nil
 }
 
-func encodeFixed64Ops(dAtA []byte, offset int, v uint64) int {
-	dAtA[offset] = uint8(v)
-	dAtA[offset+1] = uint8(v >> 8)
-	dAtA[offset+2] = uint8(v >> 16)
-	dAtA[offset+3] = uint8(v >> 24)
-	dAtA[offset+4] = uint8(v >> 32)
-	dAtA[offset+5] = uint8(v >> 40)
-	dAtA[offset+6] = uint8(v >> 48)
-	dAtA[offset+7] = uint8(v >> 56)
-	return offset + 8
-}
-func encodeFixed32Ops(dAtA []byte, offset int, v uint32) int {
-	dAtA[offset] = uint8(v)
-	dAtA[offset+1] = uint8(v >> 8)
-	dAtA[offset+2] = uint8(v >> 16)
-	dAtA[offset+3] = uint8(v >> 24)
-	return offset + 4
-}
 func encodeVarintOps(dAtA []byte, offset int, v uint64) int {
 	for v >= 1<<7 {
 		dAtA[offset] = uint8(v&0x7f | 0x80)
@@ -1179,6 +1292,10 @@ func (m *Meta) Size() (n int) {
 		}
 	}
 	l = len(m.Cwd)
+	if l > 0 {
+		n += 1 + l + sovOps(uint64(l))
+	}
+	l = len(m.User)
 	if l > 0 {
 		n += 1 + l + sovOps(uint64(l))
 	}
@@ -1303,6 +1420,30 @@ func (m *OpMetadata) Size() (n int) {
 	_ = l
 	if m.IgnoreCache {
 		n += 2
+	}
+	if len(m.Description) > 0 {
+		for k, v := range m.Description {
+			_ = k
+			_ = v
+			mapEntrySize := 1 + len(k) + sovOps(uint64(len(k))) + 1 + len(v) + sovOps(uint64(len(v)))
+			n += mapEntrySize + 1 + sovOps(uint64(mapEntrySize))
+		}
+	}
+	if m.WorkerConstraint != nil {
+		l = m.WorkerConstraint.Size()
+		n += 1 + l + sovOps(uint64(l))
+	}
+	return n
+}
+
+func (m *WorkerConstraint) Size() (n int) {
+	var l int
+	_ = l
+	if len(m.Filter) > 0 {
+		for _, s := range m.Filter {
+			l = len(s)
+			n += 1 + l + sovOps(uint64(l))
+		}
 	}
 	return n
 }
@@ -1878,6 +2019,35 @@ func (m *Meta) Unmarshal(dAtA []byte) error {
 			}
 			m.Cwd = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field User", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowOps
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthOps
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.User = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipOps(dAtA[iNdEx:])
@@ -2357,51 +2527,14 @@ func (m *SourceOp) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			var keykey uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowOps
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				keykey |= (uint64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			var stringLenmapkey uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowOps
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLenmapkey |= (uint64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLenmapkey := int(stringLenmapkey)
-			if intStringLenmapkey < 0 {
-				return ErrInvalidLengthOps
-			}
-			postStringIndexmapkey := iNdEx + intStringLenmapkey
-			if postStringIndexmapkey > l {
-				return io.ErrUnexpectedEOF
-			}
-			mapkey := string(dAtA[iNdEx:postStringIndexmapkey])
-			iNdEx = postStringIndexmapkey
 			if m.Attrs == nil {
 				m.Attrs = make(map[string]string)
 			}
-			if iNdEx < postIndex {
-				var valuekey uint64
+			var mapkey string
+			var mapvalue string
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return ErrIntOverflowOps
@@ -2411,41 +2544,80 @@ func (m *SourceOp) Unmarshal(dAtA []byte) error {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					valuekey |= (uint64(b) & 0x7F) << shift
+					wire |= (uint64(b) & 0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
-				var stringLenmapvalue uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return ErrIntOverflowOps
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					var stringLenmapkey uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOps
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapkey |= (uint64(b) & 0x7F) << shift
+						if b < 0x80 {
+							break
+						}
 					}
-					if iNdEx >= l {
+					intStringLenmapkey := int(stringLenmapkey)
+					if intStringLenmapkey < 0 {
+						return ErrInvalidLengthOps
+					}
+					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey > l {
 						return io.ErrUnexpectedEOF
 					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					stringLenmapvalue |= (uint64(b) & 0x7F) << shift
-					if b < 0x80 {
-						break
+					mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
+					iNdEx = postStringIndexmapkey
+				} else if fieldNum == 2 {
+					var stringLenmapvalue uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOps
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapvalue |= (uint64(b) & 0x7F) << shift
+						if b < 0x80 {
+							break
+						}
 					}
+					intStringLenmapvalue := int(stringLenmapvalue)
+					if intStringLenmapvalue < 0 {
+						return ErrInvalidLengthOps
+					}
+					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+					if postStringIndexmapvalue > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapvalue = string(dAtA[iNdEx:postStringIndexmapvalue])
+					iNdEx = postStringIndexmapvalue
+				} else {
+					iNdEx = entryPreIndex
+					skippy, err := skipOps(dAtA[iNdEx:])
+					if err != nil {
+						return err
+					}
+					if skippy < 0 {
+						return ErrInvalidLengthOps
+					}
+					if (iNdEx + skippy) > postIndex {
+						return io.ErrUnexpectedEOF
+					}
+					iNdEx += skippy
 				}
-				intStringLenmapvalue := int(stringLenmapvalue)
-				if intStringLenmapvalue < 0 {
-					return ErrInvalidLengthOps
-				}
-				postStringIndexmapvalue := iNdEx + intStringLenmapvalue
-				if postStringIndexmapvalue > l {
-					return io.ErrUnexpectedEOF
-				}
-				mapvalue := string(dAtA[iNdEx:postStringIndexmapvalue])
-				iNdEx = postStringIndexmapvalue
-				m.Attrs[mapkey] = mapvalue
-			} else {
-				var mapvalue string
-				m.Attrs[mapkey] = mapvalue
 			}
+			m.Attrs[mapkey] = mapvalue
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -2542,51 +2714,14 @@ func (m *BuildOp) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			var keykey uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowOps
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				keykey |= (uint64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			var stringLenmapkey uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowOps
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLenmapkey |= (uint64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLenmapkey := int(stringLenmapkey)
-			if intStringLenmapkey < 0 {
-				return ErrInvalidLengthOps
-			}
-			postStringIndexmapkey := iNdEx + intStringLenmapkey
-			if postStringIndexmapkey > l {
-				return io.ErrUnexpectedEOF
-			}
-			mapkey := string(dAtA[iNdEx:postStringIndexmapkey])
-			iNdEx = postStringIndexmapkey
 			if m.Inputs == nil {
 				m.Inputs = make(map[string]*BuildInput)
 			}
-			if iNdEx < postIndex {
-				var valuekey uint64
+			var mapkey string
+			var mapvalue *BuildInput
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return ErrIntOverflowOps
@@ -2596,46 +2731,85 @@ func (m *BuildOp) Unmarshal(dAtA []byte) error {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					valuekey |= (uint64(b) & 0x7F) << shift
+					wire |= (uint64(b) & 0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
-				var mapmsglen int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return ErrIntOverflowOps
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					var stringLenmapkey uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOps
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapkey |= (uint64(b) & 0x7F) << shift
+						if b < 0x80 {
+							break
+						}
 					}
-					if iNdEx >= l {
+					intStringLenmapkey := int(stringLenmapkey)
+					if intStringLenmapkey < 0 {
+						return ErrInvalidLengthOps
+					}
+					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey > l {
 						return io.ErrUnexpectedEOF
 					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					mapmsglen |= (int(b) & 0x7F) << shift
-					if b < 0x80 {
-						break
+					mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
+					iNdEx = postStringIndexmapkey
+				} else if fieldNum == 2 {
+					var mapmsglen int
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOps
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						mapmsglen |= (int(b) & 0x7F) << shift
+						if b < 0x80 {
+							break
+						}
 					}
+					if mapmsglen < 0 {
+						return ErrInvalidLengthOps
+					}
+					postmsgIndex := iNdEx + mapmsglen
+					if mapmsglen < 0 {
+						return ErrInvalidLengthOps
+					}
+					if postmsgIndex > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapvalue = &BuildInput{}
+					if err := mapvalue.Unmarshal(dAtA[iNdEx:postmsgIndex]); err != nil {
+						return err
+					}
+					iNdEx = postmsgIndex
+				} else {
+					iNdEx = entryPreIndex
+					skippy, err := skipOps(dAtA[iNdEx:])
+					if err != nil {
+						return err
+					}
+					if skippy < 0 {
+						return ErrInvalidLengthOps
+					}
+					if (iNdEx + skippy) > postIndex {
+						return io.ErrUnexpectedEOF
+					}
+					iNdEx += skippy
 				}
-				if mapmsglen < 0 {
-					return ErrInvalidLengthOps
-				}
-				postmsgIndex := iNdEx + mapmsglen
-				if mapmsglen < 0 {
-					return ErrInvalidLengthOps
-				}
-				if postmsgIndex > l {
-					return io.ErrUnexpectedEOF
-				}
-				mapvalue := &BuildInput{}
-				if err := mapvalue.Unmarshal(dAtA[iNdEx:postmsgIndex]); err != nil {
-					return err
-				}
-				iNdEx = postmsgIndex
-				m.Inputs[mapkey] = mapvalue
-			} else {
-				var mapvalue *BuildInput
-				m.Inputs[mapkey] = mapvalue
 			}
+			m.Inputs[mapkey] = mapvalue
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
@@ -2696,51 +2870,14 @@ func (m *BuildOp) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			var keykey uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowOps
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				keykey |= (uint64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			var stringLenmapkey uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowOps
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLenmapkey |= (uint64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLenmapkey := int(stringLenmapkey)
-			if intStringLenmapkey < 0 {
-				return ErrInvalidLengthOps
-			}
-			postStringIndexmapkey := iNdEx + intStringLenmapkey
-			if postStringIndexmapkey > l {
-				return io.ErrUnexpectedEOF
-			}
-			mapkey := string(dAtA[iNdEx:postStringIndexmapkey])
-			iNdEx = postStringIndexmapkey
 			if m.Attrs == nil {
 				m.Attrs = make(map[string]string)
 			}
-			if iNdEx < postIndex {
-				var valuekey uint64
+			var mapkey string
+			var mapvalue string
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return ErrIntOverflowOps
@@ -2750,41 +2887,80 @@ func (m *BuildOp) Unmarshal(dAtA []byte) error {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					valuekey |= (uint64(b) & 0x7F) << shift
+					wire |= (uint64(b) & 0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
-				var stringLenmapvalue uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return ErrIntOverflowOps
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					var stringLenmapkey uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOps
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapkey |= (uint64(b) & 0x7F) << shift
+						if b < 0x80 {
+							break
+						}
 					}
-					if iNdEx >= l {
+					intStringLenmapkey := int(stringLenmapkey)
+					if intStringLenmapkey < 0 {
+						return ErrInvalidLengthOps
+					}
+					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey > l {
 						return io.ErrUnexpectedEOF
 					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					stringLenmapvalue |= (uint64(b) & 0x7F) << shift
-					if b < 0x80 {
-						break
+					mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
+					iNdEx = postStringIndexmapkey
+				} else if fieldNum == 2 {
+					var stringLenmapvalue uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOps
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapvalue |= (uint64(b) & 0x7F) << shift
+						if b < 0x80 {
+							break
+						}
 					}
+					intStringLenmapvalue := int(stringLenmapvalue)
+					if intStringLenmapvalue < 0 {
+						return ErrInvalidLengthOps
+					}
+					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+					if postStringIndexmapvalue > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapvalue = string(dAtA[iNdEx:postStringIndexmapvalue])
+					iNdEx = postStringIndexmapvalue
+				} else {
+					iNdEx = entryPreIndex
+					skippy, err := skipOps(dAtA[iNdEx:])
+					if err != nil {
+						return err
+					}
+					if skippy < 0 {
+						return ErrInvalidLengthOps
+					}
+					if (iNdEx + skippy) > postIndex {
+						return io.ErrUnexpectedEOF
+					}
+					iNdEx += skippy
 				}
-				intStringLenmapvalue := int(stringLenmapvalue)
-				if intStringLenmapvalue < 0 {
-					return ErrInvalidLengthOps
-				}
-				postStringIndexmapvalue := iNdEx + intStringLenmapvalue
-				if postStringIndexmapvalue > l {
-					return io.ErrUnexpectedEOF
-				}
-				mapvalue := string(dAtA[iNdEx:postStringIndexmapvalue])
-				iNdEx = postStringIndexmapvalue
-				m.Attrs[mapkey] = mapvalue
-			} else {
-				var mapvalue string
-				m.Attrs[mapkey] = mapvalue
 			}
+			m.Attrs[mapkey] = mapvalue
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -2925,6 +3101,236 @@ func (m *OpMetadata) Unmarshal(dAtA []byte) error {
 				}
 			}
 			m.IgnoreCache = bool(v != 0)
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowOps
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthOps
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Description == nil {
+				m.Description = make(map[string]string)
+			}
+			var mapkey string
+			var mapvalue string
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowOps
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					wire |= (uint64(b) & 0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					var stringLenmapkey uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOps
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapkey |= (uint64(b) & 0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapkey := int(stringLenmapkey)
+					if intStringLenmapkey < 0 {
+						return ErrInvalidLengthOps
+					}
+					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
+					iNdEx = postStringIndexmapkey
+				} else if fieldNum == 2 {
+					var stringLenmapvalue uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOps
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapvalue |= (uint64(b) & 0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapvalue := int(stringLenmapvalue)
+					if intStringLenmapvalue < 0 {
+						return ErrInvalidLengthOps
+					}
+					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+					if postStringIndexmapvalue > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapvalue = string(dAtA[iNdEx:postStringIndexmapvalue])
+					iNdEx = postStringIndexmapvalue
+				} else {
+					iNdEx = entryPreIndex
+					skippy, err := skipOps(dAtA[iNdEx:])
+					if err != nil {
+						return err
+					}
+					if skippy < 0 {
+						return ErrInvalidLengthOps
+					}
+					if (iNdEx + skippy) > postIndex {
+						return io.ErrUnexpectedEOF
+					}
+					iNdEx += skippy
+				}
+			}
+			m.Description[mapkey] = mapvalue
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field WorkerConstraint", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowOps
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthOps
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.WorkerConstraint == nil {
+				m.WorkerConstraint = &WorkerConstraint{}
+			}
+			if err := m.WorkerConstraint.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipOps(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthOps
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *WorkerConstraint) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowOps
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: WorkerConstraint: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: WorkerConstraint: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Filter", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowOps
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthOps
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Filter = append(m.Filter, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipOps(dAtA[iNdEx:])
@@ -3030,51 +3436,14 @@ func (m *Definition) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			var keykey uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowOps
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				keykey |= (uint64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			var stringLenmapkey uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowOps
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLenmapkey |= (uint64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLenmapkey := int(stringLenmapkey)
-			if intStringLenmapkey < 0 {
-				return ErrInvalidLengthOps
-			}
-			postStringIndexmapkey := iNdEx + intStringLenmapkey
-			if postStringIndexmapkey > l {
-				return io.ErrUnexpectedEOF
-			}
-			mapkey := github_com_opencontainers_go_digest.Digest(dAtA[iNdEx:postStringIndexmapkey])
-			iNdEx = postStringIndexmapkey
 			if m.Metadata == nil {
 				m.Metadata = make(map[github_com_opencontainers_go_digest.Digest]OpMetadata)
 			}
-			if iNdEx < postIndex {
-				var valuekey uint64
+			var mapkey github_com_opencontainers_go_digest.Digest
+			mapvalue := &OpMetadata{}
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return ErrIntOverflowOps
@@ -3084,46 +3453,85 @@ func (m *Definition) Unmarshal(dAtA []byte) error {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					valuekey |= (uint64(b) & 0x7F) << shift
+					wire |= (uint64(b) & 0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
-				var mapmsglen int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return ErrIntOverflowOps
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					var stringLenmapkey uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOps
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapkey |= (uint64(b) & 0x7F) << shift
+						if b < 0x80 {
+							break
+						}
 					}
-					if iNdEx >= l {
+					intStringLenmapkey := int(stringLenmapkey)
+					if intStringLenmapkey < 0 {
+						return ErrInvalidLengthOps
+					}
+					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey > l {
 						return io.ErrUnexpectedEOF
 					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					mapmsglen |= (int(b) & 0x7F) << shift
-					if b < 0x80 {
-						break
+					mapkey = github_com_opencontainers_go_digest.Digest(dAtA[iNdEx:postStringIndexmapkey])
+					iNdEx = postStringIndexmapkey
+				} else if fieldNum == 2 {
+					var mapmsglen int
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOps
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						mapmsglen |= (int(b) & 0x7F) << shift
+						if b < 0x80 {
+							break
+						}
 					}
+					if mapmsglen < 0 {
+						return ErrInvalidLengthOps
+					}
+					postmsgIndex := iNdEx + mapmsglen
+					if mapmsglen < 0 {
+						return ErrInvalidLengthOps
+					}
+					if postmsgIndex > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapvalue = &OpMetadata{}
+					if err := mapvalue.Unmarshal(dAtA[iNdEx:postmsgIndex]); err != nil {
+						return err
+					}
+					iNdEx = postmsgIndex
+				} else {
+					iNdEx = entryPreIndex
+					skippy, err := skipOps(dAtA[iNdEx:])
+					if err != nil {
+						return err
+					}
+					if skippy < 0 {
+						return ErrInvalidLengthOps
+					}
+					if (iNdEx + skippy) > postIndex {
+						return io.ErrUnexpectedEOF
+					}
+					iNdEx += skippy
 				}
-				if mapmsglen < 0 {
-					return ErrInvalidLengthOps
-				}
-				postmsgIndex := iNdEx + mapmsglen
-				if mapmsglen < 0 {
-					return ErrInvalidLengthOps
-				}
-				if postmsgIndex > l {
-					return io.ErrUnexpectedEOF
-				}
-				mapvalue := &OpMetadata{}
-				if err := mapvalue.Unmarshal(dAtA[iNdEx:postmsgIndex]); err != nil {
-					return err
-				}
-				iNdEx = postmsgIndex
-				m.Metadata[github_com_opencontainers_go_digest.Digest(mapkey)] = *mapvalue
-			} else {
-				var mapvalue OpMetadata
-				m.Metadata[github_com_opencontainers_go_digest.Digest(mapkey)] = mapvalue
 			}
+			m.Metadata[github_com_opencontainers_go_digest.Digest(mapkey)] = *mapvalue
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -3254,52 +3662,58 @@ var (
 func init() { proto.RegisterFile("ops.proto", fileDescriptorOps) }
 
 var fileDescriptorOps = []byte{
-	// 745 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x55, 0xdf, 0x6a, 0x13, 0x4f,
-	0x14, 0xee, 0x6e, 0xfe, 0x34, 0x39, 0xe9, 0xef, 0x47, 0x19, 0x45, 0x43, 0x28, 0x69, 0x5c, 0x45,
-	0xa2, 0xb6, 0x09, 0x44, 0x90, 0xe2, 0x45, 0xc1, 0xb4, 0x05, 0xa3, 0x94, 0xc0, 0xf8, 0x00, 0xb2,
-	0xd9, 0x9d, 0xa4, 0x8b, 0xc9, 0xce, 0xb2, 0x3b, 0x5b, 0x9b, 0x1b, 0x2f, 0x7c, 0x02, 0xc1, 0xb7,
-	0xf0, 0x1d, 0xf4, 0xba, 0x97, 0xde, 0xea, 0x45, 0x95, 0xfa, 0x22, 0x72, 0xce, 0x4c, 0xb2, 0x5b,
-	0xac, 0x50, 0xd1, 0xab, 0xcc, 0x9c, 0xf3, 0xcd, 0x37, 0xdf, 0xf9, 0xce, 0x99, 0x0d, 0x54, 0x65,
-	0x94, 0x74, 0xa2, 0x58, 0x2a, 0xc9, 0xec, 0x68, 0xd4, 0xd8, 0x9e, 0x04, 0xea, 0x28, 0x1d, 0x75,
-	0x3c, 0x39, 0xeb, 0x4e, 0xe4, 0x44, 0x76, 0x29, 0x35, 0x4a, 0xc7, 0xb4, 0xa3, 0x0d, 0xad, 0xf4,
-	0x11, 0xe7, 0x93, 0x05, 0xf6, 0x30, 0x62, 0xb7, 0xa0, 0x1c, 0x84, 0x51, 0xaa, 0x92, 0xba, 0xd5,
-	0x2a, 0xb4, 0x6b, 0xbd, 0x6a, 0x27, 0x1a, 0x75, 0x06, 0x18, 0xe1, 0x26, 0xc1, 0x5a, 0x50, 0x14,
-	0x27, 0xc2, 0xab, 0xdb, 0x2d, 0xab, 0x5d, 0xeb, 0x01, 0x02, 0x0e, 0x4e, 0x84, 0x37, 0x8c, 0x9e,
-	0xae, 0x70, 0xca, 0xb0, 0xbb, 0x50, 0x4e, 0x64, 0x1a, 0x7b, 0xa2, 0x5e, 0x20, 0xcc, 0x1a, 0x62,
-	0x5e, 0x50, 0x84, 0x50, 0x26, 0x8b, 0x4c, 0x9e, 0x8c, 0xe6, 0xf5, 0x62, 0xc6, 0xb4, 0x27, 0xa3,
-	0xb9, 0x66, 0xc2, 0x0c, 0xbb, 0x0d, 0xa5, 0x51, 0x1a, 0x4c, 0xfd, 0x7a, 0x89, 0x20, 0x35, 0x84,
-	0xf4, 0x31, 0x40, 0x18, 0x9d, 0xeb, 0x17, 0xc1, 0x96, 0x91, 0xf3, 0x06, 0x4a, 0xa4, 0x93, 0x3d,
-	0x83, 0xb2, 0x1f, 0x4c, 0x44, 0xa2, 0xea, 0x56, 0xcb, 0x6a, 0x57, 0xfb, 0xbd, 0xd3, 0xb3, 0xcd,
-	0x95, 0xaf, 0x67, 0x9b, 0xf7, 0x73, 0x86, 0xc8, 0x48, 0x84, 0x9e, 0x0c, 0x95, 0x1b, 0x84, 0x22,
-	0x4e, 0xba, 0x13, 0xb9, 0xad, 0x8f, 0x74, 0xf6, 0xe9, 0x87, 0x1b, 0x06, 0x76, 0x0f, 0x4a, 0x41,
-	0xe8, 0x8b, 0x13, 0x2a, 0xb6, 0xd0, 0xbf, 0x66, 0xa8, 0x6a, 0xc3, 0x54, 0x45, 0xa9, 0x1a, 0x60,
-	0x8a, 0x6b, 0x84, 0x33, 0x80, 0xb2, 0xb6, 0x81, 0x6d, 0x40, 0x71, 0x26, 0x94, 0x4b, 0xd7, 0xd7,
-	0x7a, 0x15, 0xd4, 0x7c, 0x28, 0x94, 0xcb, 0x29, 0x8a, 0x0e, 0xcf, 0x64, 0x1a, 0xaa, 0xa4, 0x6e,
-	0x67, 0x0e, 0x1f, 0x62, 0x84, 0x9b, 0x84, 0xb3, 0x0b, 0x45, 0x3c, 0xc0, 0x18, 0x14, 0xdd, 0x78,
-	0xa2, 0x5b, 0x51, 0xe5, 0xb4, 0x66, 0xeb, 0x50, 0x10, 0xe1, 0x31, 0x9d, 0xad, 0x72, 0x5c, 0x62,
-	0xc4, 0x7b, 0xed, 0x93, 0xd5, 0x55, 0x8e, 0x4b, 0xe7, 0x83, 0x05, 0x25, 0x62, 0x64, 0x6d, 0xd4,
-	0x1f, 0xa5, 0xda, 0x8a, 0x42, 0x9f, 0x19, 0xfd, 0x40, 0x4e, 0x2d, 0xe5, 0xa3, 0x6b, 0x0d, 0xa8,
-	0x24, 0x62, 0x2a, 0x3c, 0x25, 0x63, 0x2a, 0xb6, 0xca, 0x97, 0x7b, 0xd4, 0xe1, 0xa3, 0x9f, 0xfa,
-	0x0a, 0x5a, 0xb3, 0x07, 0x50, 0x96, 0x64, 0x02, 0x75, 0xef, 0x37, 0xd6, 0x18, 0x08, 0x92, 0xc7,
-	0xc2, 0xf5, 0x65, 0x38, 0x9d, 0x53, 0x27, 0x2b, 0x7c, 0xb9, 0x77, 0x76, 0xa1, 0xac, 0x9b, 0xce,
-	0x5a, 0x50, 0x48, 0x62, 0xcf, 0x0c, 0xde, 0xff, 0x8b, 0x69, 0xd0, 0x73, 0xc3, 0x31, 0xb5, 0x14,
-	0x62, 0x67, 0x42, 0x1c, 0x0e, 0x90, 0xc1, 0xfe, 0x4d, 0xc1, 0xce, 0x7b, 0x0b, 0x2a, 0x8b, 0x79,
-	0x65, 0x4d, 0x80, 0xc0, 0x17, 0xa1, 0x0a, 0xc6, 0x81, 0x88, 0xf5, 0x4c, 0xf1, 0x5c, 0x84, 0x6d,
-	0x43, 0xc9, 0x55, 0x2a, 0x5e, 0xf4, 0xf3, 0x66, 0x7e, 0xd8, 0x3b, 0x4f, 0x30, 0x73, 0x10, 0xaa,
-	0x78, 0xce, 0x35, 0xaa, 0xb1, 0x03, 0x90, 0x05, 0xb1, 0x79, 0xaf, 0xc4, 0xdc, 0xb0, 0xe2, 0x92,
-	0x5d, 0x87, 0xd2, 0xb1, 0x3b, 0x4d, 0x85, 0x11, 0xa5, 0x37, 0x8f, 0xed, 0x1d, 0xcb, 0xf9, 0x68,
-	0xc3, 0xaa, 0x19, 0x7e, 0xb6, 0x05, 0xab, 0x34, 0xfc, 0x46, 0xd1, 0xe5, 0x95, 0x2e, 0x20, 0xac,
-	0xbb, 0x7c, 0xd5, 0x39, 0x8d, 0x86, 0x4a, 0xbf, 0x6e, 0xa3, 0x31, 0x7b, 0xe3, 0x05, 0x5f, 0x8c,
-	0xcd, 0xf3, 0xa5, 0x56, 0xec, 0x8b, 0x71, 0x10, 0x06, 0x2a, 0x90, 0x21, 0xc7, 0x14, 0xdb, 0x5a,
-	0x54, 0x5d, 0x24, 0xc6, 0x1b, 0x79, 0xc6, 0x5f, 0x8b, 0x1e, 0x40, 0x2d, 0x77, 0xcd, 0x25, 0x55,
-	0xdf, 0xc9, 0x57, 0x6d, 0xae, 0x24, 0x3a, 0xfd, 0xed, 0xc9, 0x5c, 0xf8, 0x0b, 0xff, 0x1e, 0x01,
-	0x64, 0x94, 0x57, 0x9f, 0x14, 0xa7, 0x0b, 0x30, 0x8c, 0xf0, 0x41, 0xfa, 0x2e, 0xbd, 0xdf, 0xb5,
-	0x60, 0x12, 0xca, 0x58, 0xbc, 0xf4, 0x5c, 0xef, 0x48, 0xd0, 0xf1, 0x0a, 0xaf, 0xe9, 0xd8, 0x1e,
-	0x86, 0x9c, 0x2f, 0x16, 0x40, 0xe6, 0x17, 0x6a, 0x44, 0x33, 0x71, 0xae, 0xd7, 0xb4, 0x79, 0x53,
-	0xa8, 0xcc, 0x0c, 0x9f, 0xe9, 0xc8, 0xc6, 0x45, 0x8f, 0x3b, 0x8b, 0xeb, 0xa8, 0x4a, 0xfd, 0x09,
-	0x7b, 0xfb, 0xed, 0x8f, 0x3e, 0x61, 0xcb, 0x1b, 0x1a, 0xcf, 0xe1, 0xbf, 0x0b, 0x74, 0x57, 0xb4,
-	0x3f, 0xab, 0x39, 0x67, 0x62, 0x7f, 0xfd, 0xf4, 0xbc, 0x69, 0x7d, 0x3e, 0x6f, 0x5a, 0xdf, 0xcf,
-	0x9b, 0xd6, 0xbb, 0x1f, 0xcd, 0x95, 0x51, 0x99, 0xfe, 0x40, 0x1e, 0xfe, 0x0c, 0x00, 0x00, 0xff,
-	0xff, 0x06, 0xdc, 0x39, 0x16, 0x80, 0x06, 0x00, 0x00,
+	// 842 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x55, 0xc1, 0x8e, 0x1b, 0x45,
+	0x10, 0xdd, 0x19, 0xdb, 0x13, 0x4f, 0xcd, 0x82, 0x4c, 0x13, 0x05, 0xcb, 0x8a, 0xbc, 0x66, 0x40,
+	0x68, 0x09, 0xd9, 0x59, 0x69, 0x91, 0x50, 0xc4, 0x21, 0xd2, 0x7a, 0x37, 0x12, 0x0b, 0x8a, 0x56,
+	0x6a, 0x0e, 0x1c, 0xa3, 0xf1, 0x4c, 0xdb, 0x69, 0xc5, 0x9e, 0x1e, 0xf5, 0xf4, 0x64, 0xd7, 0x17,
+	0x0e, 0x7c, 0x01, 0x12, 0x7f, 0xc1, 0x3f, 0xc0, 0x39, 0x47, 0xae, 0x70, 0x08, 0x68, 0xf9, 0x06,
+	0xee, 0xa8, 0xaa, 0xdb, 0x9e, 0xc9, 0x12, 0xa4, 0xac, 0xe0, 0xe4, 0xee, 0xaa, 0xd7, 0xaf, 0xaa,
+	0x5e, 0x55, 0x8d, 0x21, 0x54, 0x65, 0x95, 0x94, 0x5a, 0x19, 0xc5, 0xfc, 0x72, 0x36, 0x3a, 0x58,
+	0x48, 0xf3, 0xb4, 0x9e, 0x25, 0x99, 0x5a, 0x1d, 0x2e, 0xd4, 0x42, 0x1d, 0x92, 0x6b, 0x56, 0xcf,
+	0xe9, 0x46, 0x17, 0x3a, 0xd9, 0x27, 0xf1, 0xcf, 0x1e, 0xf8, 0xe7, 0x25, 0x7b, 0x1f, 0x02, 0x59,
+	0x94, 0xb5, 0xa9, 0x86, 0xde, 0xa4, 0xb3, 0x1f, 0x1d, 0x85, 0x49, 0x39, 0x4b, 0xce, 0xd0, 0xc2,
+	0x9d, 0x83, 0x4d, 0xa0, 0x2b, 0x2e, 0x45, 0x36, 0xf4, 0x27, 0xde, 0x7e, 0x74, 0x04, 0x08, 0x78,
+	0x74, 0x29, 0xb2, 0xf3, 0xf2, 0x8b, 0x1d, 0x4e, 0x1e, 0xf6, 0x11, 0x04, 0x95, 0xaa, 0x75, 0x26,
+	0x86, 0x1d, 0xc2, 0xec, 0x22, 0xe6, 0x6b, 0xb2, 0x10, 0xca, 0x79, 0x91, 0x29, 0x53, 0xe5, 0x7a,
+	0xd8, 0x6d, 0x98, 0x4e, 0x54, 0xb9, 0xb6, 0x4c, 0xe8, 0x61, 0x1f, 0x40, 0x6f, 0x56, 0xcb, 0x65,
+	0x3e, 0xec, 0x11, 0x24, 0x42, 0xc8, 0x14, 0x0d, 0x84, 0xb1, 0xbe, 0x69, 0x17, 0x7c, 0x55, 0xc6,
+	0xdf, 0x42, 0x8f, 0xf2, 0x64, 0x5f, 0x42, 0x90, 0xcb, 0x85, 0xa8, 0xcc, 0xd0, 0x9b, 0x78, 0xfb,
+	0xe1, 0xf4, 0xe8, 0xc5, 0xcb, 0xbd, 0x9d, 0xdf, 0x5e, 0xee, 0xdd, 0x6b, 0x09, 0xa2, 0x4a, 0x51,
+	0x64, 0xaa, 0x30, 0xa9, 0x2c, 0x84, 0xae, 0x0e, 0x17, 0xea, 0xc0, 0x3e, 0x49, 0x4e, 0xe9, 0x87,
+	0x3b, 0x06, 0xf6, 0x31, 0xf4, 0x64, 0x91, 0x8b, 0x4b, 0x2a, 0xb6, 0x33, 0x7d, 0xd7, 0x51, 0x45,
+	0xe7, 0xb5, 0x29, 0x6b, 0x73, 0x86, 0x2e, 0x6e, 0x11, 0xf1, 0x19, 0x04, 0x56, 0x06, 0x76, 0x17,
+	0xba, 0x2b, 0x61, 0x52, 0x0a, 0x1f, 0x1d, 0xf5, 0x31, 0xe7, 0xc7, 0xc2, 0xa4, 0x9c, 0xac, 0xa8,
+	0xf0, 0x4a, 0xd5, 0x85, 0xa9, 0x86, 0x7e, 0xa3, 0xf0, 0x63, 0xb4, 0x70, 0xe7, 0x88, 0x39, 0x74,
+	0xf1, 0x01, 0x63, 0xd0, 0x4d, 0xf5, 0xc2, 0xb6, 0x22, 0xe4, 0x74, 0x66, 0x03, 0xe8, 0x88, 0xe2,
+	0x39, 0xbd, 0x0d, 0x39, 0x1e, 0xd1, 0x92, 0x5d, 0xe4, 0x24, 0x75, 0xc8, 0xf1, 0x88, 0xef, 0xea,
+	0x4a, 0x68, 0xd2, 0x35, 0xe4, 0x74, 0x8e, 0x7f, 0xf4, 0xa0, 0x47, 0x51, 0xd8, 0x3e, 0xd6, 0x54,
+	0xd6, 0x56, 0x9e, 0xce, 0x94, 0xb9, 0x9a, 0x80, 0xd4, 0xdb, 0x96, 0x84, 0x4a, 0x8e, 0xa0, 0x5f,
+	0x89, 0xa5, 0xc8, 0x8c, 0xd2, 0x24, 0x40, 0xc8, 0xb7, 0x77, 0x8c, 0x91, 0xa3, 0xc6, 0x36, 0x2c,
+	0x9d, 0xd9, 0x27, 0x10, 0x28, 0x12, 0x86, 0x22, 0xff, 0x8b, 0x5c, 0x0e, 0x82, 0xe4, 0x5a, 0xa4,
+	0xb9, 0x2a, 0x96, 0x6b, 0xea, 0x6e, 0x9f, 0x6f, 0xef, 0xf1, 0x43, 0x08, 0xec, 0x20, 0xb0, 0x09,
+	0x74, 0x2a, 0x9d, 0xb9, 0x61, 0x7c, 0x7b, 0x33, 0x21, 0x76, 0x96, 0x38, 0xba, 0xb6, 0x89, 0xf8,
+	0x4d, 0x22, 0x31, 0x07, 0x68, 0x60, 0xff, 0x4f, 0xc1, 0xf1, 0x0f, 0x1e, 0xf4, 0x37, 0x33, 0xcc,
+	0xc6, 0x00, 0x32, 0x17, 0x85, 0x91, 0x73, 0x29, 0xb4, 0x9d, 0x33, 0xde, 0xb2, 0xb0, 0x03, 0xe8,
+	0xa5, 0xc6, 0xe8, 0x4d, 0x8f, 0xdf, 0x6b, 0x2f, 0x40, 0x72, 0x8c, 0x9e, 0x47, 0x85, 0xd1, 0x6b,
+	0x6e, 0x51, 0xa3, 0x07, 0x00, 0x8d, 0x11, 0x1b, 0xfa, 0x4c, 0xac, 0x1d, 0x2b, 0x1e, 0xd9, 0x6d,
+	0xe8, 0x3d, 0x4f, 0x97, 0xb5, 0x70, 0x49, 0xd9, 0xcb, 0xe7, 0xfe, 0x03, 0x2f, 0xfe, 0xc9, 0x87,
+	0x5b, 0x6e, 0x21, 0xd8, 0x7d, 0xb8, 0x45, 0x0b, 0xe1, 0x32, 0x7a, 0x7d, 0xa5, 0x1b, 0x08, 0x3b,
+	0xdc, 0x6e, 0x7a, 0x2b, 0x47, 0x47, 0x65, 0x37, 0xde, 0xe5, 0xd8, 0xec, 0x7d, 0x27, 0x17, 0x73,
+	0xb7, 0xd2, 0xd4, 0x8a, 0x53, 0x31, 0x97, 0x85, 0x34, 0x52, 0x15, 0x1c, 0x5d, 0xec, 0xfe, 0xa6,
+	0xea, 0x2e, 0x31, 0xde, 0x69, 0x33, 0xfe, 0xb3, 0xe8, 0x33, 0x88, 0x5a, 0x61, 0x5e, 0x53, 0xf5,
+	0x87, 0xed, 0xaa, 0x5d, 0x48, 0xa2, 0xb3, 0xdf, 0xa3, 0x46, 0x85, 0xff, 0xa0, 0xdf, 0x67, 0x00,
+	0x0d, 0xe5, 0x9b, 0x4f, 0x4a, 0xfc, 0x97, 0x07, 0x70, 0x5e, 0xe2, 0x96, 0xe6, 0x29, 0x2d, 0xf5,
+	0xae, 0x5c, 0x14, 0x4a, 0x8b, 0x27, 0x59, 0x9a, 0x3d, 0x15, 0xf4, 0xbe, 0xcf, 0x23, 0x6b, 0x3b,
+	0x41, 0x13, 0x3b, 0x86, 0x28, 0x17, 0x55, 0xa6, 0x65, 0x89, 0x82, 0x39, 0xd1, 0xf7, 0xb0, 0xa6,
+	0x86, 0x27, 0x39, 0x6d, 0x10, 0x56, 0xab, 0xf6, 0x1b, 0x76, 0x0c, 0xef, 0x5c, 0x28, 0xfd, 0x4c,
+	0xe8, 0x27, 0x99, 0x2a, 0x2a, 0xa3, 0x53, 0x59, 0x18, 0xd7, 0x8f, 0xdb, 0x48, 0xf4, 0x0d, 0x39,
+	0x4f, 0xb6, 0x3e, 0x3e, 0xb8, 0xb8, 0x66, 0x19, 0x3d, 0x84, 0xc1, 0xf5, 0x18, 0x37, 0xd2, 0xeb,
+	0x1e, 0x0c, 0xae, 0x47, 0x61, 0x77, 0x20, 0x98, 0xcb, 0xa5, 0xa1, 0xb1, 0xc3, 0xaf, 0x92, 0xbb,
+	0xc5, 0xbf, 0x7a, 0x00, 0xcd, 0x88, 0x60, 0x18, 0x9c, 0x1f, 0xc4, 0xec, 0xda, 0x79, 0x59, 0x42,
+	0x7f, 0xe5, 0x2a, 0x77, 0x7a, 0xdc, 0x7d, 0x75, 0xac, 0x92, 0x8d, 0x30, 0x94, 0xa8, 0xfd, 0x92,
+	0x7f, 0xf7, 0xfb, 0x8d, 0xbe, 0xe4, 0xdb, 0x08, 0xa3, 0xaf, 0xe0, 0xad, 0x57, 0xe8, 0xde, 0x70,
+	0xe2, 0x9a, 0xee, 0xb4, 0x74, 0x98, 0x0e, 0x5e, 0x5c, 0x8d, 0xbd, 0x5f, 0xae, 0xc6, 0xde, 0x1f,
+	0x57, 0x63, 0xef, 0xfb, 0x3f, 0xc7, 0x3b, 0xb3, 0x80, 0xfe, 0x47, 0x3f, 0xfd, 0x3b, 0x00, 0x00,
+	0xff, 0xff, 0x99, 0xd2, 0xfe, 0xe4, 0x87, 0x07, 0x00, 0x00,
 }
