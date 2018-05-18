@@ -15,6 +15,7 @@ import (
 
 	"github.com/alexellis/derek/auth"
 	"github.com/google/go-github/github"
+	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
 const (
@@ -33,12 +34,20 @@ func Handle(req []byte) string {
 		log.Panic(eventErr)
 	}
 
+	auditEvent := sdk.AuditEvent{
+		Owner:  event.owner,
+		Repo:   event.repository,
+		Source: "buildshiprun",
+	}
+
 	reader := bytes.NewBuffer(req)
 	res, err := http.Post(builderURL+"build", "application/octet-stream", reader)
 
 	if err != nil {
 		fmt.Println(err)
 		reportStatus("failure", err.Error(), "BUILD", event)
+		auditEvent.Message = fmt.Sprintf("buildshiprun failure: %s", err.Error())
+		sdk.PostAudit(auditEvent)
 		return ""
 	}
 
@@ -62,6 +71,8 @@ func Handle(req []byte) string {
 		msg := "Unable to build image, check builder logs"
 		reportStatus("failure", msg, "DEPLOY", event)
 		log.Fatal(msg)
+		auditEvent.Message = fmt.Sprintf("buildshiprun failure: %s", msg)
+		sdk.PostAudit(auditEvent)
 		return msg
 	}
 
@@ -103,10 +114,15 @@ func Handle(req []byte) string {
 		if err != nil {
 			reportStatus("failure", err.Error(), "DEPLOY", event)
 			log.Fatal(err.Error())
+			auditEvent.Message = fmt.Sprintf("buildshiprun failure: %s", err.Error())
+		} else {
+			auditEvent.Message = fmt.Sprintf("buildshiprun succeeded: deployed %s", imageName)
 		}
 
 		log.Println(result)
 	}
+
+	sdk.PostAudit(auditEvent)
 
 	reportStatus("success", fmt.Sprintf("function successfully deployed as: %s", serviceValue), "DEPLOY", event)
 	return fmt.Sprintf("buildStatus %s %s %s", buildStatus, imageName, res.Status)
