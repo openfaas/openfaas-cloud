@@ -3,3 +3,4 @@ environment:
     github_app_id: "12345"
     report_status: "true"
     private_key_filename: ""
+    functions_per_repo_limit: 5 # Number of function per repository

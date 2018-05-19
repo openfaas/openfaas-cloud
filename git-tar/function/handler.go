@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/openfaas/faas-cli/stack"
@@ -42,6 +43,11 @@ func Handle(req []byte) []byte {
 		log.Println("parseYAML ", err.Error())
 		status.AddStatus(sdk.StatusFailure, "parseYAML error : "+err.Error(), sdk.StackContext)
 		reportStatus(status)
+		os.Exit(-1)
+	}
+
+	if ok, errMessage := isWithinLimit(len(stack.Functions)); !ok {
+		log.Println(errMessage)
 		os.Exit(-1)
 	}
 
@@ -123,6 +129,21 @@ func collect(pushEvent sdk.PushEvent, stack *stack.Services) error {
 	}
 
 	return err
+}
+
+func isWithinLimit(functionsCount int) (bool, string) {
+	functionsPerRepoLimit, isSet := os.LookupEnv("functions_per_repo_limit")
+	if isSet {
+		functionsPerRepoLimitCount, err := strconv.Atoi(functionsPerRepoLimit)
+		if err != nil {
+			return false, "Invalid value for functions_per_repo_limit environment variable"
+		}
+
+		if functionsCount > functionsPerRepoLimitCount {
+			return false, fmt.Sprintf("Only %d functions per repository is allowed", functionsPerRepoLimitCount)
+		}
+	}
+	return true, ""
 }
 
 type GarbageRequest struct {
