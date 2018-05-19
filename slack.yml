@@ -1,2 +1,2 @@
 environment:
-  slack_url: https://gateway:8080/function/echo
+  slack_url: http://gateway:8080/function/echo

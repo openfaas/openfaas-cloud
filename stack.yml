@@ -74,7 +74,7 @@ functions:
   git-event:
     lang: go
     handler: ./git-event
-    image: alexellis2/git-event:0.2
+    image: alexellis2/git-event:0.3.0
     environment:
       write_debug: true
       read_debug: true
