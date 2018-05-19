@@ -10,14 +10,54 @@ import (
 	"os"
 
 	"github.com/alexellis/hmac"
+	"github.com/openfaas/openfaas-cloud/sdk"
 )
+
+const Source = "git-event"
 
 // Handle a serverless request
 func Handle(req []byte) string {
 	eventHeader := os.Getenv("Http_X_Github_Event")
+	xHubSignature := os.Getenv("Http_X_Hub_Signature")
 
-	if eventHeader == "installation_repositories" {
-		xHubSignature := os.Getenv("Http_X_Hub_Signature")
+	if eventHeader != "push" &&
+		eventHeader != "installation_repositories" &&
+		eventHeader != "integration_installation" &&
+		eventHeader != "installation" {
+
+		auditEvent := sdk.AuditEvent{
+			Message: "bad event: " + eventHeader,
+			Source:  Source,
+		}
+
+		sdk.PostAudit(auditEvent)
+
+		return fmt.Sprintf("git-event cannot handle event: %s", eventHeader)
+	}
+
+	if eventHeader == "push" {
+		headers := map[string]string{
+			"X-Hub-Signature": xHubSignature,
+			"X-GitHub-Event":  eventHeader,
+			"Content-Type":    "application/json",
+		}
+
+		body, statusCode, err := forward(req, "gh-push", headers)
+
+		if statusCode == http.StatusOK {
+			return fmt.Sprintf("Forwarded to function: %d, %s", statusCode, body)
+		}
+
+		if err != nil {
+			return err.Error()
+		}
+
+		return body
+	}
+
+	if eventHeader == "installation" ||
+		eventHeader == "installation_repositories" ||
+		eventHeader == "integration_installation" {
 
 		shouldValidate := os.Getenv("validate_hmac")
 		if len(shouldValidate) > 0 && (shouldValidate == "1" || shouldValidate == "true") {
@@ -36,6 +76,27 @@ func Handle(req []byte) string {
 		fmt.Printf("event.Action: %s\n", event.Action)
 
 		switch event.Action {
+		case "created", "added":
+
+			addedVal := ""
+			if event.RepositoriesAdded != nil {
+				for _, added := range event.RepositoriesAdded {
+					addedVal += added.FullName + ", "
+				}
+			}
+			if event.Repositories != nil {
+				for _, added := range event.Repositories {
+					addedVal += added.FullName + ", "
+				}
+			}
+
+			auditEvent := sdk.AuditEvent{
+				Message: event.Installation.Account.Login + " added repositories: " + addedVal,
+				Source:  Source,
+			}
+
+			sdk.PostAudit(auditEvent)
+
 		case "removed":
 			garbageRequests := []GarbageRequest{}
 			for _, repo := range event.RepositoriesRemoved {
@@ -43,9 +104,9 @@ func Handle(req []byte) string {
 
 				garbageRequests = append(garbageRequests,
 					GarbageRequest{
-						Functions: []string{},
 						Owner:     event.Installation.Account.Login,
 						Repo:      repo.Name,
+						Functions: []string{},
 					},
 				)
 			}
@@ -98,9 +159,41 @@ type InstallationRepositoriesEvent struct {
 	} `json:"installation"`
 	RepositoriesRemoved []Installation `json:"repositories_removed"`
 	RepositoriesAdded   []Installation `json:"repositories_added"`
+	Repositories        []Installation `json:"repositories"`
 }
 
 type Installation struct {
 	Name     string `json:"name"`
 	FullName string `json:"full_name"`
+}
+
+func forward(req []byte, function string, headers map[string]string) (string, int, error) {
+	bodyReader := bytes.NewBuffer(req)
+	pushReq, _ := http.NewRequest(http.MethodPost, os.Getenv("gateway_url")+"function/"+function, bodyReader)
+	for k, v := range headers {
+		pushReq.Header.Add(k, v)
+	}
+
+	c := http.Client{}
+	res, err := c.Do(pushReq)
+	if err != nil {
+		msg := "cannot post to " + function + ": " + err.Error()
+		auditEvent := sdk.AuditEvent{
+			Message: msg,
+			Source:  Source,
+		}
+		sdk.PostAudit(auditEvent)
+		return "", http.StatusInternalServerError, fmt.Errorf(msg)
+	}
+
+	if res.Body != nil {
+		defer res.Body.Close()
+	}
+	body, _ := ioutil.ReadAll(res.Body)
+
+	if res.StatusCode != http.StatusOK {
+		err = fmt.Errorf(string(body))
+	}
+
+	return string(body), res.StatusCode, err
 }
