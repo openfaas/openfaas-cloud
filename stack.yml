@@ -23,7 +23,7 @@ functions:
   git-tar:
     lang: dockerfile
     handler: ./git-tar
-    image: alexellis2/of-git-tar:0.6.0
+    image: alexellis2/of-git-tar:0.6.1
     environment:
       read_timeout: 120
       write_timeout: 120
@@ -35,7 +35,7 @@ functions:
   buildshiprun:
     lang: go
     handler: ./buildshiprun
-    image: alexellis2/of-buildshiprun:0.4.0
+    image: alexellis2/of-buildshiprun:0.4.1
     environment:
       read_timeout: 300
       write_timeout: 300
