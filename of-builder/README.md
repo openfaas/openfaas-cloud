@@ -17,6 +17,8 @@ docker service create --network func_functions \
   --detach=true -p 5000:5000 registry:latest
 ```
 
+Warning: this exposes the registry without authentication on port 5000 publicly on your host. By binding to the local machine we can then pull images without using --insecure-registry specifying a 127.0.0.1 IP address on Linux, or your machine's IP on Docker for Mac.
+
 * Run the buildkit daemon
 
 buildkit will build Docker images from a tar-ball and push them to a registry
@@ -47,10 +49,18 @@ make
 
 ```
 export TAG=0.3.0
-docker service create --network func_functions --name of-builder -p 8088:8080 openfaas/of-builder:$TAG
+docker service create --network func_functions --name of-builder openfaas/of-builder:$TAG
 ```
 
-## Do a test build
+## Do a test build (optional)
+
+If you're testing the of-builder service you will need to publish the port 8080 as some non-conflicting value.
+
+I.e.
+
+```
+docker service update of-builder --publish-add 8088:8080
+```
 
 We specify a config file which is JSON and tells buildkit which image to publish to. In this example it's going to be `registry.local:5000/foo/bar:latest`. The container image has a README.md added into it as an example. It also has an env-var set up.
 
