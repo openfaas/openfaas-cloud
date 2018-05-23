@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
 // Handle a serverless request
@@ -75,9 +77,14 @@ func deleteFunction(target, gatewayURL string) error {
 
 	bytesReq, _ := json.Marshal(delReq)
 	bufferReader := bytes.NewBuffer(bytesReq)
-	request, _ := http.NewRequest(http.MethodDelete, gatewayURL+"system/functions", bufferReader)
+	httpReq, _ := http.NewRequest(http.MethodDelete, gatewayURL+"system/functions", bufferReader)
 
-	response, err := c.Do(request)
+	addAuthErr := sdk.AddBasicAuth(httpReq)
+	if addAuthErr != nil {
+		log.Printf("Basic auth error %s", addAuthErr)
+	}
+
+	response, err := c.Do(httpReq)
 
 	if err == nil {
 		defer response.Body.Close()
