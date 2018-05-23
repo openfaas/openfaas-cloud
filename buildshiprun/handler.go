@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/openfaas/openfaas-cloud/sdk"
+
 	"github.com/alexellis/derek/auth"
 	"github.com/google/go-github/github"
 )
@@ -34,7 +36,11 @@ func Handle(req []byte) string {
 	}
 
 	reader := bytes.NewBuffer(req)
-	res, err := http.Post(builderURL+"build", "application/octet-stream", reader)
+
+	r, _ := http.NewRequest(http.MethodPost, builderURL+"build", reader)
+	r.Header.Set("Content-Type", "application/octet-stream")
+
+	res, err := c.Do(r)
 
 	if err != nil {
 		fmt.Println(err)
@@ -166,7 +172,14 @@ func getEvent() (*eventInfo, error) {
 
 func functionExists(deploy deployment, gatewayURL string, c *http.Client) (bool, error) {
 
-	res, err := http.Get(gatewayURL + "system/functions")
+	r, _ := http.NewRequest(http.MethodGet, gatewayURL+"system/functions", nil)
+
+	addAuthErr := sdk.AddBasicAuth(r)
+	if addAuthErr != nil {
+		log.Printf("Basic auth error %s", addAuthErr)
+	}
+
+	res, err := c.Do(r)
 
 	if err != nil {
 		fmt.Println(err)
@@ -209,6 +222,11 @@ func deployFunction(deploy deployment, gatewayURL string, c *http.Client) (strin
 
 	httpReq, err = http.NewRequest(method, gatewayURL+"system/functions", reader)
 	httpReq.Header.Set("Content-Type", "application/json")
+
+	addAuthErr := sdk.AddBasicAuth(httpReq)
+	if addAuthErr != nil {
+		log.Printf("Basic auth error %s", addAuthErr)
+	}
 
 	res, err = c.Do(httpReq)
 

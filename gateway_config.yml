@@ -4,3 +4,4 @@ environment:
   audit_url: http://gateway:8080/function/audit-event
   repository_url: 127.0.0.1:5000
   push_repository_url: registry:5000
+  basic_auth: true

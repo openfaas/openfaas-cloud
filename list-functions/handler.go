@@ -9,6 +9,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
 // Handle a serverless request
@@ -35,9 +37,13 @@ func Handle(req []byte) string {
 
 	gatewayURL := os.Getenv("gateway_url")
 
-	request, _ := http.NewRequest(http.MethodGet, gatewayURL+"system/functions", nil)
+	httpReq, _ := http.NewRequest(http.MethodGet, gatewayURL+"system/functions", nil)
+	addAuthErr := sdk.AddBasicAuth(httpReq)
+	if addAuthErr != nil {
+		log.Printf("Basic auth error %s", addAuthErr)
+	}
 
-	response, err := c.Do(request)
+	response, err := c.Do(httpReq)
 	filtered := []function{}
 
 	if err == nil {
