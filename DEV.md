@@ -18,6 +18,28 @@ The `ack_timeout: "300s"` field should have a value of around `300s` or 5 minute
 
 OpenFaaS Cloud leverages OpenFaaS functions so will work with Kubernetes, but a complete configuration has not been provided yet. Some minor tweaks may be needed to configuration YAML files such as URLs and memory limits for the of-builder and/or buildshiprun function.
 
+* Create secrets for the API Gateway
+
+The API gateway uses secrets to enable basic authentication, even if your gateway doesn't have auth enabled you should create some temporary secrets or comment out the lines that bind secrets to functions in stack.yml.
+
+Comment out these lines in stack.yml:
+
+```
+      - basic-auth-user
+      - basic-auth-password
+```
+
+Or create temporary secrets:
+
+```
+echo "admin" > basic-auth-user
+echo "admin" > basic-auth-password
+docker secret create basic-auth-user basic-auth-user
+docker secret create basic-auth-password basic-auth-password
+```
+
+If you already have secrets set up for your gateway version 0.8.2 or later then there is no need to do the steps above.
+
 * Create a GitHub app
 
 Create a GitHub app from your GitHub profile page.
