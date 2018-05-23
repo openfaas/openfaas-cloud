@@ -13,6 +13,11 @@ func AddBasicAuth(req *http.Request) error {
 	if len(os.Getenv("basic_auth")) > 0 && os.Getenv("basic_auth") == "true" {
 
 		reader := types.ReadBasicAuthFromDisk{}
+
+		if len(os.Getenv("secret_mount_path")) > 0 {
+			reader.SecretMountPath = os.Getenv("secret_mount_path")
+		}
+
 		credentials, err := reader.Read()
 
 		if err != nil {

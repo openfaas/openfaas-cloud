@@ -5,3 +5,4 @@ environment:
   repository_url: 127.0.0.1:5000
   push_repository_url: registry:5000
   basic_auth: true
+  secret_mount_path: /run/secrets/
