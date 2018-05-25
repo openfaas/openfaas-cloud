@@ -54,9 +54,15 @@ func Handle(req []byte) string {
 	imageName := strings.TrimSpace(string(buildStatus))
 
 	repositoryURL := os.Getenv("repository_url")
+	pushRepositoryURL := os.Getenv("push_repository_url")
 
 	if len(repositoryURL) == 0 {
 		fmt.Fprintf(os.Stderr, "repository_url env-var not set")
+		os.Exit(1)
+	}
+
+	if len(pushRepositoryURL) == 0 {
+		fmt.Fprintf(os.Stderr, "push_repository_url env-var not set")
 		os.Exit(1)
 	}
 
@@ -75,7 +81,7 @@ func Handle(req []byte) string {
 		gatewayURL := os.Getenv("gateway_url")
 
 		// Replace image name for "localhost" for deployment
-		imageName = getImageName(repositoryURL, imageName)
+		imageName = getImageName(repositoryURL, pushRepositoryURL, imageName)
 
 		serviceValue = fmt.Sprintf("%s-%s", event.owner, event.service)
 
@@ -96,6 +102,8 @@ func Handle(req []byte) string {
 				"Git-Repo":       event.repository,
 				"Git-DeployTime": strconv.FormatInt(time.Now().Unix(), 10), //Unix Epoch string
 				"Git-SHA":        event.sha,
+				"faas_function":  serviceValue,
+				"app":            serviceValue,
 			},
 			Limits: Limits{
 				Memory: defaultMemoryLimit,
@@ -331,8 +339,11 @@ func buildStatus(status string, desc string, context string, url string) *github
 	return &github.RepoStatus{State: &status, TargetURL: &url, Description: &desc, Context: &context}
 }
 
-func getImageName(repositoryURL, imageName string) string {
-	return repositoryURL + imageName[strings.Index(imageName, "/"):]
+func getImageName(repositoryURL, pushRepositoryURL, imageName string) string {
+
+	return strings.Replace(imageName, pushRepositoryURL, repositoryURL, 1)
+
+	// return repositoryURL + imageName[strings.Index(imageName, "/"):]
 }
 
 type eventInfo struct {
