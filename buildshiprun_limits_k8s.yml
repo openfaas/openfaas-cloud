@@ -1,0 +1,3 @@
+environment:
+  default_memory_limit: 30Mi
+  
