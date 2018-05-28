@@ -20,7 +20,7 @@ func Handle(req []byte) []byte {
 	pushEvent := sdk.PushEvent{}
 	err := json.Unmarshal(req, &pushEvent)
 	if err != nil {
-		log.Println(err.Error())
+		log.Printf("cannot unmarshal git-tar request %s '%s'", err.Error(), string(req))
 		os.Exit(-1)
 	}
 
@@ -65,7 +65,7 @@ func Handle(req []byte) []byte {
 	if err != nil {
 		status.AddStatus(sdk.Failure, "stack deploy failed, error : "+err.Error(), sdk.Stack)
 		reportStatus(status)
-		log.Println(err)
+		log.Printf("deploy error: %s", err)
 	}
 
 	status.AddStatus(sdk.Success, "stack is successfully deployed", sdk.Stack)
@@ -73,7 +73,7 @@ func Handle(req []byte) []byte {
 
 	err = collect(pushEvent, stack)
 	if err != nil {
-		log.Println(err)
+		log.Printf("collect error: %s", err)
 	}
 
 	return []byte(fmt.Sprintf("Deployed tar from: %s", tars))

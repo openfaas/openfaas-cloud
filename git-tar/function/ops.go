@@ -65,7 +65,16 @@ func makeTar(pushEvent sdk.PushEvent, filePath string, services *stack.Services)
 
 		base := filepath.Join(filePath, filepath.Join("build", k))
 
-		imageName := formatImageShaTag("registry:5000", &v, pushEvent.AfterCommitID)
+		pushRepositoryURL := os.Getenv("push_repository_url")
+
+		if len(pushRepositoryURL) == 0 {
+			fmt.Fprintf(os.Stderr, "push_repository_url env-var not set")
+			os.Exit(1)
+		}
+
+		imageName := formatImageShaTag(pushRepositoryURL, &v, pushEvent.AfterCommitID,
+			pushEvent.Repository.Owner.Login, pushEvent.Repository.Name)
+
 		config := cfg{
 			Ref: imageName,
 		}
@@ -128,17 +137,31 @@ func makeTar(pushEvent sdk.PushEvent, filePath string, services *stack.Services)
 	return tars, nil
 }
 
-func formatImageShaTag(registry string, function *stack.Function, sha string) string {
+func formatImageShaTag(registry string, function *stack.Function, sha string, owner string, repo string) string {
 	tag := ":latest"
+
 	imageName := function.Image
 	tagIndex := strings.LastIndex(function.Image, ":")
+
 	if tagIndex > 0 {
 		tag = function.Image[tagIndex:]
 		imageName = function.Image[:tagIndex]
 	}
 
-	imageName = registry + "/" + imageName + tag + "-" + sha
-	return imageName
+	repoIndex := strings.LastIndex(imageName, "/")
+	if repoIndex > -1 {
+		imageName = imageName[repoIndex+1:]
+	}
+
+	var imageRef string
+	sharedRepo := strings.HasSuffix(registry, "/")
+	if sharedRepo {
+		imageRef = registry[:len(registry)-1] + "/" + owner + "-" + repo + "-" + imageName + tag + "-" + sha
+	} else {
+		imageRef = registry + "/" + owner + "/" + repo + "-" + imageName + tag + "-" + sha
+	}
+
+	return imageRef
 }
 
 func clone(pushEvent sdk.PushEvent) (string, error) {

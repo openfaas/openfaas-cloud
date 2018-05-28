@@ -13,6 +13,12 @@ import (
 	"time"
 
 	"github.com/openfaas/openfaas-cloud/sdk"
+	"github.com/alexellis/derek/auth"
+	"github.com/google/go-github/github"
+)
+
+const (
+	defaultPrivateKeyName = "private_key.pem"
 )
 
 // Handle a build / deploy request - returns empty string for an error
@@ -34,7 +40,11 @@ func Handle(req []byte) string {
 	status := sdk.BuildStatus(event, "")
 
 	reader := bytes.NewBuffer(req)
-	res, err := http.Post(builderURL+"build", "application/octet-stream", reader)
+
+	r, _ := http.NewRequest(http.MethodPost, builderURL+"build", reader)
+	r.Header.Set("Content-Type", "application/octet-stream")
+
+	res, err := c.Do(r)
 
 	if err != nil {
 		fmt.Println(err)
@@ -49,6 +59,7 @@ func Handle(req []byte) string {
 	imageName := strings.TrimSpace(string(buildStatus))
 
 	repositoryURL := os.Getenv("repository_url")
+	pushRepositoryURL := os.Getenv("push_repository_url")
 
 	if len(repositoryURL) == 0 {
 		msg := "repository_url env-var not set"
@@ -57,6 +68,13 @@ func Handle(req []byte) string {
 		reportStatus(status)
 		os.Exit(1)
 	}
+
+	if len(pushRepositoryURL) == 0 {
+		fmt.Fprintf(os.Stderr, "push_repository_url env-var not set")
+		os.Exit(1)
+	}
+
+	serviceValue := ""
 
 	log.Printf("buildshiprun: image '%s'\n", imageName)
 
@@ -71,7 +89,7 @@ func Handle(req []byte) string {
 	if len(imageName) > 0 {
 
 		// Replace image name for "localhost" for deployment
-		imageName = repositoryURL + imageName[strings.Index(imageName, ":"):]
+		imageName = getImageName(repositoryURL, pushRepositoryURL, imageName)
 
 		log.Printf("Deploying %s as %s", imageName, serviceValue)
 
@@ -90,6 +108,8 @@ func Handle(req []byte) string {
 				"Git-Repo":       event.Repository,
 				"Git-DeployTime": strconv.FormatInt(time.Now().Unix(), 10), //Unix Epoch string
 				"Git-SHA":        event.Sha,
+				"faas_function":  serviceValue,
+				"app":            serviceValue,
 			},
 			Limits: Limits{
 				Memory: defaultMemoryLimit,
@@ -118,7 +138,14 @@ func Handle(req []byte) string {
 
 func functionExists(deploy deployment, gatewayURL string, c *http.Client) (bool, error) {
 
-	res, err := http.Get(gatewayURL + "system/functions")
+	r, _ := http.NewRequest(http.MethodGet, gatewayURL+"system/functions", nil)
+
+	addAuthErr := sdk.AddBasicAuth(r)
+	if addAuthErr != nil {
+		log.Printf("Basic auth error %s", addAuthErr)
+	}
+
+	res, err := c.Do(r)
 
 	if err != nil {
 		fmt.Println(err)
@@ -162,6 +189,11 @@ func deployFunction(deploy deployment, gatewayURL string, c *http.Client) (strin
 	httpReq, err = http.NewRequest(method, gatewayURL+"system/functions", reader)
 	httpReq.Header.Set("Content-Type", "application/json")
 
+	addAuthErr := sdk.AddBasicAuth(httpReq)
+	if addAuthErr != nil {
+		log.Printf("Basic auth error %s", addAuthErr)
+	}
+
 	res, err = c.Do(httpReq)
 
 	if err != nil {
@@ -192,6 +224,55 @@ func reportStatus(status *sdk.Status) {
 	if reportErr != nil {
 		fmt.Printf("failed to report status, error: %s", reportErr.Error())
 	}
+
+	if token == "" {
+		fmt.Printf("failed to report status %v, error: authentication failed Invalid token\n", repoStatus)
+		return
+	}
+
+	client := auth.MakeClient(ctx, token)
+
+	_, _, apiErr := client.Repositories.CreateStatus(ctx, event.owner, event.repository, event.sha, repoStatus)
+	if apiErr != nil {
+		fmt.Printf("failed to report status %v, error: %s\n", repoStatus, apiErr.Error())
+		return
+	}
+}
+
+func getPrivateKey() string {
+	// we are taking the secrets name from the env, by default it is fixed
+	// to private_key.pem.
+	// Although user can make the secret with a specific name and provide
+	// it in the stack.yaml and also specify the secret name in github.yml
+	privateKeyName := os.Getenv("private_key")
+	if privateKeyName == "" {
+		privateKeyName = defaultPrivateKeyName
+	}
+	privateKeyPath := "/run/secrets/" + privateKeyName
+	return privateKeyPath
+}
+
+func buildStatus(status string, desc string, context string, url string) *github.RepoStatus {
+	return &github.RepoStatus{State: &status, TargetURL: &url, Description: &desc, Context: &context}
+}
+
+func getImageName(repositoryURL, pushRepositoryURL, imageName string) string {
+
+	return strings.Replace(imageName, pushRepositoryURL, repositoryURL, 1)
+
+	// return repositoryURL + imageName[strings.Index(imageName, "/"):]
+}
+
+type eventInfo struct {
+	service        string
+	owner          string
+	repository     string
+	image          string
+	sha            string
+	url            string
+	installationID int
+	environment    map[string]string
+	secrets        []string
 }
 
 type deployment struct {

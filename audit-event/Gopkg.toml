@@ -32,3 +32,8 @@
 [[constraint]]
   branch = "master"
   name = "github.com/openfaas/openfaas-cloud"
+
+[[constraint]]
+  version = "0.8.2"
+  name = "github.com/openfaas/faas/types"
+
