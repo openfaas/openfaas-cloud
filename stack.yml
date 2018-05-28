@@ -46,7 +46,6 @@ functions:
       - gateway_config.yml
       - github.yml
     secrets:
-      - derek-private-key
       - basic-auth-user
       - basic-auth-password
 
@@ -74,9 +73,20 @@ functions:
       write_timeout: 30
     environment_file:
       - gateway_config.yml
+
+  git-status:
+    lang: go
+    handler: ./git-status
+    image: alexellis2/git-status:0.1
+    environment:
+      write_debug: true
+      read_debug: true
+      combine_output: false
+    environment_file:
+      - gateway_config.yml
+      - github.yml
     secrets:
-      - basic-auth-user
-      - basic-auth-password
+      - derek-private-key
 
   git-event:
     lang: go
