@@ -13,8 +13,6 @@ import (
 	"time"
 
 	"github.com/openfaas/openfaas-cloud/sdk"
-	"github.com/alexellis/derek/auth"
-	"github.com/google/go-github/github"
 )
 
 const (
@@ -73,8 +71,6 @@ func Handle(req []byte) string {
 		fmt.Fprintf(os.Stderr, "push_repository_url env-var not set")
 		os.Exit(1)
 	}
-
-	serviceValue := ""
 
 	log.Printf("buildshiprun: image '%s'\n", imageName)
 
@@ -224,19 +220,6 @@ func reportStatus(status *sdk.Status) {
 	if reportErr != nil {
 		fmt.Printf("failed to report status, error: %s", reportErr.Error())
 	}
-
-	if token == "" {
-		fmt.Printf("failed to report status %v, error: authentication failed Invalid token\n", repoStatus)
-		return
-	}
-
-	client := auth.MakeClient(ctx, token)
-
-	_, _, apiErr := client.Repositories.CreateStatus(ctx, event.owner, event.repository, event.sha, repoStatus)
-	if apiErr != nil {
-		fmt.Printf("failed to report status %v, error: %s\n", repoStatus, apiErr.Error())
-		return
-	}
 }
 
 func getPrivateKey() string {
@@ -250,10 +233,6 @@ func getPrivateKey() string {
 	}
 	privateKeyPath := "/run/secrets/" + privateKeyName
 	return privateKeyPath
-}
-
-func buildStatus(status string, desc string, context string, url string) *github.RepoStatus {
-	return &github.RepoStatus{State: &status, TargetURL: &url, Description: &desc, Context: &context}
 }
 
 func getImageName(repositoryURL, pushRepositoryURL, imageName string) string {
