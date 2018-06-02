@@ -14,7 +14,7 @@ The public trial of OpenFaaS Cloud is running on Docker Swarm, so deploy OpenFaa
 
 You will also need to extend all timeouts for the gateway and the queue-worker.
 
-The `ack_timeout: "300s"` field should have a value of around `300s` or 5 minutes to allow for a Docker build of up to 5 minutes.
+The `ack_wait: "300s"` field should have a value of around `300s` or 5 minutes to allow for a Docker build of up to 5 minutes.
 
 OpenFaaS Cloud leverages OpenFaaS functions so will work with Kubernetes, but a complete configuration has not been provided yet. Some minor tweaks may be needed to configuration YAML files such as URLs and memory limits for the of-builder and/or buildshiprun function.
 
