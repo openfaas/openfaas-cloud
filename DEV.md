@@ -121,6 +121,14 @@ Within a few seconds you'll have your function deployed and live with a prefix o
 
 For more information get in touch directly for a private trial of the public service.
 
+## UI Dashboard
+
+The UI Dashboard shows your deployed functions by reading from the list-functions function. It is useful for testing and reviewing your functions as you go through a development workflow.
+
+Deploy them separately from:
+
+https://github.com/alexellis/of-cloud-fns
+
 ### Appendix for Kubernetes
 
 The functions which make up OpenFaaS Cloud are compatible with Kubernetes but some additional work is needed for the registry to make it work as seamlessly as it does on Swarm. The of-builder should also be brought up using a Kubernetes YAML file instead of `docker run` / `docker service create`.
