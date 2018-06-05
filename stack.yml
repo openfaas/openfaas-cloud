@@ -22,7 +22,7 @@ functions:
   git-tar:
     lang: dockerfile
     handler: ./git-tar
-    image: alexellis2/of-git-tar:0.6.3
+    image: alexellis2/of-git-tar:0.6.4
     environment:
       read_timeout: 120
       write_timeout: 120
@@ -88,6 +88,11 @@ functions:
     environment_file:
       - github.yml
       - gateway_config.yml
+
+  import-secrets:
+    lang: go
+    handler: ./import-secrets
+    image: alexellis2/import-secrets:0.0.1
 
   echo:
     skip_build: true
