@@ -22,9 +22,15 @@ type Function struct {
 	// Image Docker image name
 	Image string `yaml:"image"`
 
+	// Docker registry Authorization
+	RegistryAuth string `yaml:"registry_auth,omitempty"`
+
 	FProcess string `yaml:"fprocess"`
 
 	Environment map[string]string `yaml:"environment"`
+
+	// Secrets list of secrets to be made available to function
+	Secrets []string `yaml:"secrets"`
 
 	SkipBuild bool `yaml:"skip_build"`
 
@@ -36,7 +42,17 @@ type Function struct {
 
 	Labels *map[string]string `yaml:"labels"`
 
-	Secrets *[]string `yaml:"secrets"`
+	// Limits for function
+	Limits *FunctionResources `yaml:"limits"`
+
+	// Requests of resources requested by function
+	Requests *FunctionResources `yaml:"requests"`
+}
+
+// FunctionResources Memory and CPU
+type FunctionResources struct {
+	Memory string `yaml:"memory"`
+	CPU    string `yaml:"cpu"`
 }
 
 // EnvironmentFile represents external file for environment data
@@ -48,4 +64,10 @@ type EnvironmentFile struct {
 type Services struct {
 	Functions map[string]Function `yaml:"functions,omitempty"`
 	Provider  Provider            `yaml:"provider,omitempty"`
+}
+
+// LanguageTemplate read from template.yml within root of a language template folder
+type LanguageTemplate struct {
+	Language string `yaml:"language"`
+	FProcess string `yaml:"fprocess"`
 }
