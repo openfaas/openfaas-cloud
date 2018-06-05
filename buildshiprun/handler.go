@@ -310,7 +310,7 @@ func reportStatus(status string, desc string, statusContext string, event *event
 	// as docker /secrets dir has limited permission we are bound to use secret named
 	// as "derek-private-key"
 	// the below lines should  be uncommented once the package is updated in derek project
-	// privateKeyPath := getPrivateKey()
+	privateKeyPath := getPrivateKey()
 	// token, tokenErr := auth.MakeAccessTokenForInstallation(os.Getenv("github_app_id"),
 	// 	event.installationID, privateKeyPath)
 
@@ -318,7 +318,8 @@ func reportStatus(status string, desc string, statusContext string, event *event
 
 	log.Printf("Status: %s, GitHub AppID: %d, Repo: %s, Owner: %s", status, event.installationID, event.repository, event.owner)
 
-	token, tokenErr := auth.MakeAccessTokenForInstallation(os.Getenv("github_app_id"), event.installationID)
+	token, tokenErr := auth.MakeAccessTokenForInstallation(os.Getenv("github_app_id"), event.installationID, privateKeyPath)
+
 	if tokenErr != nil {
 		fmt.Printf("failed to report status %v, error: %s\n", repoStatus, tokenErr.Error())
 		return
@@ -347,7 +348,7 @@ func getPrivateKey() string {
 	if privateKeyName == "" {
 		privateKeyName = defaultPrivateKeyName
 	}
-	privateKeyPath := "/run/secrets/" + privateKeyName
+	privateKeyPath := "/var/openfaas/secrets/" + privateKeyName
 	return privateKeyPath
 }
 

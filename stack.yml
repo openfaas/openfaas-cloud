@@ -40,7 +40,7 @@ functions:
       write_timeout: 300
       write_debug: true
       read_debug: true
-      builder_url: http://of-builder:8080/
+      builder_url: http://of-builder.openfaas:8080/
     environment_file:
       - buildshiprun_limits_swarm.yml
       - gateway_config.yml
@@ -53,7 +53,7 @@ functions:
   list-functions:
     lang: go
     handler: ./list-functions
-    image: alexellis2/list-functions:0.4.1
+    image: alexellis2/list-functions:0.4.2
     environment:
       write_debug: true
       read_debug: true
