@@ -5,4 +5,10 @@ environment:
   repository_url: 127.0.0.1:5000
   push_repository_url: registry:5000
   basic_auth: true
-  secret_mount_path: /run/secrets/
+  secret_mount_path: /var/openfaas/secrets
+  private_key: private-key
+
+# To use a shared Docker Hub account.
+#  repository_url: docker.io/ofcommunity/
+#  push_repository_url: docker.io/ofcommunity/
+
