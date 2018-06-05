@@ -29,7 +29,7 @@ Note: note daemon contains a gRPC endpoint listening on port 1234.
 docker rm -f of-buildkit
 docker run -d --net func_functions -d --privileged \
 --restart always \
---name of-buildkit alexellis2/buildkit:2018-04-17 --addr tcp://0.0.0.0:1234
+--name of-buildkit akihirosuda/buildkit-rootless:20180605 --addr tcp://0.0.0.0:1234
 ```
 
 * Setup the builder service:
@@ -41,7 +41,7 @@ The builder service calls into the buildkit daemon to build an OpenFaaS function
 ```
 cd of-builder/
 docker rm -f of-builder
-export TAG=0.3.1
+export TAG=0.4.0
 make
 
 make push
@@ -50,7 +50,7 @@ make push
 * Deploy
 
 ```
-export TAG=0.3.1
+export TAG=0.4.0
 docker service create --network func_functions --name of-builder openfaas/of-builder:$TAG
 ```
 
