@@ -17,7 +17,6 @@ import (
 
 	"github.com/alexellis/derek/auth"
 	"github.com/google/go-github/github"
-	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
 const (
