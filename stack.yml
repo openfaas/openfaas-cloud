@@ -34,7 +34,7 @@ functions:
   buildshiprun:
     lang: go
     handler: ./buildshiprun
-    image: alexellis2/of-buildshiprun:0.4.3
+    image: alexellis2/of-buildshiprun:0.4.5
     environment:
       read_timeout: 300
       write_timeout: 300
@@ -46,7 +46,7 @@ functions:
       - gateway_config.yml
       - github.yml
     secrets:
-      - derek-private-key
+      - private-key
       - basic-auth-user
       - basic-auth-password
 
@@ -103,3 +103,4 @@ functions:
     image: functions/audit-event:0.1.0
     environment_file:
       - slack.yml
+
