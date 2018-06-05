@@ -3,12 +3,9 @@
 
 [[projects]]
   name = "github.com/alexellis/derek"
-  packages = [
-    "auth",
-    "types"
-  ]
-  revision = "15f1fdf58ce717e60171b7084066a7d5ec50c9d6"
-  version = "0.3.1"
+  packages = ["auth"]
+  revision = "e6d1a85c45ba3ae11f57f7044775952d5ce9e05f"
+  version = "0.5.0"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"
@@ -35,10 +32,10 @@
   revision = "53e6ce116135b80d037921a7fdd5138cf32d7a8a"
 
 [[projects]]
-  branch = "master"
   name = "github.com/openfaas/openfaas-cloud"
   packages = ["sdk"]
-  revision = "633b10fc2d2ce310b8a209f5d4ded914bb721d7b"
+  revision = "405c386841f47aa648284ae704b6e9a9022cb54d"
+  version = "0.2.0"
 
 [[projects]]
   branch = "master"
@@ -47,7 +44,7 @@
     "context",
     "context/ctxhttp"
   ]
-  revision = "5f9ae10d9af5b1c89ae6904293b14b064d4ada23"
+  revision = "dfa909b99c79129e1100513e5cd36307665e5723"
 
 [[projects]]
   branch = "master"
@@ -56,15 +53,18 @@
     ".",
     "internal"
   ]
-  revision = "6881fee410a5daf86371371f9ad451b95e168b71"
+  revision = "770e5ebd4ab27c4d70b0983674d138217f5e2c72"
 
 [[projects]]
   name = "google.golang.org/appengine"
   packages = [
+    ".",
     "internal",
+    "internal/app_identity",
     "internal/base",
     "internal/datastore",
     "internal/log",
+    "internal/modules",
     "internal/remote_api",
     "internal/urlfetch",
     "urlfetch"
@@ -75,6 +75,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "57019f22bf2e1b50fbf26e5fb14dfa7532a980a19d3e9a90a4b6446d9fa8f91b"
+  inputs-digest = "6630b1748fe29043ba9d89f6b79be0b605d0fe16e341598d7d6ddee81d0e2c12"
   solver-name = "gps-cdcl"
   solver-version = 1
