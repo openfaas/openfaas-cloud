@@ -2,6 +2,7 @@ package sdk
 
 // PushEvent as received from GitHub
 type PushEvent struct {
+	Ref        string `json:"ref"`
 	Repository struct {
 		Name     string `json:"name"`
 		FullName string `json:"full_name"`
