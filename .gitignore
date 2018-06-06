@@ -4,3 +4,5 @@ build
 image
 *.pem
 
+secrets.yml
+

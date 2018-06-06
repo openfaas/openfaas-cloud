@@ -121,7 +121,76 @@ Within a few seconds you'll have your function deployed and live with a prefix o
 
 For more information get in touch directly for a private trial of the public service.
 
-## UI Dashboard
+### Secrets
+
+Secret support is available for functions through SealedSecrets, but you will need to install the Bitnami SealedSecrets controller before going any futher.
+
+#### On the Server
+
+* Add the CRD entry for SealedSecret:
+
+```
+release=$(curl --silent "https://api.github.com/repos/bitnami-labs/sealed-secrets/releases/latest" | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p')
+kubectl create -f https://github.com/bitnami-labs/sealed-secrets/releases/download/$release/sealedsecret-crd.yaml
+```
+
+* Install the CRD controller to manage SealedSecrets:
+
+```
+kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/$release/controller.yaml
+```
+
+* Install kubeseal CLI
+
+You can perform the following two commands on the client or the server providing that you have a `.kube/config` file available and have switched to that context with `kubectl config set-context`.
+
+```
+release=$(curl --silent "https://api.github.com/repos/bitnami-labs/sealed-secrets/releases/latest" | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p')
+GOOS=$(go env GOOS)
+GOARCH=$(go env GOARCH)
+wget https://github.com/bitnami/sealed-secrets/releases/download/$release/kubeseal-$GOOS-$GOARCH
+sudo install -m 755 kubeseal-$GOOS-$GOARCH /usr/local/bin/kubeseal
+```
+
+* Export your public key
+
+Now export the public key from Kubernetes cluster
+
+```
+kubeseal --fetch-cert > pub-cert.pem
+```
+
+You will need to distribute or share pub-cert.pem so that people can use this with the OpenFaaS CLI `faas-cli cloud seal` command to seal secrets.
+
+* Seal a secret
+
+To seal a secret type in:
+
+```
+faas-cli cloud seal --name alexellis-fn1 --literal secret="My AWS key goes here"
+```
+
+This will produce a secrets.yml file which can then be specified in your function definition as follows:
+
+```
+    name: fn1
+    secrets:
+      - alexellis-fn1
+```
+
+Once ingested into the cluster via the `import-secrets` function you will see the following:
+
+```
+$ kubectl get sealedsecret -n openfaas-fn
+NAME            AGE
+alexellis-fn1   18s
+
+$ kubectl get secret -n openfaas-fn
+NAME                  TYPE                                  DATA      AGE
+alexellis-fn1         Opaque                                1         16s
+```
+
+### UI Dashboard
 
 The UI Dashboard shows your deployed functions by reading from the list-functions function. It is useful for testing and reviewing your functions as you go through a development workflow.
 
