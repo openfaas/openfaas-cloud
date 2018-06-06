@@ -36,6 +36,10 @@ func Handle(req []byte) string {
 		os.Exit(-1)
 	}
 
+	if len(event.owner) == 0 {
+		return fmt.Sprintf("invalid owner name %s", event.owner)
+	}
+
 	if strings.HasPrefix(userSecret.Metadata.Name, event.owner) == false {
 		return fmt.Errorf("unable to bind a secret which does not start with owner name: %s", event.owner).Error()
 	}
@@ -54,7 +58,7 @@ func Handle(req []byte) string {
 			fmt.Printf("couldn't update SealedSecret (%s) - error: %s\n", name, err)
 			os.Exit(-1)
 		}
-		return "Imported SealedSecret: %s as update"
+		return fmt.Sprintf("Imported SealedSecret: %s via update", name)
 	}
 
 	if !errors2.IsNotFound(err) {
@@ -85,7 +89,7 @@ func Handle(req []byte) string {
 		os.Exit(-1)
 	}
 
-	return "Imported SealedSecret: %s as new object"
+	return fmt.Sprintf("Imported SealedSecret: %s as new object", name)
 }
 
 func updateEncryptedData(ss *ssv1alpha1.SealedSecret, userSecret *SealedSecret) error {
