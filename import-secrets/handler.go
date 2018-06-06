@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 	"k8s.io/client-go/rest"
@@ -15,7 +16,7 @@ import (
 )
 
 // Handle a serverless request
-func Handle(req []byte) []byte {
+func Handle(req []byte) string {
 	event := getEvent()
 	config, err := rest.InClusterConfig()
 
@@ -26,72 +27,76 @@ func Handle(req []byte) []byte {
 
 	ssc := ssv1alpha1clientset.NewForConfigOrDie(config)
 
-	var ss SealedSecret
+	var userSecret SealedSecret
 
-	err = yaml.Unmarshal(req, &ss)
+	err = yaml.Unmarshal(req, &userSecret)
 
 	if err != nil {
 		fmt.Println("couldn't unmarshall secrets.yml\n", err)
 		os.Exit(-1)
 	}
 
-	name := fmt.Sprintf("%s-%s", event.owner, ss.Metadata.Name)
+	if strings.HasPrefix(userSecret.Metadata.Name, event.owner) == false {
+		return fmt.Errorf("unable to bind a secret which does not start with owner name: %s", event.owner).Error()
+	}
 
-	existingSS, err := ssc.SealedSecrets(ss.Metadata.Namespace).Get(name, metav1.GetOptions{})
+	name := fmt.Sprintf("%s", userSecret.Metadata.Name)
 
-	if err != nil {
-		if !errors2.IsNotFound(err) {
-			fmt.Printf("couldn't get SealedSecret (%s) - error: %s\n", name, err)
-			os.Exit(-1)
-		}
+	existingSS, err := ssc.SealedSecrets(userSecret.Metadata.Namespace).Get(name, metav1.GetOptions{})
 
-		var sss ssv1alpha1.SealedSecret
-
-		sss.Name = name
-		sss.ObjectMeta = *ss.Metadata
-		sss.ObjectMeta.Name = name
-		sss.Spec = ssv1alpha1.SealedSecretSpec{
-			EncryptedData: map[string][]byte{},
-		}
-
-		err = updateEncryptedData(&sss, &ss)
-
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(-1)
-		}
-
-		_, err := ssc.SealedSecrets(sss.Namespace).Create(&sss)
-
-		if err != nil {
-			fmt.Printf("couldn't create SealedSecret (%s) - error: %s\n", name, err)
-			os.Exit(-1)
-		}
-	} else {
+	if err == nil {
 		fmt.Printf("found SealedSecret %s start updating\n", name)
 
-		err = updateEncryptedData(existingSS, &ss)
-
-		_, err := ssc.SealedSecrets(ss.Metadata.Namespace).Update(existingSS)
+		err = updateEncryptedData(existingSS, &userSecret)
+		_, err := ssc.SealedSecrets(userSecret.Metadata.Namespace).Update(existingSS)
 
 		if err != nil {
 			fmt.Printf("couldn't update SealedSecret (%s) - error: %s\n", name, err)
 			os.Exit(-1)
 		}
+		return "Imported SealedSecret: %s as update"
 	}
 
-	return []byte(fmt.Sprintf("handled sealed secrets from secrets.yml"))
+	if !errors2.IsNotFound(err) {
+		fmt.Printf("couldn't get SealedSecret (%s) - error: %s\n", name, err)
+		os.Exit(-1)
+	}
+
+	var ss ssv1alpha1.SealedSecret
+
+	ss.Name = name
+	ss.ObjectMeta = *userSecret.Metadata
+	ss.ObjectMeta.Name = name
+	ss.Spec = ssv1alpha1.SealedSecretSpec{
+		EncryptedData: map[string][]byte{},
+	}
+
+	err = updateEncryptedData(&ss, &userSecret)
+
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(-1)
+	}
+
+	_, createErr := ssc.SealedSecrets(ss.Namespace).Create(&ss)
+
+	if createErr != nil {
+		fmt.Printf("couldn't create SealedSecret (%s) - error: %s\n", name, createErr)
+		os.Exit(-1)
+	}
+
+	return "Imported SealedSecret: %s as new object"
 }
 
-func updateEncryptedData(sss *ssv1alpha1.SealedSecret, css *SealedSecret) error {
-	for k, v := range css.Spec.EncryptedData {
-		bs, err := base64.StdEncoding.DecodeString(v)
+func updateEncryptedData(ss *ssv1alpha1.SealedSecret, userSecret *SealedSecret) error {
+	for k, v := range userSecret.Spec.EncryptedData {
+		encodedBytes, err := base64.StdEncoding.DecodeString(v)
 
 		if err != nil {
-			return fmt.Errorf("couldn't decode base64 string (%s) - error: %s\n", k, err)
+			return fmt.Errorf("can't decode base64 string (%s) - error: %s", k, err)
 		}
 
-		sss.Spec.EncryptedData[k] = bs
+		ss.Spec.EncryptedData[k] = encodedBytes
 	}
 
 	return nil

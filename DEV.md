@@ -24,14 +24,14 @@ The API gateway uses secrets to enable basic authentication, even if your gatewa
 
 Comment out these lines in stack.yml:
 
-```
+```yaml
       - basic-auth-user
       - basic-auth-password
 ```
 
 Or create temporary secrets:
 
-```
+```sh
 echo "admin" > basic-auth-user
 echo "admin" > basic-auth-password
 docker secret create basic-auth-user basic-auth-user
@@ -58,14 +58,16 @@ The GitHub app will deliver webhooks to your OpenFaaS Cloud instance every time 
 
 * Create `github.yml` and populate it with your secrets as configured on the GitHub App:
 
-```
+```yaml
 environment:
     github_webhook_secret: "Long-Password-Goes-Here"
 ```
+
 The shared secret is used to securely verify each message came from GitHub and not a third party.
 
 * Add github appId to `github.yml`
-```
+
+```yaml
 environment:
     github_webhook_secret: "Long-Password-Goes-Here"
     github_app_id: "<app_id>"
@@ -88,7 +90,7 @@ docker secret create derek-private-key <your_private_key_file>.pem
 
 * Update the remote gateway URL in `stack.yml` or set the `OPENFAAS_URL` environmental variable.
 
-```
+```yaml
 provider:
   name: faas
   gateway: http://localhost:8080
@@ -105,7 +107,7 @@ https://github.com/openfaas/openfaas-cloud/tree/master/of-builder
 
 > Before running this build/push/deploy script change the Docker Hub image prefix from `alexellis2/` to your own.
 
-```
+```sh
 $ faas-cli build --parallel=4 \
   && faas-cli push --parallel=4 \
   && faas-cli deploy
@@ -129,14 +131,14 @@ Secret support is available for functions through SealedSecrets, but you will ne
 
 * Add the CRD entry for SealedSecret:
 
-```
+```sh
 release=$(curl --silent "https://api.github.com/repos/bitnami-labs/sealed-secrets/releases/latest" | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p')
 kubectl create -f https://github.com/bitnami-labs/sealed-secrets/releases/download/$release/sealedsecret-crd.yaml
 ```
 
 * Install the CRD controller to manage SealedSecrets:
 
-```
+```sh
 kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/$release/controller.yaml
 ```
 
@@ -144,7 +146,7 @@ kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/downloa
 
 You can perform the following two commands on the client or the server providing that you have a `.kube/config` file available and have switched to that context with `kubectl config set-context`.
 
-```
+```sh
 release=$(curl --silent "https://api.github.com/repos/bitnami-labs/sealed-secrets/releases/latest" | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p')
 GOOS=$(go env GOOS)
 GOARCH=$(go env GOARCH)
@@ -156,7 +158,7 @@ sudo install -m 755 kubeseal-$GOOS-$GOARCH /usr/local/bin/kubeseal
 
 Now export the public key from Kubernetes cluster
 
-```
+```sh
 kubeseal --fetch-cert > pub-cert.pem
 ```
 
@@ -166,13 +168,13 @@ You will need to distribute or share pub-cert.pem so that people can use this wi
 
 To seal a secret type in:
 
-```
+```sh
 faas-cli cloud seal --name alexellis-fn1 --literal secret="My AWS key goes here"
 ```
 
 This will produce a secrets.yml file which can then be specified in your function definition as follows:
 
-```
+```yaml
     name: fn1
     secrets:
       - alexellis-fn1
@@ -180,7 +182,7 @@ This will produce a secrets.yml file which can then be specified in your functio
 
 Once ingested into the cluster via the `import-secrets` function you will see the following:
 
-```
+```sh
 $ kubectl get sealedsecret -n openfaas-fn
 NAME            AGE
 alexellis-fn1   18s
