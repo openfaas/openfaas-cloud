@@ -123,6 +123,103 @@ Within a few seconds you'll have your function deployed and live with a prefix o
 
 For more information get in touch directly for a private trial of the public service.
 
+### UI Dashboard
+
+The UI Dashboard shows your deployed functions by reading from the list-functions function. It is useful for testing and reviewing your functions as you go through a development workflow.
+
+Deploy them separately from:
+
+https://github.com/alexellis/of-cloud-fns
+
+### Appendix for Kubernetes
+
+The functions which make up OpenFaaS Cloud are compatible with Kubernetes but some additional work is needed for the registry to make it work as seamlessly as it does on Swarm. The of-builder should also be brought up using a Kubernetes YAML file instead of `docker run` / `docker service create`.
+
+You will need to edit `buildshiprun_limits_swarm.yml` and change the unit value from `30m` to `30Mi` so that Kubernetes can make use of the value.
+
+The way Kubernetes accesses the Docker registry will need a NodePort and a TLS cert (or an insecure-registry setting in the kubelet), so bear this in mind when working through the `of-builder` README.
+
+* Update all timeouts
+
+Before deploying you will need to bump all the timeouts to at least 300 seconds (5 minutes) to allow for latency building/pushing your images.
+
+* Ensure basic auth is enabled on the gateway
+
+The functions will need basic auth credentials to access the gateway. Make sure they are defined in the cluster in the openfaas-fn namespace.
+
+```
+      - basic-auth-user
+      - basic-auth-password
+```
+
+* Create a secret for the GitHub app
+
+This should be the private key downloaded from GitHub
+
+```
+cp $HOME/Downloads/openfaas-cloud-vnext.2018-05-25.private-key.pem private-key
+kubectl create secret generic private-key -n openfaas-fn --from-file=./private-key
+```
+
+* Edit github.yml
+
+Set application ID
+
+* Update gateway_config.yml
+
+I.e.
+
+```
+environment:
+  gateway_url: http://gateway.openfaas:8080/
+  gateway_public_url: http://of-cloud.public-facing-url.com:8080/
+  audit_url: http://gateway.openfaas:8080/function/audit-event
+  repository_url: docker.io/ofcommunity/
+  push_repository_url: docker.io/ofcommunity/
+```
+
+Replace "ofcommunity" with your Docker Hub account or the IP address of your registry.
+
+* Update `buildshiprun`
+
+Make sure you add the environment_file for `buildshiprun_limits_k8s.yml` and not for Swarm.
+
+* Validate HMAC on `gh-push`
+
+Set `validate_hmac` to true and update the env-var `github_webhook_secret` in `github.yml` which is used to verify HMAC signatures of incoming webhooks. This is the webhook secret defined on your GitHub App.
+
+* Deploy buildkit/of-builder
+
+If you're using the Docker Hub then create a `config.json` file via `docker login` on Linux. This can then be set as a secret for buildkit in `of-builder-dep.yml`
+
+```
+$ kubectl create secret generic \
+  --namespace openfaas \
+  registry-secret --from-file=$HOME/.docker/config.json 
+```
+
+Update `of-builder-dep.yml` and the secret mount and volume projection to `/root/.docker/config.json`.
+
+```
+    spec:
+      volumes:
+        - name: registry-secret
+          secret:
+            secretName: registry-secret
+...
+
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: quay-secret
+          readOnly: true
+          mountPath: "/root/.docker/"
+```
+
+You'll now need to deploy buildkit with `kubectl apply -f ./yaml/`
+
+Delete the registry if you're using the Docker Hub: `kubectl delete -f ./yaml/registry.yml`
+
 ### Secrets
 
 Secret support is available for functions through SealedSecrets, but you will need to install the Bitnami SealedSecrets controller before going any futher.
@@ -192,19 +289,13 @@ NAME                  TYPE                                  DATA      AGE
 alexellis-fn1         Opaque                                1         16s
 ```
 
-### UI Dashboard
+#### Troubleshooting
 
-The UI Dashboard shows your deployed functions by reading from the list-functions function. It is useful for testing and reviewing your functions as you go through a development workflow.
+```
+kubectl logs -f deploy/git-tar -n openfaas-fn
 
-Deploy them separately from:
+kubectl logs -f deploy/buildshiprun -n openfaas-fn
 
-https://github.com/alexellis/of-cloud-fns
-
-### Appendix for Kubernetes
-
-The functions which make up OpenFaaS Cloud are compatible with Kubernetes but some additional work is needed for the registry to make it work as seamlessly as it does on Swarm. The of-builder should also be brought up using a Kubernetes YAML file instead of `docker run` / `docker service create`.
-
-You will need to edit `buildshiprun_limits_swarm.yml` and change the unit value from `30m` to `30Mi` so that Kubernetes can make use of the value.
-
-The way Kubernetes accesses the Docker registry will need a NodePort and a TLS cert (or an insecure-registry setting in the kubelet), so bear this in mind when working through the `of-builder` README.
+kubectl get events -n openfaas
+```
 

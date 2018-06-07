@@ -22,7 +22,7 @@ functions:
   git-tar:
     lang: dockerfile
     handler: ./git-tar
-    image: alexellis2/of-git-tar:0.6.4
+    image: alexellis2/of-git-tar:0.6.5
     environment:
       read_timeout: 120
       write_timeout: 120
@@ -34,7 +34,7 @@ functions:
   buildshiprun:
     lang: go
     handler: ./buildshiprun
-    image: alexellis2/of-buildshiprun:0.4.5
+    image: alexellis2/of-buildshiprun:0.4.6
     environment:
       read_timeout: 300
       write_timeout: 300
@@ -42,7 +42,7 @@ functions:
       read_debug: true
       builder_url: http://of-builder.openfaas:8080/
     environment_file:
-      - buildshiprun_limits_swarm.yml
+      - buildshiprun_limits_k8s.yml
       - gateway_config.yml
       - github.yml
     secrets:
@@ -92,7 +92,10 @@ functions:
   import-secrets:
     lang: go
     handler: ./import-secrets
-    image: alexellis2/import-secrets:0.0.1
+    image: alexellis2/import-secrets:0.1.0
+    environment:
+      write_debug: true
+      read_debug: true
 
   echo:
     skip_build: true
