@@ -256,21 +256,25 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services) err
 	return nil
 }
 
-func importSecrets(pushEvent sdk.PushEvent, filePath string) error {
+func importSecrets(pushEvent sdk.PushEvent, clonePath string) error {
 	gatewayURL := os.Getenv("gateway_url")
 
 	owner := pushEvent.Repository.Owner.Login
 
-	c := http.Client{}
+	secretPath := path.Join(clonePath, "secrets.yml")
 
-	sp := path.Join(filePath, "secrets.yml")
-
-	f, err := os.Open(sp)
-
-	if err != nil {
-		return fmt.Errorf("unable to read %s error: %t", sp, err)
+	// No secrets supplied.
+	if fileInfo, err := os.Stat(secretPath); fileInfo == nil || err != nil {
+		return nil
 	}
 
+	f, err := os.Open(secretPath)
+
+	if err != nil {
+		return fmt.Errorf("unable to read %s error: %s", secretPath, err.Error())
+	}
+
+	c := http.Client{}
 	httpReq, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/import-secrets", f)
 
 	httpReq.Header.Add("Owner", owner)

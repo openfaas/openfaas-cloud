@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	defaultPrivateKeyName = "private_key.pem"
+	defaultPrivateKeyName = "private-key"
 )
 
 // Handle a build / deploy request - returns empty string for an error

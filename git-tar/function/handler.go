@@ -52,7 +52,7 @@ func Handle(req []byte) []byte {
 
 	err = importSecrets(pushEvent, clonePath)
 	if err != nil {
-		log.Println("Error parsing secrets: ", err.Error())
+		log.Printf("Error parsing secrets: %s\n", err.Error())
 		os.Exit(-1)
 	}
 
