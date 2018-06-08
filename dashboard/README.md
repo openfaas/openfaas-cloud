@@ -11,6 +11,12 @@ The Dashboard is optional and can be installed to visualise your functions.
 
 Set `query_pretty_url`  to `true` when using a sub-domain for each user. If set, also define `pretty_url` with the pattern for the URL.
 
+Example with domain `o6s.io`:
+
+```
+      pretty_url: "http://user.o6s.io/function"
+```
+
 Set `public_url` to be the URL for the IP / DNS if not using a `pretty_url`
 
 * Deploy
