@@ -277,6 +277,7 @@ func buildPublicStatusURL(status string, event *eventInfo) string {
 		gatewayPrettyURL := os.Getenv("gateway_pretty_url")
 
 		if len(gatewayPrettyURL) > 0 {
+			// gateway_pretty_url=
 			// https://user.get-faas.com/function
 			url = strings.Replace(gatewayPrettyURL, "user", event.owner, 1)
 			url = strings.Replace(url, "function", event.service, 1)
