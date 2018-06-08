@@ -87,4 +87,4 @@ A private, local registry is deployed inside the cluster.
 
 You can set up and host your own *OpenFaaS Cloud* or contact alex@openfaas.com for instructions on how to participate in a public trial of a fully-hosted service. Read the privacy statement and terms and conditions for the hosted version of [OpenFaaS Cloud](./PRIVACY.md).
 
-Read the [development guide](DEV.md) to find out more about the functions and to start hacking on OpenFaaS Cloud.
+Read the [development guide](docs/DEV.md) to find out more about the functions and to start hacking on OpenFaaS Cloud.
