@@ -127,9 +127,7 @@ For more information get in touch directly for a private trial of the public ser
 
 The UI Dashboard shows your deployed functions by reading from the list-functions function. It is useful for testing and reviewing your functions as you go through a development workflow.
 
-Deploy them separately from:
-
-https://github.com/alexellis/of-cloud-fns
+Deploy them separately from the [dashboard](/dashboard) folder.
 
 ### Appendix for Kubernetes
 

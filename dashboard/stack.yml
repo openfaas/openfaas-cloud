@@ -1,0 +1,24 @@
+provider:
+  name: faas
+  gateway: http://127.0.0.1:8080
+
+functions:
+  system-overview:
+    lang: go
+    handler: ./overview
+    image: alexellis2/overview:0.4.0
+    environment:
+      content_type: "text/html"
+      combine_output: "false"
+      public_url: "http://127.0.0.1:8080"
+ # Comment out if not using public pretty-URL
+      pretty_url: "https://user.get-faas.com/function"
+      query_pretty_url: "true"
+
+  system-list-functions:
+    skip_build: true
+    image: alexellis2/list-functions:0.4
+    fprocess: ./handler
+    environment:
+      gateway_url: http://gateway:8080/
+
