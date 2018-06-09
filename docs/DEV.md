@@ -85,7 +85,7 @@ A private key must also be mounted as a Docker / Kubernetes secret so that the c
 
 Create Docker secret
 ```
-docker secret create derek-private-key <your_private_key_file>.pem
+docker secret create private-key <your_private_key_file>.pem
 ```
 
 * Update the remote gateway URL in `stack.yml` or set the `OPENFAAS_URL` environmental variable.
@@ -150,13 +150,21 @@ The functions will need basic auth credentials to access the gateway. Make sure 
       - basic-auth-password
 ```
 
+Create basic auth secrets:
+
+```sh
+echo "username" > basic-auth-user
+echo "password" > basic-auth-password
+kubectl create secret generic basic-auth-user --from-file=basic-auth-user=./basic-auth-user -n openfaas-fn
+kubectl create secret generic basic-auth-password --from-file=basic-auth-password=./basic-auth-password -n openfaas-fn
+```
+
 * Create a secret for the GitHub app
 
 This should be the private key downloaded from GitHub
 
 ```
-cp $HOME/Downloads/openfaas-cloud-vnext.2018-05-25.private-key.pem private-key
-kubectl create secret generic private-key -n openfaas-fn --from-file=./private-key
+kubectl create secret generic private-key -n openfaas-fn --from-file=private-key=<path/to/private/key.pem>
 ```
 
 * Edit github.yml
