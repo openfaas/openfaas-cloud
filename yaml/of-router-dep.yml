@@ -1,0 +1,22 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: of-router
+  namespace: openfaas
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: of-router
+    spec:
+      containers:
+      - name: of-router
+        image: openfaas/cloud-router:0.1
+        imagePullPolicy: Always
+        env:
+          - name: upstream_url
+            value: "http://gateway.openfaas:8080"
+        ports:
+        - containerPort: 8080
+          protocol: TCP

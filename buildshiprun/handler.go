@@ -12,14 +12,12 @@ import (
 	"strings"
 	"time"
 
-
 	"github.com/alexellis/derek/auth"
 	"github.com/google/go-github/github"
-	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
 const (
-	defaultPrivateKeyName = "private_key.pem"
+	defaultPrivateKeyName = "private-key"
 )
 
 // Handle a build / deploy request - returns empty string for an error
@@ -225,7 +223,6 @@ func enableStatusReporting() bool {
 }
 
 func reportStatus(status *sdk.Status) {
-
 	if !enableStatusReporting() {
 		return
 	}
@@ -247,7 +244,7 @@ func getPrivateKey() string {
 	if privateKeyName == "" {
 		privateKeyName = defaultPrivateKeyName
 	}
-	privateKeyPath := "/run/secrets/" + privateKeyName
+	privateKeyPath := "/var/openfaas/secrets/" + privateKeyName
 	return privateKeyPath
 }
 

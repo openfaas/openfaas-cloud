@@ -1,0 +1,34 @@
+provider:
+  name: faas
+  gateway: http://127.0.0.1:8080
+
+functions:
+  system-overview:
+    lang: go
+    handler: ./overview
+    image: alexellis2/overview:0.4.2
+    environment:
+      content_type: "text/html"
+      combine_output: "false"
+      public_url: "http://127.0.0.1:8080"
+ # Comment out if not using public pretty-URL
+      pretty_url: "http://user.o6s.io/function"
+      query_pretty_url: "true"
+
+  system-list-functions:
+    skip_build: true
+    image: alexellis2/list-functions:0.4.2
+    fprocess: ./handler
+    environment:
+      gateway_url: http://gateway.openfaas:8080/
+      secret_mount_path: /var/openfaas/secrets
+      basic_auth: true
+
+      write_debug: true
+    secrets:
+      - basic-auth-user
+      - basic-auth-password
+
+# Swarm URL:
+#    gateway_url: http://gateway:8080/
+

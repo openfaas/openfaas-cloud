@@ -10,12 +10,18 @@ spec:
       labels:
         app: of-builder
     spec:
+      volumes:
+        - name: registry-secret
+          secret:
+            secretName: registry-secret
       containers:
       - name: of-builder
-        image: openfaas/of-builder:0.3.1
+        image: openfaas/of-builder:0.4.0
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
           protocol: TCP
-        securityContext:
-          privileged: true
+        volumeMounts:
+        - name: registry-secret
+          readOnly: true
+          mountPath: "/home/app/.docker/"

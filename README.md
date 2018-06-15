@@ -27,6 +27,8 @@ Read my [introducing OpenFaaS Cloud](https://blog.alexellis.io/introducing-openf
 
 ## Road map
 
+* Core experience
+
 - [x] Quick deployment on Docker Swarm
 - [x] GitHub Status API integration for commits
 - [x] Kubernetes deployment YAML/helm (in progress)
@@ -36,12 +38,19 @@ Read my [introducing OpenFaaS Cloud](https://blog.alexellis.io/introducing-openf
 - [x] Rate limiting for functions
 - [x] CI/CD for OpenFaaS Cloud
 - [x] Builds with BuildKit
-- [x] UI: [Overview user functions](https://github.com/alexellis/of-cloud-fns) via of-cloud-fns repo
+
+* Developer story
+
+- [x] UI: [Dashboard per user](./dashboard)
+- [x] Support secrets in public repos through SealedSecrets
 - [ ] Make build logs available publicly
 - [ ] Gateway deployments/promotions - i.e. only upon GitHub tag or "release"
 - [ ] Make detailed logs available to show build / unit test failures
-- [ ] Unprivileged builds with BuildKit (help wanted)
-- [ ] Isolation between functions
+
+* Operationalize
+- [x] Support for shared Docker Hub account instead of local registry
+- [ ] Unprivileged builds with BuildKit or similar (help wanted)
+- [x] Isolation between functions (NetworkPolicy)
 - [ ] Support for private repos (help wanted)
 - [ ] Integration with on-prem GitLab/BitBucket (help wanted)
 
@@ -87,4 +96,4 @@ A private, local registry is deployed inside the cluster.
 
 You can set up and host your own *OpenFaaS Cloud* or contact alex@openfaas.com for instructions on how to participate in a public trial of a fully-hosted service. Read the privacy statement and terms and conditions for the hosted version of [OpenFaaS Cloud](./PRIVACY.md).
 
-Read the [development guide](DEV.md) to find out more about the functions and to start hacking on OpenFaaS Cloud.
+Read the [development guide](docs/DEV.md) to find out more about the functions and to start hacking on OpenFaaS Cloud.

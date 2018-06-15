@@ -260,3 +260,37 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, sta
 	}
 	return nil
 }
+
+func importSecrets(pushEvent sdk.PushEvent, clonePath string) error {
+	gatewayURL := os.Getenv("gateway_url")
+
+	owner := pushEvent.Repository.Owner.Login
+
+	secretPath := path.Join(clonePath, "secrets.yml")
+
+	// No secrets supplied.
+	if fileInfo, err := os.Stat(secretPath); fileInfo == nil || err != nil {
+		return nil
+	}
+
+	f, err := os.Open(secretPath)
+
+	if err != nil {
+		return fmt.Errorf("unable to read %s error: %s", secretPath, err.Error())
+	}
+
+	c := http.Client{}
+	httpReq, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/import-secrets", f)
+
+	httpReq.Header.Add("Owner", owner)
+
+	res, reqErr := c.Do(httpReq)
+
+	if reqErr != nil {
+		fmt.Fprintf(os.Stderr, fmt.Errorf("unable to parse sealed secrets via handle-secrets: %s", reqErr.Error()).Error())
+	}
+
+	fmt.Println("Parsed sealed secrets", res.Status, owner)
+
+	return nil
+}

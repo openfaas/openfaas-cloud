@@ -53,6 +53,10 @@ func Handle(req []byte) string {
 			log.Fatal(bErr)
 		}
 
+		if response.StatusCode != http.StatusOK {
+			log.Fatalf("unable to query functions, status: %d, message: %s", response.StatusCode, string(bodyBytes))
+		}
+
 		functions := []function{}
 		mErr := json.Unmarshal(bodyBytes, &functions)
 		if mErr != nil {
