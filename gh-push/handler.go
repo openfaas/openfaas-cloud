@@ -188,6 +188,6 @@ func reportStatus(status *sdk.Status) {
 
 	_, reportErr := status.Report(gatewayURL)
 	if reportErr != nil {
-		fmt.Printf("failed to report status, error: %s", reportErr.Error())
+		log.Printf("failed to report status, error: %s", reportErr.Error())
 	}
 }

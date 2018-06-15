@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	defaultPrivateKeyName = "private_key.pem"
+	defaultPrivateKeyName = "private-key"
 )
 
 var (
@@ -41,15 +41,8 @@ func Handle(req []byte) string {
 		log.Printf("reusing provided auth token\n")
 	} else {
 		var tokenErr error
-		// NOTE: currently vendored derek auth package doesn't take the private key as input;
-		// but expect it to be present at : "/run/secrets/derek-private-key"
-		// as docker /secrets dir has limited permission we are bound to use secret named
-		// as "derek-private-key"
-		// the below lines should  be uncommented once the package is updated in derek project
-		// privateKeyPath := getPrivateKey()
-		// token, tokenErr = auth.MakeAccessTokenForInstallation(os.Getenv("github_app_id"),
-		//      event.installationID, privateKeyPath)
-		token, tokenErr = auth.MakeAccessTokenForInstallation(os.Getenv("github_app_id"), status.EventInfo.InstallationID)
+		privateKeyPath := getPrivateKey()
+		token, tokenErr = auth.MakeAccessTokenForInstallation(os.Getenv("github_app_id"), status.EventInfo.InstallationID, privateKeyPath)
 		if tokenErr != nil {
 			log.Fatalf("failed to report status %v, error: %s\n", status, tokenErr.Error())
 		}
@@ -68,6 +61,7 @@ func Handle(req []byte) string {
 		}
 	}
 
+	// return auth token so that it can be reused form a same function
 	return token
 }
 
@@ -129,15 +123,14 @@ func ReportStatus(status string, desc string, statusContext string, event *sdk.E
 }
 
 func getPrivateKey() string {
-	// we are taking the secrets name from the env, by default it is fixed
-	// to private_key.pem.
-	// Although user can make the secret with a specific name and provide
-	// it in the stack.yaml and also specify the secret name in github.yml
+	// Private key name can be different from the default 'private-key'
+	// When providing a different name in the stack.yaml, user need to specify the name
+	// in github.yml as `private_key: <user_private_key>`
 	privateKeyName := os.Getenv("private_key")
 	if privateKeyName == "" {
 		privateKeyName = defaultPrivateKeyName
 	}
-	privateKeyPath := "/run/secrets/" + privateKeyName
+	privateKeyPath := "/var/openfaas/secrets/" + privateKeyName
 	return privateKeyPath
 }
 

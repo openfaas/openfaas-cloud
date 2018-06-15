@@ -12,12 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/alexellis/derek/auth"
-	"github.com/google/go-github/github"
-)
-
-const (
-	defaultPrivateKeyName = "private-key"
+	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
 // Handle a build / deploy request - returns empty string for an error
@@ -33,8 +28,8 @@ func Handle(req []byte) string {
 	}
 
 	auditEvent := sdk.AuditEvent{
-		Owner:  event.owner,
-		Repo:   event.repository,
+		Owner:  event.Owner,
+		Repo:   event.Repository,
 		Source: "buildshiprun",
 	}
 
@@ -231,21 +226,8 @@ func reportStatus(status *sdk.Status) {
 
 	_, reportErr := status.Report(gatewayURL)
 	if reportErr != nil {
-		fmt.Printf("failed to report status, error: %s", reportErr.Error())
+		log.Printf("failed to report status, error: %s", reportErr.Error())
 	}
-}
-
-func getPrivateKey() string {
-	// we are taking the secrets name from the env, by default it is fixed
-	// to private_key.pem.
-	// Although user can make the secret with a specific name and provide
-	// it in the stack.yaml and also specify the secret name in github.yml
-	privateKeyName := os.Getenv("private_key")
-	if privateKeyName == "" {
-		privateKeyName = defaultPrivateKeyName
-	}
-	privateKeyPath := "/var/openfaas/secrets/" + privateKeyName
-	return privateKeyPath
 }
 
 func getImageName(repositoryURL, pushRepositoryURL, imageName string) string {

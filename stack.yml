@@ -30,6 +30,7 @@ functions:
       read_debug: true
     environment_file:
       - gateway_config.yml
+      - github.yml
 
   buildshiprun:
     lang: go

@@ -87,6 +87,11 @@ Create Docker secret
 ```
 docker secret create private-key <your_private_key_file>.pem
 ```
+Defauly private key secret name is `private-key`   
+If needed different name can be specified by setting `private_key` value in `github.yml`
+```yaml
+private_key: my-private-key
+```
 
 * Update the remote gateway URL in `stack.yml` or set the `OPENFAAS_URL` environmental variable.
 
