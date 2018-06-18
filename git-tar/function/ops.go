@@ -256,8 +256,13 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services) err
 	return nil
 }
 
-func importSecrets(pushEvent sdk.PushEvent, clonePath string) error {
+func importSecrets(pushEvent sdk.PushEvent, stack *stack.Services, clonePath string) error {
 	gatewayURL := os.Getenv("gateway_url")
+
+	secretCount := 0
+	for _, fn := range stack.Functions {
+		secretCount += len(fn.Secrets)
+	}
 
 	owner := pushEvent.Repository.Owner.Login
 
@@ -284,6 +289,14 @@ func importSecrets(pushEvent sdk.PushEvent, clonePath string) error {
 	if reqErr != nil {
 		fmt.Fprintf(os.Stderr, fmt.Errorf("unable to parse sealed secrets via handle-secrets: %s", reqErr.Error()).Error())
 	}
+
+	auditEvent := sdk.AuditEvent{
+		Message: fmt.Sprintf("Parsed sealed secrets for owner: %s. Parsed %d secrets, from %d functions", owner, secretCount, len(stack.Functions)),
+		Owner:   pushEvent.Repository.Owner.Login,
+		Repo:    pushEvent.Repository.Name,
+		Source:  Source,
+	}
+	sdk.PostAudit(auditEvent)
 
 	fmt.Println("Parsed sealed secrets", res.Status, owner)
 
