@@ -14,6 +14,8 @@ import (
 	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
+const Source = "git-tar"
+
 // Handle a serverless request
 func Handle(req []byte) []byte {
 
@@ -50,7 +52,7 @@ func Handle(req []byte) []byte {
 		os.Exit(-1)
 	}
 
-	err = importSecrets(pushEvent, clonePath)
+	err = importSecrets(pushEvent, stack, clonePath)
 	if err != nil {
 		log.Printf("Error parsing secrets: %s\n", err.Error())
 		os.Exit(-1)
