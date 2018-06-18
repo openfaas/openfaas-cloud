@@ -143,6 +143,14 @@ Before deploying you will need to bump all the timeouts to at least 300 seconds 
 
 * Ensure basic auth is enabled on the gateway
 
+`basic-auth-user` and `basic-auth-password` are to access gateway and are required when basic auth is enabled on the gateway service.
+
+```
+      ....
+      basic_auth: "true"
+      ....
+```
+
 The functions will need basic auth credentials to access the gateway. Make sure they are defined in the cluster in the openfaas-fn namespace.
 
 ```
