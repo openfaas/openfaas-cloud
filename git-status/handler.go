@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	defaultPrivateKeyName = "private-key"
+	defaultPrivateKeyName  = "private-key"
+	defaultSecretMountPath = "/run/secrets/"
 )
 
 var (
@@ -130,7 +131,11 @@ func getPrivateKey() string {
 	if privateKeyName == "" {
 		privateKeyName = defaultPrivateKeyName
 	}
-	privateKeyPath := "/var/openfaas/secrets/" + privateKeyName
+	secretMountPath := os.Getenv("secret_mount_path")
+	if secretMountPath == "" {
+		secretMountPath = defaultSecretMountPath
+	}
+	privateKeyPath := secretMountPath + privateKeyName
 	return privateKeyPath
 }
 
