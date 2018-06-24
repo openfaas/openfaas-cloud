@@ -30,7 +30,7 @@ func Handle(req []byte) string {
 
 		sdk.PostAudit(auditEvent)
 
-		return fmt.Sprintf("%s cannot handle event: %s", source, event)
+		return fmt.Sprintf("%s cannot handle event: %s", Source, event)
 	}
 
 	xHubSignature := os.Getenv("Http_X_Hub_Signature")
