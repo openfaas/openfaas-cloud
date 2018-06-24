@@ -12,11 +12,13 @@ This diagram shows the interactions between the functions that make up the OpenF
 
 The public trial of OpenFaaS Cloud is running on Docker Swarm, so deploy OpenFaaS on Docker Swarm using [the documentation](https://docs.openfaas.com/deployment/).
 
-You will also need to extend all timeouts for the gateway and the queue-worker.
+You will also need to extend all timeouts for the gateway and the queue-worker. You should also increase the replica count of the `queue-worker` to enable concurrent builds for users.
 
-The `ack_wait: "300s"` field should have a value of around `300s` or 5 minutes to allow for a Docker build of up to 5 minutes.
+The `ack_wait: "15m"` field should have a value of around `15m` or 5 minutes to allow for a Docker build of up to 15 minutes.
 
-OpenFaaS Cloud leverages OpenFaaS functions so will work with Kubernetes, but a complete configuration has not been provided yet. Some minor tweaks may be needed to configuration YAML files such as URLs and memory limits for the of-builder and/or buildshiprun function.
+OpenFaaS Cloud leverages OpenFaaS functions so will work with Kubernetes. Some minor tweaks may be needed to configuration YAML files such as URLs and memory limits for the of-builder and/or buildshiprun function. The shared cluster made available to the community runs on Kubernetes. 
+
+> Note: it is easier to use one shared account on the Docker Hub or another public registry than to host your own registry with Kubernetes.
 
 * Create secrets for the API Gateway
 
@@ -93,7 +95,7 @@ docker secret create private-key <your_private_key_file>.pem
 ```yaml
 provider:
   name: faas
-  gateway: http://localhost:8080
+  gateway: http://127.0.0.1:8080
 
 ```
 
@@ -145,7 +147,7 @@ Before deploying you will need to bump all the timeouts to at least 300 seconds 
 
 `basic-auth-user` and `basic-auth-password` are to access gateway and are required when basic auth is enabled on the gateway service.
 
-```
+```yaml
       ....
       basic_auth: "true"
       ....
@@ -153,7 +155,7 @@ Before deploying you will need to bump all the timeouts to at least 300 seconds 
 
 The functions will need basic auth credentials to access the gateway. Make sure they are defined in the cluster in the openfaas-fn namespace.
 
-```
+```yaml
       - basic-auth-user
       - basic-auth-password
 ```
@@ -183,7 +185,7 @@ Set application ID
 
 I.e.
 
-```
+```yaml
 environment:
   gateway_url: http://gateway.openfaas:8080/
   gateway_public_url: http://of-cloud.public-facing-url.com:8080/
@@ -214,7 +216,7 @@ $ kubectl create secret generic \
 
 Update `of-builder-dep.yml` and the secret mount and volume projection to `/root/.docker/config.json`.
 
-```
+```yaml
     spec:
       volumes:
         - name: registry-secret
@@ -303,13 +305,25 @@ NAME                  TYPE                                  DATA      AGE
 alexellis-fn1         Opaque                                1         16s
 ```
 
-#### Troubleshooting
+#### Troubleshooting on Kubernetes
+
+Here are some commands to help you with troubleshooting your deployment on Kubernetes
+
+Find out whether the pull/checkout/tar and build and deploy operation passed for each function.
 
 ```
 kubectl logs -f deploy/git-tar -n openfaas-fn
+```
 
+Find out if the build and deployment passed:
+
+```
 kubectl logs -f deploy/buildshiprun -n openfaas-fn
+```
 
-kubectl get events -n openfaas
+Find all events on the functions namespace
+
+```
+kubectl get events --sort-by=.metadata.creationTimestamp -n openfaas-fn
 ```
 
