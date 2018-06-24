@@ -11,8 +11,8 @@ functions:
       openfaas-cloud: "1"
     environment:
       # Http_X_Github_Event: push
-      read_timeout: 10
-      write_timeout: 10
+      read_timeout: 10s
+      write_timeout: 10s
       write_debug: true
       read_debug: true
       validate_customers: true
@@ -28,8 +28,8 @@ functions:
     labels:
       openfaas-cloud: "1"
     environment:
-      read_timeout: 120
-      write_timeout: 120
+      read_timeout: 15m
+      write_timeout: 15m
       write_debug: true
       read_debug: true
     environment_file:
@@ -42,8 +42,8 @@ functions:
     labels:
       openfaas-cloud: "1"
     environment:
-      read_timeout: 300
-      write_timeout: 300
+      read_timeout: 5m
+      write_timeout: 5m
       write_debug: true
       read_debug: true
       builder_url: http://of-builder.openfaas:8080/
@@ -80,8 +80,8 @@ functions:
     environment:
       write_debug: true
       read_debug: true
-      read_timeout: 30
-      write_timeout: 30
+      read_timeout: 30s
+      write_timeout: 30s
     environment_file:
       - gateway_config.yml
     secrets:
