@@ -14,7 +14,8 @@ import (
 	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
-const Source = "gh-push"
+// Source name for this function when auditing
+const Source = "github-push"
 
 // Handle a serverless request
 func Handle(req []byte) string {
@@ -29,7 +30,7 @@ func Handle(req []byte) string {
 
 		sdk.PostAudit(auditEvent)
 
-		return fmt.Sprintf("gh-push cannot handle event: %s", event)
+		return fmt.Sprintf("%s cannot handle event: %s", source, event)
 	}
 
 	xHubSignature := os.Getenv("Http_X_Hub_Signature")
