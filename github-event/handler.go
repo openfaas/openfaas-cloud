@@ -13,7 +13,8 @@ import (
 	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
-const Source = "git-event"
+// Source name for this function when auditing
+const Source = "github-event"
 
 // Handle a serverless request
 func Handle(req []byte) string {
@@ -32,7 +33,7 @@ func Handle(req []byte) string {
 
 		sdk.PostAudit(auditEvent)
 
-		return fmt.Sprintf("git-event cannot handle event: %s", eventHeader)
+		return fmt.Sprintf("%s cannot handle event: %s", Source, eventHeader)
 	}
 
 	if eventHeader == "push" {
@@ -42,7 +43,7 @@ func Handle(req []byte) string {
 			"Content-Type":    "application/json",
 		}
 
-		body, statusCode, err := forward(req, "gh-push", headers)
+		body, statusCode, err := forward(req, "github-push", headers)
 
 		if statusCode == http.StatusOK {
 			return fmt.Sprintf("Forwarded to function: %d, %s", statusCode, body)

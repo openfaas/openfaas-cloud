@@ -3,10 +3,12 @@ provider:
   gateway: http://127.0.0.1:8080
 
 functions:
-  gh-push:
+  github-push:
     lang: go
-    handler: ./gh-push
-    image: alexellis2/gh-push:0.3.3
+    handler: ./github-push
+    image: alexellis2/github-push:0.4.1
+    labels:
+      openfaas-cloud: "1"
     environment:
       # Http_X_Github_Event: push
       read_timeout: 10
@@ -23,6 +25,8 @@ functions:
     lang: dockerfile
     handler: ./git-tar
     image: alexellis2/of-git-tar:0.6.5
+    labels:
+      openfaas-cloud: "1"
     environment:
       read_timeout: 120
       write_timeout: 120
@@ -35,6 +39,8 @@ functions:
     lang: go
     handler: ./buildshiprun
     image: alexellis2/of-buildshiprun:0.4.6
+    labels:
+      openfaas-cloud: "1"
     environment:
       read_timeout: 300
       write_timeout: 300
@@ -54,6 +60,8 @@ functions:
     lang: go
     handler: ./list-functions
     image: alexellis2/list-functions:0.4.2
+    labels:
+      openfaas-cloud: "1"
     environment:
       write_debug: true
       read_debug: true
@@ -67,6 +75,8 @@ functions:
     lang: go
     handler: ./garbage-collect
     image: alexellis2/garbage-collect:0.3.1
+    labels:
+      openfaas-cloud: "1"
     environment:
       write_debug: true
       read_debug: true
@@ -78,10 +88,12 @@ functions:
       - basic-auth-user
       - basic-auth-password
 
-  git-event:
+  github-event:
     lang: go
-    handler: ./git-event
-    image: alexellis2/git-event:0.3.1
+    handler: ./github-event
+    image: alexellis2/github-event:0.4.1
+    labels:
+      openfaas-cloud: "1"
     environment:
       write_debug: true
       read_debug: true
@@ -93,6 +105,8 @@ functions:
     lang: go
     handler: ./import-secrets
     image: alexellis2/import-secrets:0.1.0
+    labels:
+      openfaas-cloud: "1"
     environment:
       write_debug: true
       read_debug: true
@@ -109,6 +123,7 @@ functions:
     lang: go
     handler: ./audit-event
     image: functions/audit-event:0.1.0
+    labels:
+      openfaas-cloud: "1"
     environment_file:
       - slack.yml
-

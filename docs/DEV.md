@@ -54,7 +54,7 @@ Now select only the "push" event.
 Now download the private key for your GitHub App which we will use later in the guide for allowing OpenFaaS Cloud to write to commit statuses when a build passes or fails.
 
 The GitHub app will deliver webhooks to your OpenFaaS Cloud instance every time code is pushed in a user's function repository. Make sure you provide the public URL for your OpenFaaS gateway to the GitHub app. Like:  
-`http://my.openfaas.cloud/function/gh-push`
+`http://my.openfaas.cloud/function/github-push`
 
 * Create `github.yml` and populate it with your secrets as configured on the GitHub App:
 
@@ -198,7 +198,7 @@ Replace "ofcommunity" with your Docker Hub account or the IP address of your reg
 
 Make sure you add the environment_file for `buildshiprun_limits_k8s.yml` and not for Swarm.
 
-* Validate HMAC on `gh-push`
+* Validate HMAC on `github-push`
 
 Set `validate_hmac` to true and update the env-var `github_webhook_secret` in `github.yml` which is used to verify HMAC signatures of incoming webhooks. This is the webhook secret defined on your GitHub App.
 
