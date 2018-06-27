@@ -160,3 +160,7 @@
 [[override]]
   name = "k8s.io/kube-openapi"
   revision = "8a9b82f00b3a86eac24681da3f9fe6c34c01cea2"
+
+[[constraint]]
+  name = "github.com/alexellis/hmac"
+  version = "1.2.0"

@@ -302,17 +302,8 @@ func reportStatus(status string, desc string, statusContext string, event *event
 	}
 
 	url := buildPublicStatusURL(status, event)
-
 	ctx := context.Background()
-
-	// NOTE: currently vendored derek auth package doesn't take the private key as input;
-	// but expect it to be present at : "/run/secrets/derek-private-key"
-	// as docker /secrets dir has limited permission we are bound to use secret named
-	// as "derek-private-key"
-	// the below lines should  be uncommented once the package is updated in derek project
 	privateKeyPath := getPrivateKey()
-	// token, tokenErr := auth.MakeAccessTokenForInstallation(os.Getenv("github_app_id"),
-	// 	event.installationID, privateKeyPath)
 
 	repoStatus := buildStatus(status, desc, statusContext, url)
 

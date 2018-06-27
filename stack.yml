@@ -6,11 +6,12 @@ functions:
   github-push:
     lang: go
     handler: ./github-push
-    image: alexellis2/github-push:0.4.1
+    image: alexellis2/github-push:0.4.2
     labels:
       openfaas-cloud: "1"
     environment:
       # Http_X_Github_Event: push
+      validate_hmac: true
       read_timeout: 10s
       write_timeout: 10s
       write_debug: true
@@ -24,7 +25,7 @@ functions:
   git-tar:
     lang: dockerfile
     handler: ./git-tar
-    image: alexellis2/of-git-tar:0.6.5
+    image: alexellis2/of-git-tar:0.6.7
     labels:
       openfaas-cloud: "1"
     environment:
@@ -38,7 +39,7 @@ functions:
   buildshiprun:
     lang: go
     handler: ./buildshiprun
-    image: alexellis2/of-buildshiprun:0.4.6
+    image: alexellis2/of-buildshiprun:0.4.7
     labels:
       openfaas-cloud: "1"
     environment:
@@ -74,7 +75,7 @@ functions:
   garbage-collect:
     lang: go
     handler: ./garbage-collect
-    image: alexellis2/garbage-collect:0.3.1
+    image: alexellis2/garbage-collect:0.3.2
     labels:
       openfaas-cloud: "1"
     environment:
@@ -91,7 +92,7 @@ functions:
   github-event:
     lang: go
     handler: ./github-event
-    image: alexellis2/github-event:0.4.1
+    image: alexellis2/github-event:0.4.2
     labels:
       openfaas-cloud: "1"
     environment:
@@ -104,7 +105,7 @@ functions:
   import-secrets:
     lang: go
     handler: ./import-secrets
-    image: alexellis2/import-secrets:0.1.0
+    image: alexellis2/import-secrets:0.2.0
     labels:
       openfaas-cloud: "1"
     environment:
