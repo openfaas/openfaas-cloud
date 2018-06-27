@@ -18,6 +18,7 @@ import (
 
 // Handle a serverless request
 func Handle(req []byte) string {
+	event := getEventFromHeader()
 
 	if hmacEnabled() {
 		key := getHMACSecretKey()
@@ -31,9 +32,9 @@ func Handle(req []byte) string {
 
 			return "Unable to validate HMAC"
 		}
+		fmt.Fprintf(os.Stderr, "hash for HMAC validated successfully for %s\n", event.owner)
 	}
 
-	event := getEventFromHeader()
 	config, err := rest.InClusterConfig()
 
 	if err != nil {

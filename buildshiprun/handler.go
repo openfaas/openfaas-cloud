@@ -53,7 +53,7 @@ func Handle(req []byte) string {
 		reportStatus("failure", err.Error(), "BUILD", event)
 		auditEvent.Message = fmt.Sprintf("buildshiprun failure: %s", err.Error())
 		sdk.PostAudit(auditEvent)
-		return ""
+		return auditEvent.Message
 	}
 
 	defer res.Body.Close()
