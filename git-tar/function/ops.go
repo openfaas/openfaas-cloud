@@ -2,6 +2,8 @@ package function
 
 import (
 	"archive/tar"
+	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,6 +16,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	hmac "github.com/alexellis/hmac"
 	"github.com/openfaas/faas-cli/stack"
 	"github.com/openfaas/openfaas-cloud/sdk"
 )
@@ -265,7 +268,6 @@ func importSecrets(pushEvent sdk.PushEvent, stack *stack.Services, clonePath str
 	}
 
 	owner := pushEvent.Repository.Owner.Login
-
 	secretPath := path.Join(clonePath, "secrets.yml")
 
 	// No secrets supplied.
@@ -273,21 +275,37 @@ func importSecrets(pushEvent sdk.PushEvent, stack *stack.Services, clonePath str
 		return nil
 	}
 
-	f, err := os.Open(secretPath)
+	fileBytes, err := ioutil.ReadFile(secretPath)
 
 	if err != nil {
-		return fmt.Errorf("unable to read %s error: %s", secretPath, err.Error())
+		return fmt.Errorf("unable to read secret: %s", secretPath)
 	}
 
+	webhookSecretKey := os.Getenv("github_webhook_secret")
+	hash := hmac.Sign(fileBytes, []byte(webhookSecretKey))
+
 	c := http.Client{}
-	httpReq, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/import-secrets", f)
+	reader := bytes.NewReader(fileBytes)
+	httpReq, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/import-secrets", reader)
 
 	httpReq.Header.Add("Owner", owner)
+	httpReq.Header.Add("X-Hub-Signature", "sha1="+hex.EncodeToString(hash))
 
 	res, reqErr := c.Do(httpReq)
 
 	if reqErr != nil {
-		fmt.Fprintf(os.Stderr, fmt.Errorf("unable to parse sealed secrets via handle-secrets: %s", reqErr.Error()).Error())
+		fmt.Fprintf(os.Stderr, fmt.Errorf("error reaching import-secrets function: %s", reqErr.Error()).Error())
+	}
+
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusAccepted && res.StatusCode != http.StatusOK {
+		resBytes, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			return fmt.Errorf("error reading response from import-secrets: %s", err.Error())
+		}
+
+		return fmt.Errorf("import-secrets returned error: %s, res: %s", err.Error(), string(resBytes))
 	}
 
 	auditEvent := sdk.AuditEvent{
@@ -296,6 +314,7 @@ func importSecrets(pushEvent sdk.PushEvent, stack *stack.Services, clonePath str
 		Repo:    pushEvent.Repository.Name,
 		Source:  Source,
 	}
+
 	sdk.PostAudit(auditEvent)
 
 	fmt.Println("Parsed sealed secrets", res.Status, owner)
