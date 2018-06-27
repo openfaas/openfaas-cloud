@@ -105,12 +105,16 @@ functions:
   import-secrets:
     lang: go
     handler: ./import-secrets
-    image: alexellis2/import-secrets:0.2.0
+    image: alexellis2/import-secrets:0.2.1
     labels:
       openfaas-cloud: "1"
     environment:
       write_debug: true
       read_debug: true
+      validate_hmac: true
+      combined_output: false
+    environment_file:
+      - github.yml
 
   echo:
     skip_build: true
