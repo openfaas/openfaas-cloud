@@ -42,7 +42,7 @@ COPY --from=build /usr/bin/fwatchdog         .
 COPY --from=build /usr/local/bin/faas-cli    /usr/local/bin/faas-cli
 RUN chmod 777 /tmp
 USER app
-RUN faas-cli template pull https://github.com/openfaas-incubator/node8-express-template
+# RUN faas-cli template pull https://github.com/openfaas-incubator/node8-express-template
 ENV fprocess="./handler"
 
 CMD ["./fwatchdog"]

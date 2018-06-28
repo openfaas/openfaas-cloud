@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/alexellis/hmac"
+  packages = ["."]
+  revision = "d5d71edd7bc74eb6ae4b99eccc6bda738435f43f"
+  version = "1.2"
+
+[[projects]]
   name = "github.com/bitnami-labs/sealed-secrets"
   packages = [
     "pkg/apis/sealed-secrets/v1alpha1",
@@ -200,6 +206,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d8a77f15cd33f62732b00b5e935ac85f3ded42b0ac69a11f31d189af6040d696"
+  inputs-digest = "5b0c70f49eeff5c68b555d314059caa19916c86b611e856e88123097f98daa3a"
   solver-name = "gps-cdcl"
   solver-version = 1

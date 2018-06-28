@@ -51,7 +51,7 @@ func Handle(req []byte) string {
 		sdk.PostAudit(auditEvent)
 		status.AddStatus(sdk.Failure, err.Error(), sdk.FunctionContext(event.Service))
 		reportStatus(status)
-		return ""
+		return auditEvent.Message
 	}
 
 	defer res.Body.Close()

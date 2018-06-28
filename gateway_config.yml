@@ -1,9 +1,9 @@
 environment:
-  gateway_url: http://gateway:8080/
-  gateway_public_url: http://my.openfass.cloud/
-  audit_url: http://gateway:8080/function/audit-event
-  repository_url: 127.0.0.1:5000
-  push_repository_url: registry:5000
+  gateway_url:  http://gateway.openfaas:8080/
+  gateway_public_url: https://cloud.o6s.io/
+  audit_url: http://gateway.openfaas:8080/function/audit-event
+  repository_url: docker.io/ofcommunity/
+  push_repository_url: docker.io/ofcommunity/
   basic_auth: true
   secret_mount_path: /var/openfaas/secrets
   private_key: private-key
@@ -12,3 +12,6 @@ environment:
 #  repository_url: docker.io/ofcommunity/
 #  push_repository_url: docker.io/ofcommunity/
 
+# Private repo config
+# repository_url: 127.0.0.1:5000
+# push_repository_url: registry:5000

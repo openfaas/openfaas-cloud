@@ -9,6 +9,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"k8s.io/client-go/rest"
 
+	hmac "github.com/alexellis/hmac"
 	ssv1alpha1 "github.com/bitnami-labs/sealed-secrets/pkg/apis/sealed-secrets/v1alpha1"
 	ssv1alpha1clientset "github.com/bitnami-labs/sealed-secrets/pkg/client/clientset/versioned/typed/sealed-secrets/v1alpha1"
 	errors2 "k8s.io/apimachinery/pkg/api/errors"
@@ -17,7 +18,23 @@ import (
 
 // Handle a serverless request
 func Handle(req []byte) string {
-	event := getEvent()
+	event := getEventFromHeader()
+
+	if hmacEnabled() {
+		key := getHMACSecretKey()
+		digest := os.Getenv("Http_X_Hub_Signature")
+
+		validated := hmac.Validate(req, digest, key)
+
+		if validated != nil {
+			fmt.Fprintf(os.Stderr, validated.Error())
+			os.Exit(1)
+
+			return "Unable to validate HMAC"
+		}
+		fmt.Fprintf(os.Stderr, "hash for HMAC validated successfully for %s\n", event.owner)
+	}
+
 	config, err := rest.InClusterConfig()
 
 	if err != nil {
@@ -92,6 +109,14 @@ func Handle(req []byte) string {
 	return fmt.Sprintf("Imported SealedSecret: %s as new object", name)
 }
 
+func getHMACSecretKey() string {
+	return os.Getenv("github_secret_key")
+}
+
+func hmacEnabled() bool {
+	return os.Getenv("validate_hmac") == "1" || os.Getenv("validate_hmac") == "true"
+}
+
 func updateEncryptedData(ss *ssv1alpha1.SealedSecret, userSecret *SealedSecret) error {
 	for k, v := range userSecret.Spec.EncryptedData {
 		encodedBytes, err := base64.StdEncoding.DecodeString(v)
@@ -106,10 +131,10 @@ func updateEncryptedData(ss *ssv1alpha1.SealedSecret, userSecret *SealedSecret) 
 	return nil
 }
 
-func getEvent() *eventInfo {
-	info := eventInfo{}
-
-	info.owner = os.Getenv("Http_Owner")
+func getEventFromHeader() *eventInfo {
+	info := eventInfo{
+		owner: os.Getenv("Http_Owner"),
+	}
 
 	return &info
 }
