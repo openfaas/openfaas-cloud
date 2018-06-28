@@ -77,3 +77,12 @@ func TestBuildURLWithUndefinedStatusGivesOriginalURL(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestTokenValidator(t *testing.T) {
+	testTokens := map[string]bool{"token with space": false, "token$With@special=Char": false, "v1.afbce39asdasd8be30123317cef123321ae991cf40f7": true, "token=v1.afbce39asdasd8be30123": false, " ": false}
+	for token, result := range testTokens {
+		if sdk.ValidToken(token) != result {
+			t.Errorf("validating token %s: want %v, got %v", token, result, !result)
+		}
+	}
+}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/alexellis/derek/auth"
@@ -39,7 +40,7 @@ func Handle(req []byte) string {
 	// use auth token if provided
 	if status.AuthToken != "" && sdk.ValidToken(status.AuthToken) {
 		token = status.AuthToken
-		log.Printf("reusing provided auth token\n")
+		log.Printf("reusing provided auth token")
 	} else {
 		var tokenErr error
 		privateKeyPath := getPrivateKey()
@@ -135,7 +136,7 @@ func getPrivateKey() string {
 	if secretMountPath == "" {
 		secretMountPath = defaultSecretMountPath
 	}
-	privateKeyPath := secretMountPath + privateKeyName
+	privateKeyPath := filepath.Join(secretMountPath, privateKeyName)
 	return privateKeyPath
 }
 

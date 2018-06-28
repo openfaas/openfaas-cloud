@@ -24,7 +24,7 @@ const (
 	Stack  = "stack-deploy"
 )
 
-const authTokenPattern = "^[A-Za-z0-9-_=]+.[A-Za-z0-9-_=]+.?[A-Za-z0-9-_.+=]*$"
+const authTokenPattern = "^[A-Za-z0-9-_=.]"
 
 var validToken = regexp.MustCompile(authTokenPattern)
 
