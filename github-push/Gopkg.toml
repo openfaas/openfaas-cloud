@@ -20,7 +20,14 @@
 #  name = "github.com/x/y"
 #  version = "2.4.0"
 
-
 [[constraint]]
   branch = "master"
   name = "github.com/alexellis/hmac"
+
+[prune]
+  go-tests = true
+  unused-packages = true
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/openfaas/openfaas-cloud"
