@@ -83,7 +83,7 @@ func (status *Status) Report(gateway string) (string, error) {
 
 	c := http.Client{}
 	bodyReader := bytes.NewBuffer(body)
-	httpReq, _ := http.NewRequest(http.MethodPost, gateway+"function/git-status", bodyReader)
+	httpReq, _ := http.NewRequest(http.MethodPost, gateway+"function/github-status", bodyReader)
 
 	res, err := c.Do(httpReq)
 	if err != nil {

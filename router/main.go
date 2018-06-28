@@ -1,46 +1,37 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 )
 
 func main() {
-	port := "8080"
+	cfg := NewRouterConfig()
 
-	if portVal, exists := os.LookupEnv("port"); exists && len(portVal) > 0 {
-		port = portVal
-	}
-
-	var upstreamURL string
-	if up, exists := os.LookupEnv("upstream_url"); exists && len(up) > 0 {
-		if strings.HasSuffix(up, "/") == false {
-			up = up + "/"
-		}
-
-		upstreamURL = up
-	}
-
-	if len(upstreamURL) == 0 {
+	if len(cfg.UpstreamURL) == 0 {
 		log.Panicln("give an upstream_url as an env-var")
 	}
 
-	timeout := time.Second * 60
-	c := makeProxy(timeout)
+	c := makeProxy(cfg.Timeout)
+
+	log.Printf("Timeout set to: %s\n", cfg.Timeout)
+	log.Printf("Upstream URL: %s\n", cfg.UpstreamURL)
+
 	router := http.NewServeMux()
-	router.HandleFunc("/", makeHandler(c, upstreamURL))
+
+	router.HandleFunc("/", makeHandler(c, cfg.UpstreamURL))
 
 	s := &http.Server{
-		Addr:           ":" + port,
+		Addr:           ":" + cfg.Port,
 		Handler:        router,
-		ReadTimeout:    timeout,
-		WriteTimeout:   timeout,
+		ReadTimeout:    cfg.Timeout,
+		WriteTimeout:   cfg.Timeout,
 		MaxHeaderBytes: 1 << 20,
 	}
 
@@ -68,9 +59,12 @@ func makeHandler(c *http.Client, upstreamURL string) func(w http.ResponseWriter,
 		}
 		req, _ := http.NewRequest(r.Method, path, r.Body)
 
+		timeoutContext, cancel := context.WithTimeout(context.Background(), c.Timeout)
+		defer cancel()
+
 		copyHeaders(req.Header, &r.Header)
 
-		res, resErr := c.Do(req)
+		res, resErr := c.Do(req.WithContext(timeoutContext))
 		if resErr != nil {
 			w.WriteHeader(http.StatusServiceUnavailable)
 			w.Write([]byte(resErr.Error()))
@@ -109,8 +103,6 @@ func makeProxy(timeout time.Duration) *http.Client {
 				Timeout:   timeout,
 				KeepAlive: 1 * time.Second,
 			}).DialContext,
-			// MaxIdleConns:          1,
-			// DisableKeepAlives:     false,
 			IdleConnTimeout:       120 * time.Millisecond,
 			ExpectContinueTimeout: 1500 * time.Millisecond,
 		},

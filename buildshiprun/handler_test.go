@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"os"
 	"testing"
-
-	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
 func TestGetEvent_ReadSecrets(t *testing.T) {
@@ -17,7 +15,7 @@ func TestGetEvent_ReadSecrets(t *testing.T) {
 	os.Setenv("Http_Owner", owner)
 	installation_id := "123456"
 	os.Setenv("Http_Installation_id", installation_id)
-	eventInfo, err := sdk.BuildEventFromEnv()
+	eventInfo, err := BuildEventFromEnv()
 	if err != nil {
 		t.Errorf(err.Error())
 		t.Fail()
@@ -38,7 +36,7 @@ func TestGetEvent_ReadSecrets(t *testing.T) {
 }
 
 func TestGetEvent_EmptyEnvVars(t *testing.T) {
-	_, err := sdk.BuildEventFromEnv()
+	_, err := BuildEventFromEnv()
 
 	if err != nil {
 		t.Errorf(err.Error())
