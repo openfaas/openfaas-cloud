@@ -16,7 +16,7 @@ spec:
             secretName: registry-secret
       containers:
       - name: of-builder
-        image: openfaas/of-builder:0.4.0
+        image: openfaas/of-builder:0.4.1
         imagePullPolicy: Always
         ports:
         - containerPort: 8080

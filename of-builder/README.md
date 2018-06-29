@@ -48,7 +48,7 @@ The builder service calls into the buildkit daemon to build an OpenFaaS function
 ```
 cd of-builder/
 docker rm -f of-builder
-export TAG=0.4.0
+export TAG=0.4.1
 make
 
 make push
@@ -57,7 +57,7 @@ make push
 ### Deploy
 
 ```
-export TAG=0.4.0
+export TAG=0.4.1
 docker service create --network func_functions --name of-builder openfaas/of-builder:$TAG
 ```
 

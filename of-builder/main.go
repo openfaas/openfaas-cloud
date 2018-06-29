@@ -103,10 +103,10 @@ func build(w http.ResponseWriter, r *http.Request) ([]byte, error) {
 			"context":    contextDir,
 			"dockerfile": contextDir,
 		},
-		Frontend: "gateway.v0",
-		FrontendAttrs: map[string]string{
-			"source": cfg.Frontend,
-		},
+		Frontend: "dockerfile.v0",
+		// FrontendAttrs: map[string]string{
+		// 	"source": cfg.Frontend,
+		// },
 		// ~/.docker/config.json could be provided as Kube or Swarm's secret
 		Session: []session.Attachable{authprovider.NewDockerAuthProvider()},
 	}
