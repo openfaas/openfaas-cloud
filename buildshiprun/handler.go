@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -21,6 +22,10 @@ import (
 
 const (
 	defaultPrivateKeyName = "private-key"
+)
+
+var (
+	imageValidator = regexp.MustCompile("(?:[a-zA-Z0-9]+(?:[._-][a-z0-9]+)*(?::[0-9]+)?/[a-zA-Z0-9]+(?:[._-][a-z0-9]+)*/)*[a-zA-Z0-9]+(?:[._-][a-z0-9]+)*")
 )
 
 // Handle a build / deploy request - returns empty string for an error
@@ -78,7 +83,7 @@ func Handle(req []byte) string {
 
 	log.Printf("buildshiprun: image '%s'\n", imageName)
 
-	if strings.Contains(imageName, "exit status") == true {
+	if !validImage(imageName) {
 		msg := "Unable to build image, check builder logs"
 		reportStatus("failure", msg, "DEPLOY", event)
 		log.Fatal(msg)
@@ -259,7 +264,11 @@ func deployFunction(deploy deployment, gatewayURL string, c *http.Client) (strin
 	}
 
 	defer res.Body.Close()
+
 	fmt.Println("Deploy status: " + res.Status)
+	if res.StatusCode < 200 || res.StatusCode > 299 {
+		return "", fmt.Errorf("http status code %d", res.StatusCode)
+	}
 	buildStatus, _ := ioutil.ReadAll(res.Body)
 
 	return string(buildStatus), err
@@ -352,6 +361,15 @@ func getImageName(repositoryURL, pushRepositoryURL, imageName string) string {
 	return strings.Replace(imageName, pushRepositoryURL, repositoryURL, 1)
 
 	// return repositoryURL + imageName[strings.Index(imageName, "/"):]
+}
+
+func validImage(image string) bool {
+	match := imageValidator.FindString(image)
+	// image should be the whole string
+	if len(match) == len(image) {
+		return true
+	}
+	return false
 }
 
 type eventInfo struct {
