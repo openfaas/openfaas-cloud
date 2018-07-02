@@ -162,3 +162,19 @@ func Test_GetImageName(t *testing.T) {
 		})
 	}
 }
+
+func Test_ValidImage(t *testing.T) {
+	imageNames := map[string]bool{
+		"failed to solve: rpc error: code = Unknown desc = exit code 2":   false,
+		"failed to solve: rpc error: code = Unknown desc = exit status 2": false,
+		"failed to solve:":                                                false,
+		"error:":                                                          false,
+		"code =":                                                          false,
+		"127.0.0.1:5000/someuser/regex_go-regex_py": true,
+	}
+	for image, expected := range imageNames {
+		if validImage(image) != expected {
+			t.Errorf("For image %s, got: %v, want: %v", image, !expected, expected)
+		}
+	}
+}
