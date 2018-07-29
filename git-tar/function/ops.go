@@ -16,6 +16,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/openfaas/faas-cli/schema"
+
 	hmac "github.com/alexellis/hmac"
 	"github.com/openfaas/faas-cli/stack"
 	"github.com/openfaas/openfaas-cloud/sdk"
@@ -141,27 +143,20 @@ func makeTar(pushEvent sdk.PushEvent, filePath string, services *stack.Services)
 }
 
 func formatImageShaTag(registry string, function *stack.Function, sha string, owner string, repo string) string {
-	tag := ":latest"
-
 	imageName := function.Image
-	tagIndex := strings.LastIndex(function.Image, ":")
-
-	if tagIndex > 0 {
-		tag = function.Image[tagIndex:]
-		imageName = function.Image[:tagIndex]
-	}
 
 	repoIndex := strings.LastIndex(imageName, "/")
 	if repoIndex > -1 {
 		imageName = imageName[repoIndex+1:]
 	}
+	imageName = schema.BuildImageName(schema.SHAFormat, imageName, sha, "master")
 
 	var imageRef string
 	sharedRepo := strings.HasSuffix(registry, "/")
 	if sharedRepo {
-		imageRef = registry[:len(registry)-1] + "/" + owner + "-" + repo + "-" + imageName + tag + "-" + sha
+		imageRef = registry[:len(registry)-1] + "/" + owner + "-" + repo + "-" + imageName
 	} else {
-		imageRef = registry + "/" + owner + "/" + repo + "-" + imageName + tag + "-" + sha
+		imageRef = registry + "/" + owner + "/" + repo + "-" + imageName
 	}
 
 	return imageRef

@@ -27,7 +27,7 @@
 
 [[constraint]]
   name = "github.com/openfaas/faas-cli"
-  version = "0.6.9"
+  version = "0.6.17"
 
 [[constraint]]
   name = "github.com/openfaas/openfaas-cloud"
