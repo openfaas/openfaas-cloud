@@ -47,6 +47,15 @@ type Function struct {
 
 	// Requests of resources requested by function
 	Requests *FunctionResources `yaml:"requests"`
+
+	// ReadOnlyRootFilesystem is used to set the container filesystem to read-only
+	ReadOnlyRootFilesystem bool `yaml:"readonly_root_filesystem"`
+
+	// BuildOptions to determine native packages
+	BuildOptions []string `yaml:"build_options"`
+
+	// Annotations
+	Annotations *map[string]string `yaml:"annotations"`
 }
 
 // FunctionResources Memory and CPU
@@ -68,6 +77,14 @@ type Services struct {
 
 // LanguageTemplate read from template.yml within root of a language template folder
 type LanguageTemplate struct {
-	Language string `yaml:"language"`
-	FProcess string `yaml:"fprocess"`
+	Language     string        `yaml:"language"`
+	FProcess     string        `yaml:"fprocess"`
+	BuildOptions []BuildOption `yaml:"build_options"`
+	// WelcomeMessage is printed to the user after generating a function
+	WelcomeMessage string `yaml:"welcome_message"`
+}
+
+type BuildOption struct {
+	Name     string   `yaml:"name"`
+	Packages []string `yaml:"packages"`
 }
