@@ -93,8 +93,17 @@ func Handle(req []byte) string {
 		return msg
 	}
 
+	serviceValue := fmt.Sprintf("%s-%s", pushEvent.Repository.Owner.Login, pushEvent.Repository.Name)
+
+	eventInfo := sdk.BuildEventFromPushEvent(pushEvent)
+	status := sdk.BuildStatus(eventInfo, "")
+	status.AddStatus(sdk.Pending, fmt.Sprintf("%s stack deploy is in progress", serviceValue), sdk.Stack)
+	reportStatus(status)
+
 	statusCode, postErr := postEvent(pushEvent)
 	if postErr != nil {
+		status.AddStatus(sdk.Failure, postErr.Error(), sdk.Stack)
+		reportStatus(status)
 		return postErr.Error()
 	}
 
@@ -164,4 +173,22 @@ func readBool(key string) bool {
 		return val == "true" || val == "1"
 	}
 	return false
+}
+
+func enableStatusReporting() bool {
+	return os.Getenv("report_status") == "true"
+}
+
+func reportStatus(status *sdk.Status) {
+
+	if !enableStatusReporting() {
+		return
+	}
+
+	gatewayURL := os.Getenv("gateway_url")
+
+	_, reportErr := status.Report(gatewayURL)
+	if reportErr != nil {
+		log.Printf("failed to report status, error: %s", reportErr.Error())
+	}
 }
