@@ -107,6 +107,8 @@ func Handle(req []byte) string {
 			defaultMemoryLimit = "20m"
 		}
 
+		readOnlyRootFS := getReadOnlyRootFS()
+
 		deploy := deployment{
 			Service: serviceValue,
 			Image:   imageName,
@@ -123,8 +125,9 @@ func Handle(req []byte) string {
 			Limits: Limits{
 				Memory: defaultMemoryLimit,
 			},
-			EnvVars: event.environment,
-			Secrets: event.secrets,
+			EnvVars:                event.environment,
+			Secrets:                event.secrets,
+			ReadOnlyRootFilesystem: readOnlyRootFS,
 		}
 
 		result, err := deployFunction(deploy, gatewayURL, c)
@@ -144,6 +147,18 @@ func Handle(req []byte) string {
 
 	reportStatus("success", fmt.Sprintf("function successfully deployed as: %s", serviceValue), "DEPLOY", event)
 	return fmt.Sprintf("buildStatus %s %s %s", buildStatus, imageName, res.Status)
+}
+
+// readOnlyRootFS defaults to true, override with env-var of readonly_root_filesystem=false
+func getReadOnlyRootFS() bool {
+	readOnly := true
+	if val, exists := os.LookupEnv("readonly_root_filesystem"); exists {
+		if val == "0" || val == "false" {
+			readOnly = false
+		}
+	}
+
+	return readOnly
 }
 
 func getEvent() (*eventInfo, error) {
@@ -391,8 +406,9 @@ type deployment struct {
 	Labels  map[string]string
 	Limits  Limits
 	// EnvVars provides overrides for functions.
-	EnvVars map[string]string `json:"envVars"`
-	Secrets []string
+	EnvVars                map[string]string `json:"envVars"`
+	Secrets                []string
+	ReadOnlyRootFilesystem bool `json:"readOnlyRootFilesystem"`
 }
 
 type Limits struct {

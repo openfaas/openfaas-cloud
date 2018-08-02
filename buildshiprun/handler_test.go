@@ -178,3 +178,25 @@ func Test_ValidImage(t *testing.T) {
 		}
 	}
 }
+
+func Test_getReadOnlyRootFS_default(t *testing.T) {
+	os.Setenv("readonly_root_filesystem", "1")
+
+	val := getReadOnlyRootFS()
+	want := true
+	if val != want {
+		t.Errorf("want %t, but got %t", want, val)
+		t.Fail()
+	}
+}
+
+func Test_getReadOnlyRootFS_override(t *testing.T) {
+	os.Setenv("readonly_root_filesystem", "false")
+
+	val := getReadOnlyRootFS()
+	want := false
+	if val != want {
+		t.Errorf("want %t, but got %t", want, val)
+		t.Fail()
+	}
+}
