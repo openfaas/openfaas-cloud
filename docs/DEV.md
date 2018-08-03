@@ -99,6 +99,9 @@ provider:
 
 ```
 
+You will need to edit `stack.yml` and make sure `buildshiprun_limits_swarm.yml` is listed instead of `buildshiprun_limits_k8s.yml`.
+
+
 * Deploy the registry and of-builder
 
 Using the instructions given in the repo deploy of-builder (buildkit as a HTTP service) and the registry
@@ -135,7 +138,7 @@ Deploy them separately from the [dashboard](/dashboard) folder.
 
 The functions which make up OpenFaaS Cloud are compatible with Kubernetes but some additional work is needed for the registry to make it work as seamlessly as it does on Swarm. The of-builder should also be brought up using a Kubernetes YAML file instead of `docker run` / `docker service create`.
 
-You will need to edit `buildshiprun_limits_swarm.yml` and change the unit value from `30m` to `30Mi` so that Kubernetes can make use of the value.
+You will need to edit `stack.yml` and make sure `buildshiprun_limits_k8s.yml` is listed instead of `buildshiprun_limits_swarm.yml`.
 
 The way Kubernetes accesses the Docker registry will need a NodePort and a TLS cert (or an insecure-registry setting in the kubelet), so bear this in mind when working through the `of-builder` README.
 
