@@ -47,7 +47,6 @@ functions:
       write_timeout: 5m
       write_debug: true
       read_debug: true
-      builder_url: http://of-builder.openfaas:8080/
     environment_file:
       - buildshiprun_limits_k8s.yml
       - gateway_config.yml
