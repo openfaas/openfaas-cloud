@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/docker/docker/pkg/archive"
 	"github.com/gorilla/mux"
@@ -95,7 +96,7 @@ func build(w http.ResponseWriter, r *http.Request) ([]byte, error) {
 	solveOpt := client.SolveOpt{
 		Exporter: "image",
 		ExporterAttrs: map[string]string{
-			"name":              cfg.Ref,
+			"name":              strings.ToLower(cfg.Ref),
 			"push":              "true",
 			"registry.insecure": "true",
 		},
