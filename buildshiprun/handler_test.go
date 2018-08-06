@@ -6,77 +6,6 @@ import (
 	"testing"
 )
 
-func TestBuildURLWithoutPrettyURL_WithSlash(t *testing.T) {
-	os.Setenv("gateway_public_url", "http://localhost:8080")
-	os.Setenv("gateway_pretty_url", "")
-
-	event := &eventInfo{
-		owner:   "alexellis",
-		service: "tester",
-	}
-
-	val := buildPublicStatusURL("success", event)
-	want := "http://localhost:8080/function/alexellis-tester"
-
-	if val != want {
-		t.Errorf("building PublicURL: want %s, got %s", want, val)
-		t.Fail()
-	}
-}
-
-func TestBuildURLWithoutPrettyURL_WithOutSlash(t *testing.T) {
-	os.Setenv("gateway_public_url", "http://localhost:8080")
-	os.Setenv("gateway_pretty_url", "")
-
-	event := &eventInfo{
-		owner:   "alexellis",
-		service: "tester",
-	}
-
-	val := buildPublicStatusURL("success", event)
-	want := "http://localhost:8080/function/alexellis-tester"
-
-	if val != want {
-		t.Errorf("building PublicURL: want %s, got %s", want, val)
-		t.Fail()
-	}
-}
-
-func TestBuildURLWithPrettyURL(t *testing.T) {
-	os.Setenv("gateway_public_url", "http://localhost:8080")
-	os.Setenv("gateway_pretty_url", "https://user.openfaas-cloud.com/function")
-
-	event := &eventInfo{
-		owner:   "alexellis",
-		service: "tester",
-	}
-
-	val := buildPublicStatusURL("success", event)
-	want := "https://alexellis.openfaas-cloud.com/tester"
-
-	if val != want {
-		t.Errorf("building PublicURL: want %s, got %s", want, val)
-		t.Fail()
-	}
-}
-
-func TestBuildURLWithUndefinedStatusGivesOriginalURL(t *testing.T) {
-
-	event := &eventInfo{
-		owner:   "alexellis",
-		service: "tester",
-		url:     "http://original-value.local",
-	}
-
-	val := buildPublicStatusURL("not-supported", event)
-	want := event.url
-
-	if val != want {
-		t.Errorf("building PublicURL: want %s, got %s", want, val)
-		t.Fail()
-	}
-}
-
 func TestGetEvent_ReadSecrets(t *testing.T) {
 
 	valSt := []string{"s1", "s2"}
@@ -84,7 +13,8 @@ func TestGetEvent_ReadSecrets(t *testing.T) {
 	os.Setenv("Http_Secrets", string(val))
 	owner := "alexellis"
 	os.Setenv("Http_Owner", owner)
-
+	installation_id := "123456"
+	os.Setenv("Http_Installation_id", installation_id)
 	eventInfo, err := getEvent()
 	if err != nil {
 		t.Errorf(err.Error())
@@ -92,7 +22,7 @@ func TestGetEvent_ReadSecrets(t *testing.T) {
 	}
 
 	expected := []string{owner + "-s1", owner + "-s2"}
-	for _, val := range eventInfo.secrets {
+	for _, val := range eventInfo.Secrets {
 		found := false
 		for _, expectedVal := range expected {
 			if expectedVal == val {
@@ -165,12 +95,51 @@ func Test_GetImageName(t *testing.T) {
 
 func Test_ValidImage(t *testing.T) {
 	imageNames := map[string]bool{
+
+		// error cases
 		"failed to solve: rpc error: code = Unknown desc = exit code 2":   false,
 		"failed to solve: rpc error: code = Unknown desc = exit status 2": false,
 		"failed to solve:":                                                false,
 		"error:":                                                          false,
 		"code =":                                                          false,
-		"127.0.0.1:5000/someuser/regex_go-regex_py": true,
+		"-1":                                                              false,
+		"":                                                                false,
+		" ":                                                               false,
+
+		// url (with/without tag)
+		"docker.io/ofcommunity/someuser/repo-name-function_name":                                                 true,
+		"docker.io/ofcommunity/someuser/repo-name-function_name:latest":                                          true,
+		"docker.io/ofcommunity/someuser/repo-name-function_name:latest-7f7ec13d12b1397408e54b79686d43e41974bfa0": true,
+
+		// url with port (with/without tag)
+		"docker.io:80/ofcommunity/someuser/repo-name-function_name":                                                 true,
+		"docker.io:80/ofcommunity/someuser/repo-name-function_name:latest":                                          true,
+		"docker.io:80/ofcommunity/someuser/repo-name-function_name:latest-7f7ec13d12b1397408e54b79686d43e41974bfa0": true,
+
+		// url with ip (with/without tag)
+		"127.0.0.1/someuser/repo-name-function_name":                                                 true,
+		"127.0.0.1/someuser/repo-name-function_name:latest":                                          true,
+		"127.0.0.1/someuser/repo-name-function_name:latest-7f7ec13d12b1397408e54b79686d43e41974bfa0": true,
+
+		// url with ip and port (with/without tag)
+		"127.0.0.1:5000/someuser/repo-name-function_name":                                                 true,
+		"127.0.0.1:5000/someuser/repo-name-function_name:latest":                                          true,
+		"127.0.0.1:5000/someuser/repo-name-function_name:latest-7f7ec13d12b1397408e54b79686d43e41974bfa0": true,
+
+		// docker user specific (with/without tag)
+		"someuser/repo-name-function_name":                                                 true,
+		"someuser/repo-name-function_name:latest":                                          true,
+		"someuser/repo-name-function_name:latest-7f7ec13d12b1397408e54b79686d43e41974bfa0": true,
+
+		// open faas cloud function name (with/without tag)
+		"repo-name-function_name":                                                 true,
+		"repo-name-function_name:latest":                                          true,
+		"repo-name-function_name:latest-7f7ec13d12b1397408e54b79686d43e41974bfa0": true,
+
+		// simple function name (with/without tag)
+		"function_name":                                                 true,
+		"function_name:latest":                                          true,
+		"function_name:latest-7f7ec13d12b1397408e54b79686d43e41974bfa0": true,
 	}
 	for image, expected := range imageNames {
 		if validImage(image) != expected {

@@ -6,7 +6,6 @@ environment:
   push_repository_url: docker.io/ofcommunity/
   basic_auth: true
   secret_mount_path: /var/openfaas/secrets
-  private_key: private-key
   builder_url: http://of-builder.openfaas:8080/
 
 # To use a shared Docker Hub account.

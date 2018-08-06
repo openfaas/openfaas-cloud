@@ -72,7 +72,7 @@ func makeTar(pushEvent sdk.PushEvent, filePath string, services *stack.Services)
 
 		if len(pushRepositoryURL) == 0 {
 			fmt.Fprintf(os.Stderr, "push_repository_url env-var not set")
-			os.Exit(1)
+			return nil, fmt.Errorf("push_repository_url env-var not set")
 		}
 
 		imageName := formatImageShaTag(pushRepositoryURL, &v, pushEvent.AfterCommitID,
@@ -206,19 +206,24 @@ func clone(pushEvent sdk.PushEvent) (string, error) {
 	return destPath, err
 }
 
-func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services) error {
+func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, status *sdk.Status) error {
 
 	owner := pushEvent.Repository.Owner.Login
 	repoName := pushEvent.Repository.Name
 	url := pushEvent.Repository.CloneURL
 	afterCommitID := pushEvent.AfterCommitID
-	installationId := pushEvent.Installation.Id
+	installationID := pushEvent.Installation.ID
 
 	c := http.Client{}
 	gatewayURL := os.Getenv("gateway_url")
 
 	for _, tarEntry := range tars {
 		fmt.Println("Deploying service - " + tarEntry.functionName)
+
+		status.AddStatus(sdk.StatusPending, fmt.Sprintf("%s function deploy is in progress", tarEntry.functionName),
+			sdk.BuildFunctionContext(tarEntry.functionName))
+		reportStatus(status)
+		log.Printf(status.AuthToken)
 
 		fileOpen, err := os.Open(tarEntry.fileName)
 		if err != nil {
@@ -230,7 +235,7 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services) err
 		httpReq.Header.Add("Repo", repoName)
 		httpReq.Header.Add("Owner", owner)
 		httpReq.Header.Add("Url", url)
-		httpReq.Header.Add("Installation_id", fmt.Sprintf("%d", installationId))
+		httpReq.Header.Add("Installation_id", fmt.Sprintf("%d", installationID))
 		httpReq.Header.Add("Service", tarEntry.functionName)
 		httpReq.Header.Add("Image", tarEntry.imageName)
 		httpReq.Header.Add("Sha", afterCommitID)
