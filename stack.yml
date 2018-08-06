@@ -6,7 +6,7 @@ functions:
   github-push:
     lang: go
     handler: ./github-push
-    image: alexellis2/github-push:0.4.2
+    image: alexellis2/github-push:0.4.3
     labels:
       openfaas-cloud: "1"
     environment:
@@ -25,7 +25,7 @@ functions:
   git-tar:
     lang: dockerfile
     handler: ./git-tar
-    image: alexellis2/of-git-tar:0.6.7
+    image: alexellis2/of-git-tar:0.6.8
     labels:
       openfaas-cloud: "1"
     environment:
@@ -35,11 +35,12 @@ functions:
       read_debug: true
     environment_file:
       - gateway_config.yml
+      - github.yml
 
   buildshiprun:
     lang: go
     handler: ./buildshiprun
-    image: alexellis2/of-buildshiprun:0.4.7
+    image: alexellis2/of-buildshiprun:0.4.8
     labels:
       openfaas-cloud: "1"
     environment:
@@ -52,7 +53,6 @@ functions:
       - gateway_config.yml
       - github.yml
     secrets:
-      - private-key
       - basic-auth-user
       - basic-auth-password
 
@@ -85,6 +85,22 @@ functions:
     environment_file:
       - gateway_config.yml
     secrets:
+      - basic-auth-user
+      - basic-auth-password
+
+  github-status:
+    lang: go
+    handler: ./github-status
+    image: alexellis2/github-status:0.0.1
+    environment:
+      write_debug: true
+      read_debug: true
+      combine_output: false
+    environment_file:
+      - gateway_config.yml
+      - github.yml
+    secrets:
+      - private-key
       - basic-auth-user
       - basic-auth-password
 
