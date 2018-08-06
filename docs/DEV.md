@@ -51,9 +51,15 @@ Before you start you'll need to create a free GitHub app and select these OAuth 
 - "Repository contents" read-only
 - "Commit statuses" read and write
 
-Now select only the "push" event.
+* Now select only the "push" event.
 
-Now download the private key for your GitHub App which we will use later in the guide for allowing OpenFaaS Cloud to write to commit statuses when a build passes or fails.
+* Where can this GitHub App be installed?
+
+Any account
+
+* Save the new app.
+
+* Now download the private key for your GitHub App which we will use later in the guide for allowing OpenFaaS Cloud to write to commit statuses when a build passes or fails.
 
 The GitHub app will deliver webhooks to your OpenFaaS Cloud instance every time code is pushed in a user's function repository. Make sure you provide the public URL for your OpenFaaS gateway to the GitHub app. Like:  
 `http://my.openfaas.cloud/function/github-push`
@@ -67,7 +73,7 @@ environment:
 
 The shared secret is used to securely verify each message came from GitHub and not a third party.
 
-* Add github appId to `github.yml`
+* Add the github appId to `github.yml`
 
 ```yaml
 environment:
@@ -83,11 +89,14 @@ To enable this set `report_status: "true"` in `github.yml` before deploying the 
 
 A private key must also be mounted as a Docker / Kubernetes secret so that the code can authenticate and update statuses.
 
-* Find the .pem file from the GitHub App page
+* Create GitHub App secret
+
+Download the .pem file from the GitHub App page, then save it as a file named `private-key` with no extension.
 
 Create Docker secret
+
 ```
-docker secret create private-key <your_private_key_file>.pem
+docker secret create private-key private-key
 ```
 
 * Update the remote gateway URL in `stack.yml` or set the `OPENFAAS_URL` environmental variable.
@@ -101,16 +110,17 @@ provider:
 
 You will need to edit `stack.yml` and make sure `buildshiprun_limits_swarm.yml` is listed instead of `buildshiprun_limits_k8s.yml`.
 
+On Swarm you also need to edit all other YAML files to remove the `.openfaas` DNS suffix.
 
-* Deploy the registry and of-builder
+* Deploy of-builder and of-buildkit
 
-Using the instructions given in the repo deploy of-builder (buildkit as a HTTP service) and the registry
+Deploy the image builder (of-builder and of-buildkit) using these [instructions](./of-builder).
 
-https://github.com/openfaas/openfaas-cloud/tree/master/of-builder
+Optionally deploy a registry locally, or mount your `~/.docker/config.json` file to access a remote registry.
 
-* Build/deploy
+* Build/deploy (optional)
 
-> Before running this build/push/deploy script change the Docker Hub image prefix from `alexellis2/` to your own.
+Before running this build/push/deploy script change the Docker Hub image prefix from `alexellis2/` to your own.
 
 ```sh
 $ faas-cli build --parallel=4 \
@@ -184,7 +194,9 @@ kubectl create secret generic private-key -n openfaas-fn --from-file=private-key
 
 Set application ID
 
-* Update gateway_config.yml
+* Update `gateway_config.yml`
+
+On Swarm you have to remove any suffixes found such as `.openfaas`.
 
 I.e.
 

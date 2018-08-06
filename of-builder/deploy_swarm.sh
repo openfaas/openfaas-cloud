@@ -14,5 +14,3 @@ export OF_BUILDER_TAG=0.4.2
 
 docker service rm of-builder
 docker service create --detach=true --network func_functions --name of-builder openfaas/of-builder:$OF_BUILDER_TAG
-
-

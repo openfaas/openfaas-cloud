@@ -4,9 +4,26 @@ of-builder is an image builder for OpenFaaS images, it needs to be deployed with
 
 The following instructions are for Docker Swarm but OpenFaaS Cloud works well on Kubernetes. [Documentation for Kubernetes](https://github.com/openfaas/openfaas-cloud/blob/master/docs/DEV.md#appendix-for-kubernetes)
 
-## Setup
+> Before you start deploy OpenFaaS via https://docs.openfaas.com/
 
-Before you start deploy OpenFaaS via https://docs.openfaas.com/
+## Kubernetes
+
+For Kubernetes skip this section, it is documented in the developer guide with YAML files.
+
+## Installation-only (Swarm)
+
+For Docker Swarm run `./deploy_swarm.sh`
+
+If you are using a remote Docker registry then mount your `~/.docker/config.json` file into the of-builder service. You will also need to create that file on each node. Example:
+
+Assuming you are logged into your server as `root`:
+
+```
+docker service create --mount type=bind,src=/root/.docker/,dst=/home/app/.docker/ --detach=true \
+  --network func_functions --name of-builder openfaas/of-builder:$OF_BUILDER_TAG
+```
+
+## For development (Swarm)
 
 ### Setup the registry
 
