@@ -50,6 +50,8 @@ func Handle(req []byte) string {
 
 	res, err := c.Do(r)
 
+	log.Printf("Image build status: %d\n", res.StatusCode)
+
 	if err != nil {
 		fmt.Println(err)
 		auditEvent.Message = fmt.Sprintf("buildshiprun failure: %s", err.Error())
@@ -82,7 +84,7 @@ func Handle(req []byte) string {
 
 	log.Printf("buildshiprun: image '%s'\n", imageName)
 
-	if !validImage(imageName) {
+	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusAccepted {
 		msg := "Unable to build image, check builder logs"
 		status.AddStatus(sdk.StatusFailure, msg, sdk.BuildFunctionContext(event.Service))
 		reportStatus(status)

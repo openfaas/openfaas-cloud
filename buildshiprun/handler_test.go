@@ -109,6 +109,7 @@ func Test_ValidImage(t *testing.T) {
 		"":                                                                false,
 		" ":                                                               false,
 
+		// "docker-registry:5000/admin/alexellis-sofia-test1-go-world:0.1-374448ba4d75bcf49611525a5b2448d9c3d0bf28": true,
 		// url (with/without tag)
 		"docker.io/ofcommunity/someuser/repo-name-function_name":                                                 true,
 		"docker.io/ofcommunity/someuser/repo-name-function_name:latest":                                          true,
