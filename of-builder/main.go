@@ -92,25 +92,35 @@ func build(w http.ResponseWriter, r *http.Request) ([]byte, error) {
 	if cfg.Frontend == "" {
 		cfg.Frontend = "tonistiigi/dockerfile:v0"
 	}
+
+	insecure := "false"
+	if val, exists := os.LookupEnv("insecure"); exists {
+		insecure = val
+	}
+
 	contextDir := filepath.Join(tmpdir, "context")
 	solveOpt := client.SolveOpt{
 		Exporter: "image",
 		ExporterAttrs: map[string]string{
-			"name":              strings.ToLower(cfg.Ref),
-			"push":              "true",
-			"registry.insecure": "true",
+			"name": strings.ToLower(cfg.Ref),
+			"push": "true",
 		},
 		LocalDirs: map[string]string{
 			"context":    contextDir,
 			"dockerfile": contextDir,
 		},
 		Frontend: "dockerfile.v0",
-		// FrontendAttrs: map[string]string{
-		// 	"source": cfg.Frontend,
-		// },
+		FrontendAttrs: map[string]string{
+			"source": cfg.Frontend,
+		},
 		// ~/.docker/config.json could be provided as Kube or Swarm's secret
 		Session: []session.Attachable{authprovider.NewDockerAuthProvider()},
 	}
+
+	if insecure == "true" {
+		solveOpt.ExporterAttrs["registry.insecure"] = insecure
+	}
+
 	c, err := client.New("tcp://of-buildkit:1234", client.WithBlock())
 	if err != nil {
 		return nil, err

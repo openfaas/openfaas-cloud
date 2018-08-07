@@ -12,16 +12,20 @@ For Kubernetes skip this section, it is documented in the developer guide with Y
 
 ## Installation-only (Swarm)
 
-For Docker Swarm run `./deploy_swarm.sh`
+If you are using a remote Docker registry you need to edit `./deploy_swarm.sh`
 
-If you are using a remote Docker registry then mount your `~/.docker/config.json` file into the of-builder service. You will also need to create that file on each node. Example:
+You have to mount your `~/.docker/config.json` file into the of-builder service so that it can push to your remote registry. You will also need to create that file on each node.
 
 Assuming you are logged into your server as `root`:
 
+```sh
+docker service create --constraint="node.role==manager" \
+ --mount type=bind,src=/root/.docker/,dst=/home/app/.docker/ \
+ --env insecure=false --detach=true --network func_functions \
+ --name of-builder openfaas/of-builder:$OF_BUILDER_TAG
 ```
-docker service create --mount type=bind,src=/root/.docker/,dst=/home/app/.docker/ --detach=true \
-  --network func_functions --name of-builder openfaas/of-builder:$OF_BUILDER_TAG
-```
+
+If you are using an insecure registry then add -e "insecure=true" to the of-builder line in: `./deploy_swarm.sh`
 
 ## For development (Swarm)
 
@@ -40,8 +44,18 @@ Warning: this exposes the registry without authentication on port 5000 publicly 
 
 buildkit will build Docker images from a tar-ball and push them to a registry
 
+#### Using root in the container
 
+```sh
+docker rm -f of-buildkit
+docker run -d --net func_functions -d --privileged \
+--restart always \
+--name of-buildkit alexellis2/buildkit:2018-04-17 --addr tcp://0.0.0.0:1234
 ```
+
+#### Rootless option
+
+```sh
 docker rm -f of-buildkit
 docker run -d --net func_functions -d --privileged \
 --restart always \

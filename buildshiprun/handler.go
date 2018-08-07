@@ -106,6 +106,8 @@ func Handle(req []byte) string {
 
 		readOnlyRootFS := getReadOnlyRootFS()
 
+		registryAuth := getRegistryAuthSecret()
+
 		deploy := deployment{
 			Service: serviceValue,
 			Image:   imageName,
@@ -128,6 +130,10 @@ func Handle(req []byte) string {
 		}
 
 		gatewayURL := os.Getenv("gateway_url")
+
+		if len(registryAuth) > 0 {
+			deploy.RegistryAuth = registryAuth
+		}
 
 		result, err := deployFunction(deploy, gatewayURL, c)
 
@@ -334,7 +340,8 @@ type deployment struct {
 	// EnvVars provides overrides for functions.
 	EnvVars                map[string]string `json:"envVars"`
 	Secrets                []string
-	ReadOnlyRootFilesystem bool `json:"readOnlyRootFilesystem"`
+	ReadOnlyRootFilesystem bool   `json:"readOnlyRootFilesystem"`
+	RegistryAuth           string `json:"registryAuth"`
 }
 
 type Limits struct {
@@ -343,4 +350,16 @@ type Limits struct {
 
 type function struct {
 	Name string
+}
+
+func getRegistryAuthSecret() string {
+	path := "/var/openfaas/secrets/registry-auth"
+	if _, err := os.Stat(path); err == nil {
+		res, readErr := ioutil.ReadFile(path)
+		if readErr != nil {
+			log.Printf("Tried to read secret %s, but got error: %s\n", path, readErr)
+		}
+		return strings.TrimSpace(string(res))
+	}
+	return ""
 }

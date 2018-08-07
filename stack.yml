@@ -6,7 +6,7 @@ functions:
   github-push:
     lang: go
     handler: ./github-push
-    image: alexellis2/github-push:0.4.3
+    image: alexellis2/github-push:0.5.0-rc1
     labels:
       openfaas-cloud: "1"
     environment:
@@ -25,7 +25,7 @@ functions:
   git-tar:
     lang: dockerfile
     handler: ./git-tar
-    image: alexellis2/of-git-tar:0.6.8
+    image: alexellis2/of-git-tar:0.7.0-rc1
     labels:
       openfaas-cloud: "1"
     environment:
@@ -40,7 +40,7 @@ functions:
   buildshiprun:
     lang: go
     handler: ./buildshiprun
-    image: alexellis2/of-buildshiprun:0.4.8
+    image: alexellis2/of-buildshiprun:0.5.0-rc1
     labels:
       openfaas-cloud: "1"
     environment:
@@ -55,6 +55,7 @@ functions:
     secrets:
       - basic-auth-user
       - basic-auth-password
+#      - registry-auth # set if using Docker Swarm
 
   list-functions:
     lang: go
@@ -91,7 +92,7 @@ functions:
   github-status:
     lang: go
     handler: ./github-status
-    image: alexellis2/github-status:0.0.1
+    image: alexellis2/github-status:0.1.0-rc1
     environment:
       write_debug: true
       read_debug: true

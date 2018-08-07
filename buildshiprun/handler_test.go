@@ -11,10 +11,13 @@ func TestGetEvent_ReadSecrets(t *testing.T) {
 	valSt := []string{"s1", "s2"}
 	val, _ := json.Marshal(valSt)
 	os.Setenv("Http_Secrets", string(val))
+
 	owner := "alexellis"
 	os.Setenv("Http_Owner", owner)
-	installation_id := "123456"
-	os.Setenv("Http_Installation_id", installation_id)
+
+	installationID := "123456"
+	os.Setenv("Http_Installation_id", installationID)
+
 	eventInfo, err := getEvent()
 	if err != nil {
 		t.Errorf(err.Error())
@@ -141,9 +144,11 @@ func Test_ValidImage(t *testing.T) {
 		"function_name:latest":                                          true,
 		"function_name:latest-7f7ec13d12b1397408e54b79686d43e41974bfa0": true,
 	}
-	for image, expected := range imageNames {
-		if validImage(image) != expected {
-			t.Errorf("For image %s, got: %v, want: %v", image, !expected, expected)
+
+	for image, want := range imageNames {
+		got := validImage(image)
+		if got != want {
+			t.Errorf("Validating image %s - want: %v, got: %v", image, want, got)
 		}
 	}
 }
