@@ -39,7 +39,7 @@ functions:
   buildshiprun:
     lang: go
     handler: ./buildshiprun
-    image: alexellis2/of-buildshiprun:0.4.7
+    image: alexellis2/of-buildshiprun:0.4.8-rc1
     labels:
       openfaas-cloud: "1"
     environment:
