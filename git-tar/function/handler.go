@@ -46,8 +46,10 @@ func Handle(req []byte) []byte {
 		os.Exit(-1)
 	}
 
-	if ok, errMessage := isWithinLimit(len(stack.Functions)); !ok {
-		log.Println(errMessage)
+	if ok, limitErr := isWithinLimit(len(stack.Functions)); !ok {
+		log.Println("Limit error: ", limitErr.Error())
+		status.AddStatus(sdk.StatusFailure, "Limit error : "+limitErr.Error(), sdk.StackContext)
+		reportStatus(status)
 		os.Exit(-1)
 	}
 
@@ -131,19 +133,19 @@ func collect(pushEvent sdk.PushEvent, stack *stack.Services) error {
 	return err
 }
 
-func isWithinLimit(functionsCount int) (bool, string) {
+func isWithinLimit(functionsCount int) (bool, error) {
 	functionsPerRepoLimit, isSet := os.LookupEnv("functions_per_repo_limit")
 	if isSet {
 		functionsPerRepoLimitCount, err := strconv.Atoi(functionsPerRepoLimit)
 		if err != nil {
-			return false, "Invalid value for functions_per_repo_limit environment variable"
+			return false, fmt.Errorf("Invalid value for functions_per_repo_limit environment variable")
 		}
 
 		if functionsCount > functionsPerRepoLimitCount {
-			return false, fmt.Sprintf("Only %d functions per repository is allowed", functionsPerRepoLimitCount)
+			return false, fmt.Errorf("Only %d functions per repository is allowed", functionsPerRepoLimitCount)
 		}
 	}
-	return true, ""
+	return true, nil
 }
 
 type GarbageRequest struct {
