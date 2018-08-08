@@ -149,6 +149,9 @@ func formatImageShaTag(registry string, function *stack.Function, sha string, ow
 	if repoIndex > -1 {
 		imageName = imageName[repoIndex+1:]
 	}
+
+	sha = getShortSHA(sha)
+
 	imageName = schema.BuildImageName(schema.SHAFormat, imageName, sha, "master")
 
 	var imageRef string
@@ -320,4 +323,12 @@ func importSecrets(pushEvent sdk.PushEvent, stack *stack.Services, clonePath str
 	fmt.Println("Parsed sealed secrets", res.Status, owner)
 
 	return nil
+}
+
+//getShortSHA returns shorter version of git commit SHA
+func getShortSHA(sha string) string {
+	if len(sha) <= 7 {
+		return sha
+	}
+	return sha[:7]
 }
