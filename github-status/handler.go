@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/alexellis/derek/auth"
+	hmac "github.com/alexellis/hmac"
 	"github.com/google/go-github/github"
 	"github.com/openfaas/openfaas-cloud/sdk"
 )
@@ -25,6 +26,21 @@ var (
 
 // Handle a serverless request
 func Handle(req []byte) string {
+
+	if hmacEnabled() {
+		key := getHMACSecretKey()
+		digest := os.Getenv("Http_X_Hub_Signature")
+
+		fmt.Println(digest)
+
+		validated := hmac.Validate(req, digest, key)
+
+		if validated != nil {
+			fmt.Fprintf(os.Stderr, validated.Error())
+			os.Exit(-1)
+		}
+		fmt.Fprintf(os.Stderr, "hash for HMAC validated successfully\n")
+	}
 
 	status, marshalErr := sdk.UnmarshalStatus(req)
 	if marshalErr != nil {
@@ -57,7 +73,7 @@ func Handle(req []byte) string {
 	}
 
 	for _, commitStatus := range status.CommitStatuses {
-		err := ReportStatus(commitStatus.Status, commitStatus.Description, commitStatus.Context, &status.EventInfo)
+		err := reportStatus(commitStatus.Status, commitStatus.Description, commitStatus.Context, &status.EventInfo)
 		if err != nil {
 			log.Fatalf("failed to report status %v, error: %s", status, err.Error())
 		}
@@ -107,7 +123,7 @@ func buildPublicStatusURL(status string, statusContext string, event *sdk.Event)
 	return url
 }
 
-func ReportStatus(status string, desc string, statusContext string, event *sdk.Event) error {
+func reportStatus(status string, desc string, statusContext string, event *sdk.Event) error {
 
 	ctx := context.Background()
 
@@ -142,6 +158,14 @@ func getPrivateKey() string {
 	}
 	privateKeyPath := filepath.Join(secretMountPath, privateKeyName)
 	return privateKeyPath
+}
+
+func getHMACSecretKey() string {
+	return os.Getenv("github_webhook_secret")
+}
+
+func hmacEnabled() bool {
+	return os.Getenv("validate_hmac") == "1" || os.Getenv("validate_hmac") == "true"
 }
 
 func buildStatus(status string, desc string, context string, url string) *github.RepoStatus {

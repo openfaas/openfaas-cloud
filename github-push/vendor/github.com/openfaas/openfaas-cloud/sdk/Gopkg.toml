@@ -33,3 +33,6 @@
   version = "0.8.2"
   name = "github.com/openfaas/faas"
 
+[[constraint]]
+   name = "github.com/alexellis/hmac"
+   version = "1.2.0"

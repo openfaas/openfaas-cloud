@@ -28,6 +28,7 @@ func Handle(req []byte) []byte {
 
 	statusEvent := sdk.BuildEventFromPushEvent(pushEvent)
 	status := sdk.BuildStatus(statusEvent, sdk.EmptyAuthToken)
+	status.SetHmacKey(os.Getenv("github_webhook_secret"))
 
 	clonePath, err := clone(pushEvent)
 	if err != nil {
