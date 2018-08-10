@@ -2,8 +2,10 @@ package sdk
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	hmac "github.com/alexellis/hmac"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -40,6 +42,7 @@ type Status struct {
 	CommitStatuses map[string]CommitStatus `json:"commit-statuses"`
 	EventInfo      Event                   `json:"event"`
 	AuthToken      string                  `json:"auth-token"`
+	hmacKey        string                  `json:"-"`
 }
 
 // BuildStatus constructs a status object from event
@@ -51,6 +54,11 @@ func BuildStatus(event *Event, token string) *Status {
 	status.AuthToken = token
 
 	return &status
+}
+
+// Add Hmac Key to status object
+func (status *Status) SetHmacKey(key string) {
+	status.hmacKey = key
 }
 
 // UnmarshalStatus unmarshal a status object from json
@@ -116,9 +124,19 @@ make sure combine_output is disabled for github-status`, token)
 func (status *Status) Report(gateway string) (string, error) {
 	body, _ := status.Marshal()
 
+	var hash []byte
+	// sign with hmac key if set
+	if len(status.hmacKey) > 0 {
+		hash = hmac.Sign(body, []byte(status.hmacKey))
+	}
+
 	c := http.Client{}
 	bodyReader := bytes.NewBuffer(body)
 	httpReq, _ := http.NewRequest(http.MethodPost, gateway+"function/github-status", bodyReader)
+
+	if len(status.hmacKey) > 0 {
+		httpReq.Header.Add("X-Hub-Signature", "sha1="+hex.EncodeToString(hash))
+	}
 
 	res, err := c.Do(httpReq)
 	if err != nil {
@@ -126,9 +144,14 @@ func (status *Status) Report(gateway string) (string, error) {
 	}
 
 	defer res.Body.Close()
-	resData, _ := ioutil.ReadAll(res.Body)
-	if resData == nil {
-		return "", fmt.Errorf("empty token received")
+
+	resData, readErr := ioutil.ReadAll(res.Body)
+	if resData == nil || readErr != nil {
+		return "", fmt.Errorf("failed to read response from github-status")
+	}
+
+	if res.StatusCode != http.StatusAccepted && res.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to call github-status, invalid status: %s", res.Status)
 	}
 
 	status.AuthToken, err = UnmarshalToken(resData)

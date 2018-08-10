@@ -102,6 +102,7 @@ func Handle(req []byte) string {
 
 	eventInfo := sdk.BuildEventFromPushEvent(pushEvent)
 	status := sdk.BuildStatus(eventInfo, sdk.EmptyAuthToken)
+	status.SetHmacKey(os.Getenv("github_webhook_secret"))
 	status.AddStatus(sdk.StatusPending, fmt.Sprintf("%s stack deploy is in progress", serviceValue), sdk.StackContext)
 	reportStatus(status)
 

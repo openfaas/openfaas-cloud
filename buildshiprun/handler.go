@@ -42,6 +42,7 @@ func Handle(req []byte) string {
 	log.Printf("%d env-vars for %s", len(event.Environment), serviceValue)
 
 	status := sdk.BuildStatus(event, sdk.EmptyAuthToken)
+	status.SetHmacKey(os.Getenv("github_webhook_secret"))
 
 	reader := bytes.NewBuffer(req)
 
