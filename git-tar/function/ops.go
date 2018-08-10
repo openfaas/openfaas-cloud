@@ -203,6 +203,7 @@ func clone(pushEvent sdk.PushEvent) (string, error) {
 
 func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, status *sdk.Status) error {
 
+	failedFunctions := []string{}
 	owner := pushEvent.Repository.Owner.Login
 	repoName := pushEvent.Repository.Name
 	url := pushEvent.Repository.CloneURL
@@ -251,11 +252,24 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, sta
 
 		res, reqErr := c.Do(httpReq)
 		if reqErr != nil {
+			failedFunctions = append(failedFunctions, tarEntry.functionName)
 			fmt.Fprintf(os.Stderr, fmt.Errorf("unable to deploy function via buildshiprun: %s", reqErr.Error()).Error())
+			continue
 		}
 
-		fmt.Println("Service deployed ", tarEntry.functionName, res.Status, owner)
+		if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusAccepted {
+			failedFunctions = append(failedFunctions, tarEntry.functionName)
+			fmt.Fprintf(os.Stderr, fmt.Errorf("unable to deploy function via buildshiprun: invalid status code %d for %s",
+				res.StatusCode, tarEntry.functionName).Error())
+		} else {
+			fmt.Println("Service deployed ", tarEntry.functionName, res.Status, owner)
+		}
 	}
+
+	if len(failedFunctions) > 0 {
+		return fmt.Errorf("%s failed to be deployed via buildshiprun", strings.Join(failedFunctions, ","))
+	}
+
 	return nil
 }
 

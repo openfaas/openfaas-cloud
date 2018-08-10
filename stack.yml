@@ -6,7 +6,7 @@ functions:
   github-push:
     lang: go
     handler: ./github-push
-    image: alexellis2/github-push:0.5.2
+    image: alexellis2/github-push:0.5.3
     labels:
       openfaas-cloud: "1"
     environment:
@@ -26,7 +26,7 @@ functions:
   git-tar:
     lang: dockerfile
     handler: ./git-tar
-    image: alexellis2/of-git-tar:0.7.2
+    image: alexellis2/of-git-tar:0.7.3
     labels:
       openfaas-cloud: "1"
     environment:
@@ -43,7 +43,7 @@ functions:
   buildshiprun:
     lang: go
     handler: ./buildshiprun
-    image: alexellis2/of-buildshiprun:0.5.1
+    image: alexellis2/of-buildshiprun:0.5.2
     labels:
       openfaas-cloud: "1"
     environment:
@@ -96,18 +96,18 @@ functions:
   github-status:
     lang: go
     handler: ./github-status
-    image: alexellis2/github-status:0.1.2
+    image: alexellis2/github-status:0.1.3
     environment:
       write_debug: true
       read_debug: true
       combine_output: false
+      validate_hmac: true
     environment_file:
       - gateway_config.yml
       - github.yml
     secrets:
       - private-key
-      - basic-auth-user
-      - basic-auth-password
+      - github-webhook-secret
 
   github-event:
     lang: go

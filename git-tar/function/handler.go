@@ -66,14 +66,17 @@ func Handle(req []byte) []byte {
 	err = importSecrets(pushEvent, stack, clonePath)
 	if err != nil {
 		log.Printf("Error parsing secrets: %s\n", err.Error())
+		status.AddStatus(sdk.StatusFailure, "failed to parse secrets, error : "+err.Error(), sdk.StackContext)
+		reportStatus(status)
 		os.Exit(-1)
 	}
 
 	err = deploy(tars, pushEvent, stack, status)
 	if err != nil {
-		status.AddStatus(sdk.StatusFailure, "stack deploy failed, error : "+err.Error(), sdk.StackContext)
+		status.AddStatus(sdk.StatusFailure, "deploy failed, error : "+err.Error(), sdk.StackContext)
 		reportStatus(status)
 		log.Printf("deploy error: %s", err)
+		os.Exit(-1)
 	}
 
 	status.AddStatus(sdk.StatusSuccess, "stack is successfully deployed", sdk.StackContext)
