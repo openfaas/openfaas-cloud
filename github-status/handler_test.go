@@ -347,7 +347,7 @@ func TestStatusReportFailure(t *testing.T) {
 }
 
 func TestPrivateKey(t *testing.T) {
-	os.Setenv("private_key", "github_key")
+	os.Setenv("private_key_filename", "github_key")
 	os.Setenv("secret_mount_path", "/function/secrets")
 
 	expectedPath := filepath.Join("/function/secrets/", "github_key")

@@ -1,5 +1,5 @@
 environment:
-    github_webhook_secret: "Underneath-Screen-Critic-Committee-Possible-Inclusive-Collection-Elsewhere-Honor-Autumn-7"
+#    github_webhook_secret: Deprecated - use a secret named github-webhook-secret
     github_app_id: "12345"
     report_status: "true"
-    private_key: ""
+    private_key_filename: ""

@@ -17,6 +17,16 @@ import (
 // Source name for this function when auditing
 const Source = "github-push"
 
+func readSecret(key string) (string, error) {
+	path := fmt.Sprintf("/var/openfaas/secrets/%s", key)
+	secretBytes, readErr := ioutil.ReadFile(path)
+	if readErr != nil {
+		return "", fmt.Errorf("unable to read secret: %s, error: %s", path, readErr)
+	}
+	val := strings.TrimSpace(string(secretBytes))
+	return val, nil
+}
+
 // Handle a serverless request
 func Handle(req []byte) string {
 
@@ -37,7 +47,12 @@ func Handle(req []byte) string {
 
 	shouldValidate := readBool("validate_hmac")
 	if shouldValidate {
-		validateErr := hmac.Validate(req, xHubSignature, os.Getenv("github_webhook_secret"))
+		webhookSecretKey, secretErr := readSecret("github-webhook-secret")
+		if secretErr != nil {
+			return secretErr.Error()
+		}
+
+		validateErr := hmac.Validate(req, xHubSignature, webhookSecretKey)
 		if validateErr != nil {
 			log.Fatal(validateErr)
 		}

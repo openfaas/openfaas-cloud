@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/alexellis/hmac"
 	"github.com/openfaas/openfaas-cloud/sdk"
@@ -62,7 +63,12 @@ func Handle(req []byte) string {
 
 		shouldValidate := os.Getenv("validate_hmac")
 		if len(shouldValidate) > 0 && (shouldValidate == "1" || shouldValidate == "true") {
-			validateErr := hmac.Validate(req, xHubSignature, os.Getenv("github_webhook_secret"))
+			webhookSecretKey, secretErr := readSecret("github-webhook-secret")
+			if secretErr != nil {
+				return secretErr.Error()
+			}
+
+			validateErr := hmac.Validate(req, xHubSignature, webhookSecretKey)
 			if validateErr != nil {
 				log.Fatal(validateErr)
 			}
@@ -118,6 +124,16 @@ func Handle(req []byte) string {
 	}
 
 	return fmt.Sprintf("Message received with event: %s", eventHeader)
+}
+
+func readSecret(key string) (string, error) {
+	path := fmt.Sprintf("/var/openfaas/secrets/%s", key)
+	secretBytes, readErr := ioutil.ReadFile(path)
+	if readErr != nil {
+		return "", fmt.Errorf("unable to read secret: %s, error: %s", path, readErr)
+	}
+	val := strings.TrimSpace(string(secretBytes))
+	return val, nil
 }
 
 func garbageCollect(garbageRequests []GarbageRequest) error {

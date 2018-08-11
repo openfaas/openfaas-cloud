@@ -68,17 +68,26 @@ The GitHub app will deliver webhooks to your OpenFaaS Cloud instance every time 
 
 ```yaml
 environment:
-    github_webhook_secret: "Long-Password-Goes-Here"
+    github_app_id: "<app_id>"
 ```
 
-The shared secret is used to securely verify each message came from GitHub and not a third party.
+A shared secret is used to securely verify each message came from GitHub and not a third party.
 
-* Add the github appId to `github.yml`
+* Create a secret for the HMAC / webhook value:
 
-```yaml
-environment:
-    github_webhook_secret: "Long-Password-Goes-Here"
-    github_app_id: "<app_id>"
+Swarm:
+
+```bash
+WEBHOOK_SECRET="Long-Password-Goes-Here"
+echo -n "$WEBHOOK_SECRET" | docker secret create github-webhook-secret -
+```
+
+Kubernetes:
+
+```bash
+WEBHOOK_SECRET="Long-Password-Goes-Here"
+
+kubectl create secret generic -n openfaas-fn github-webhook-secret --from-literal github-webhook-secret="$WEBHOOK_SECRET"
 ```
 
 ### Status updates
@@ -98,10 +107,12 @@ Create Docker secret
 ```
 docker secret create private-key private-key
 ```
+
 Default private key secret name is `private-key`
-If needed different name can be specified by setting `private_key` value in `github.yml`
+If needed different name can be specified by setting `private_key_filename` value in `github.yml`
+
 ```yaml
-private_key: my-private-key
+private_key_filename: my-private-key
 ```
 
 * Update the remote gateway URL in `stack.yml` or set the `OPENFAAS_URL` environmental variable.
@@ -224,7 +235,7 @@ Make sure you add the environment_file for `buildshiprun_limits_k8s.yml` and not
 
 * Validate HMAC on `github-push`
 
-Set `validate_hmac` to true and update the env-var `github_webhook_secret` in `github.yml` which is used to verify HMAC signatures of incoming webhooks. This is the webhook secret defined on your GitHub App.
+Set `validate_hmac` to true and create a secret in the `openfaas-fn` namespace for `github-webhook-secret` which will be used to verify HMAC signatures of incoming webhooks. This is the webhook secret defined on your GitHub App.
 
 * Deploy buildkit/of-builder
 

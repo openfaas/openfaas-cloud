@@ -121,7 +121,7 @@ func ReportStatus(status string, desc string, statusContext string, event *sdk.E
 
 	_, _, apiErr := client.Repositories.CreateStatus(ctx, event.Owner, event.Repository, event.SHA, repoStatus)
 	if apiErr != nil {
-		return fmt.Errorf("failed to report status %v, error: %s\n", repoStatus, apiErr.Error())
+		return fmt.Errorf("failed to report status %v, error: %s", repoStatus, apiErr.Error())
 	}
 
 	return nil
@@ -130,11 +130,12 @@ func ReportStatus(status string, desc string, statusContext string, event *sdk.E
 func getPrivateKey() string {
 	// Private key name can be different from the default 'private-key'
 	// When providing a different name in the stack.yaml, user need to specify the name
-	// in github.yml as `private_key: <user_private_key>`
-	privateKeyName := os.Getenv("private_key")
+	// in github.yml as `private_key_filename: <user_private_key>`
+	privateKeyName := os.Getenv("private_key_filename")
 	if privateKeyName == "" {
 		privateKeyName = defaultPrivateKeyName
 	}
+
 	secretMountPath := os.Getenv("secret_mount_path")
 	if secretMountPath == "" {
 		secretMountPath = defaultSecretMountPath
