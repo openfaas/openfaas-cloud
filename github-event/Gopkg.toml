@@ -24,3 +24,12 @@
 [[constraint]]
   branch = "master"
   name = "github.com/alexellis/hmac"
+
+
+[prune]
+  go-tests = true
+  unused-packages = true
+
+[[constraint]]
+  version = "0.4.1"
+  name = "github.com/openfaas/openfaas-cloud"

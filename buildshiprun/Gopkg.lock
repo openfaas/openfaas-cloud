@@ -2,79 +2,20 @@
 
 
 [[projects]]
-  name = "github.com/alexellis/derek"
-  packages = ["auth"]
-  revision = "e6d1a85c45ba3ae11f57f7044775952d5ce9e05f"
-  version = "0.5.0"
-
-[[projects]]
-  name = "github.com/dgrijalva/jwt-go"
-  packages = ["."]
-  revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
-  version = "v3.2.0"
-
-[[projects]]
-  name = "github.com/golang/protobuf"
-  packages = ["proto"]
-  revision = "b4deda0973fb4c70b50d226b1af49f3da59f5265"
-  version = "v1.1.0"
-
-[[projects]]
-  name = "github.com/google/go-github"
-  packages = ["github"]
-  revision = "e48060a28fac52d0f1cb758bc8b87c07bac4a87d"
-  version = "v15.0.0"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/google/go-querystring"
-  packages = ["query"]
-  revision = "53e6ce116135b80d037921a7fdd5138cf32d7a8a"
+  name = "github.com/openfaas/faas"
+  packages = ["gateway/types"]
+  revision = "8f0d2d1fd6c5e3c9d2e0a73d6d256c4e232b3737"
+  version = "0.8.9"
 
 [[projects]]
   name = "github.com/openfaas/openfaas-cloud"
   packages = ["sdk"]
-  revision = "405c386841f47aa648284ae704b6e9a9022cb54d"
-  version = "0.2.0"
-
-[[projects]]
-  branch = "master"
-  name = "golang.org/x/net"
-  packages = [
-    "context",
-    "context/ctxhttp"
-  ]
-  revision = "dfa909b99c79129e1100513e5cd36307665e5723"
-
-[[projects]]
-  branch = "master"
-  name = "golang.org/x/oauth2"
-  packages = [
-    ".",
-    "internal"
-  ]
-  revision = "770e5ebd4ab27c4d70b0983674d138217f5e2c72"
-
-[[projects]]
-  name = "google.golang.org/appengine"
-  packages = [
-    ".",
-    "internal",
-    "internal/app_identity",
-    "internal/base",
-    "internal/datastore",
-    "internal/log",
-    "internal/modules",
-    "internal/remote_api",
-    "internal/urlfetch",
-    "urlfetch"
-  ]
-  revision = "150dc57a1b433e64154302bdc40b6bb8aefa313a"
-  version = "v1.0.0"
+  revision = "07ad9ccaea796c2d03cd217d3f67b7ba67bd0e95"
+  version = "0.4.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6630b1748fe29043ba9d89f6b79be0b605d0fe16e341598d7d6ddee81d0e2c12"
+  inputs-digest = "3b46cbe210d8470503bb633e0c2312fd533dacd0501263a464f04dda03862b10"
   solver-name = "gps-cdcl"
   solver-version = 1

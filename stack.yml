@@ -21,6 +21,8 @@ functions:
     environment_file:
       - gateway_config.yml
       - github.yml
+    secrets:
+      - github-webhook-secret
 
   git-tar:
     lang: dockerfile
@@ -36,6 +38,8 @@ functions:
     environment_file:
       - gateway_config.yml
       - github.yml
+    secrets:
+      - github-webhook-secret
 
   buildshiprun:
     lang: go
@@ -55,6 +59,7 @@ functions:
     secrets:
       - basic-auth-user
       - basic-auth-password
+      - github-webhook-secret
 #      - registry-auth # set if using Docker Swarm
 
   list-functions:
@@ -117,6 +122,8 @@ functions:
     environment_file:
       - github.yml
       - gateway_config.yml
+    secrets:
+      - github-webhook-secret
 
   import-secrets:
     lang: go

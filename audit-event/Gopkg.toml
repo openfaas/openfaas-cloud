@@ -30,7 +30,7 @@
   unused-packages = true
 
 [[constraint]]
-  branch = "master"
+  version = "0.4.1"
   name = "github.com/openfaas/openfaas-cloud"
 
 [[constraint]]

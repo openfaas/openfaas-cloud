@@ -8,6 +8,12 @@
   version = "1.2"
 
 [[projects]]
+  name = "github.com/openfaas/faas"
+  packages = ["gateway/types"]
+  revision = "8f0d2d1fd6c5e3c9d2e0a73d6d256c4e232b3737"
+  version = "0.8.9"
+
+[[projects]]
   name = "github.com/openfaas/faas-cli"
   packages = [
     "schema",
@@ -19,8 +25,8 @@
 [[projects]]
   name = "github.com/openfaas/openfaas-cloud"
   packages = ["sdk"]
-  revision = "405c386841f47aa648284ae704b6e9a9022cb54d"
-  version = "0.2.0"
+  revision = "07ad9ccaea796c2d03cd217d3f67b7ba67bd0e95"
+  version = "0.4.1"
 
 [[projects]]
   name = "github.com/ryanuber/go-glob"
@@ -35,6 +41,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "877c4535c0c288857c4cea4acaf69022f457828b68e7d9f84d6e0a0542b13ca8"
+  inputs-digest = "3c354ac0f792296fa2dd6276061821e313a8c21965194b99e6d31e77e23806b6"
   solver-name = "gps-cdcl"
   solver-version = 1
