@@ -14,9 +14,15 @@ For Kubernetes skip this section, it is documented in the developer guide with Y
 
 If you are using a remote Docker registry you need to edit `./deploy_swarm.sh`
 
+Run `docker login` and specify either your own registry address and username, or if using the Docker Hub leave off the server address.
+
 You have to mount your `~/.docker/config.json` file into the of-builder service so that it can push to your remote registry. You will also need to create that file on each node.
 
-Assuming you are logged into your server as `root`:
+Make sure that the file is readable on each Docker Swarm node:
+
+* Run `chmod 777 $HOME/.docker/config.json`
+
+Assuming you are logged into your server as `root` edit `./deploy_swarm.sh`:
 
 ```sh
 docker service create --constraint="node.role==manager" \
@@ -24,6 +30,8 @@ docker service create --constraint="node.role==manager" \
  --env insecure=false --detach=true --network func_functions \
  --name of-builder openfaas/of-builder:$OF_BUILDER_TAG
 ```
+
+This edit mounts your Docker registry credentials into the builder service so that they are available for pushing images.
 
 If you are using an insecure registry then add -e "insecure=true" to the of-builder line in: `./deploy_swarm.sh`
 
