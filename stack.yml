@@ -92,7 +92,7 @@ functions:
   github-status:
     lang: go
     handler: ./github-status
-    image: alexellis2/github-status:0.1.0-rc1
+    image: alexellis2/github-status:0.1.1
     environment:
       write_debug: true
       read_debug: true

@@ -101,9 +101,7 @@ func UnmarshalToken(data []byte) (string, error) {
 
 	err := json.Unmarshal(data, &tokenMap)
 	if err != nil {
-		return EmptyAuthToken, fmt.Errorf(`invalid auth token format received, %s.
-error: %v
-make sure combine_output is disabled for github-status`, err, data)
+		return EmptyAuthToken, fmt.Errorf(`invalid auth token format received: %s. error: %s, make sure combine_output is disabled for github-status`, data, err)
 	}
 
 	token := tokenMap[tokenKey]
