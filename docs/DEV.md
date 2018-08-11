@@ -125,6 +125,8 @@ Optionally deploy a registry locally, or mount your `~/.docker/config.json` file
 
 * Build/deploy (optional)
 
+If you want to hack on the functions that make up OpenFaaS cloud then rebuild your own versions and push them to your Docker Hub account or another registry.
+
 Before running this build/push/deploy script change the Docker Hub image prefix from `alexellis2/` to your own.
 
 ```sh
