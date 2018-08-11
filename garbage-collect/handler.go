@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/openfaas/openfaas-cloud/sdk"
@@ -54,7 +55,7 @@ func formatCloudName(name, owner string) string {
 func included(fn *openFaaSFunction, owner string, functionStack []string) bool {
 
 	for _, name := range functionStack {
-		if formatCloudName(name, owner) == fn.Name {
+		if strings.EqualFold(formatCloudName(name, owner), fn.Name) {
 			return true
 		}
 	}

@@ -66,7 +66,7 @@ func Handle(req []byte) string {
 		}
 
 		for _, customer := range customers {
-			if customer == pushEvent.Repository.Owner.Login {
+			if strings.EqualFold(customer, pushEvent.Repository.Owner.Login) {
 				found = true
 			}
 		}
@@ -144,6 +144,11 @@ func getCustomers(customerURL string) ([]string, error) {
 
 		pageBody, _ := ioutil.ReadAll(res.Body)
 		customers = strings.Split(string(pageBody), "\n")
+
+		for i, c := range customers {
+			customers[i] = strings.ToLower(c)
+		}
+
 	}
 
 	return customers, nil
