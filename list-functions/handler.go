@@ -65,7 +65,7 @@ func Handle(req []byte) string {
 
 		for _, fn := range functions {
 			for k, v := range fn.Labels {
-				if k == "Git-Owner" && v == user {
+				if k == "Git-Owner" && strings.EqualFold(v, user) {
 					// Hide internal-repo details
 					fn.Image = fn.Image[strings.Index(fn.Image, "/")+1:]
 					filtered = append(filtered, fn)

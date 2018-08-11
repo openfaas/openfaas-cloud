@@ -77,7 +77,7 @@ func Handle(req []byte) string {
 		return auditEvent.Message
 	}
 
-	imageName := result.ImageName
+	imageName := strings.ToLower(result.ImageName)
 
 	repositoryURL := os.Getenv("repository_url")
 	pushRepositoryURL := os.Getenv("push_repository_url")
