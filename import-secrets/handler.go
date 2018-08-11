@@ -12,6 +12,7 @@ import (
 	hmac "github.com/alexellis/hmac"
 	ssv1alpha1 "github.com/bitnami-labs/sealed-secrets/pkg/apis/sealed-secrets/v1alpha1"
 	ssv1alpha1clientset "github.com/bitnami-labs/sealed-secrets/pkg/client/clientset/versioned/typed/sealed-secrets/v1alpha1"
+	"github.com/openfaas/openfaas-cloud/sdk"
 	errors2 "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -21,9 +22,15 @@ func Handle(req []byte) string {
 	event := getEventFromHeader()
 
 	if hmacEnabled() {
-		key := getHMACSecretKey()
-		digest := os.Getenv("Http_X_Hub_Signature")
+		key, err := sdk.ReadSecret("github-secret-key")
+		if err != nil {
+			fmt.Fprintf(os.Stderr, err.Error())
+			os.Exit(1)
 
+			return err.Error()
+		}
+
+		digest := os.Getenv("Http_X_Hub_Signature")
 		validated := hmac.Validate(req, digest, key)
 
 		if validated != nil {
@@ -107,10 +114,6 @@ func Handle(req []byte) string {
 	}
 
 	return fmt.Sprintf("Imported SealedSecret: %s as new object", name)
-}
-
-func getHMACSecretKey() string {
-	return os.Getenv("github_secret_key")
 }
 
 func hmacEnabled() bool {

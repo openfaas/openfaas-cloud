@@ -10,6 +10,10 @@
   branch = "master"
   name = "k8s.io/apimachinery"
 
+[[constraint]]
+  version = "0.4.1"
+  name = "github.com/openfaas/openfaas-cloud"
+
 [prune]
   go-tests = true
   unused-packages = true

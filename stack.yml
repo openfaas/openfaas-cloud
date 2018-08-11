@@ -138,6 +138,8 @@ functions:
       combined_output: false
     environment_file:
       - github.yml
+    secrets:
+      - github-webhook-secret
 
   echo:
     skip_build: true

@@ -57,6 +57,18 @@
   revision = "05fbef0ca5da472bbf96c9322b84a53edc03c9fd"
 
 [[projects]]
+  name = "github.com/openfaas/faas"
+  packages = ["gateway/types"]
+  revision = "8f0d2d1fd6c5e3c9d2e0a73d6d256c4e232b3737"
+  version = "0.8.9"
+
+[[projects]]
+  name = "github.com/openfaas/openfaas-cloud"
+  packages = ["sdk"]
+  revision = "07ad9ccaea796c2d03cd217d3f67b7ba67bd0e95"
+  version = "0.4.1"
+
+[[projects]]
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   revision = "49796115aa4b964c318aad4f3084fdb41e9aa067"
@@ -206,6 +218,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5b0c70f49eeff5c68b555d314059caa19916c86b611e856e88123097f98daa3a"
+  inputs-digest = "fb0205e09197cca694b65968d7119885937555d53b8827e4ab73cce9887ae6c9"
   solver-name = "gps-cdcl"
   solver-version = 1
