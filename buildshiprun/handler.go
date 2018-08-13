@@ -152,7 +152,7 @@ func Handle(req []byte) string {
 	}
 
 	sdk.PostAudit(auditEvent)
-	status.AddStatus(sdk.StatusSuccess, fmt.Sprintf("function successfully deployed as: %s", serviceValue), sdk.BuildFunctionContext(event.Service))
+	status.AddStatus(sdk.StatusSuccess, fmt.Sprintf("deployed: %s", serviceValue), sdk.BuildFunctionContext(event.Service))
 	reportStatus(status)
 	return fmt.Sprintf("buildStatus %s %s %s", buildStatus, imageName, res.Status)
 }

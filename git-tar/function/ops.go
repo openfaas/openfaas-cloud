@@ -301,15 +301,21 @@ func importSecrets(pushEvent sdk.PushEvent, stack *stack.Services, clonePath str
 		fmt.Fprintf(os.Stderr, fmt.Errorf("error reaching import-secrets function: %s", reqErr.Error()).Error())
 	}
 
-	defer res.Body.Close()
+	if res.Body != nil {
+		defer res.Body.Close()
+	}
 
 	if res.StatusCode != http.StatusAccepted && res.StatusCode != http.StatusOK {
-		resBytes, err := ioutil.ReadAll(res.Body)
-		if err != nil {
-			return fmt.Errorf("error reading response from import-secrets: %s", err.Error())
-		}
+		if res.Body != nil {
+			resBytes, err := ioutil.ReadAll(res.Body)
+			if err != nil {
+				return fmt.Errorf("error reading response from import-secrets: %s", err.Error())
+			}
 
-		return fmt.Errorf("import-secrets returned error: %s, res: %s", err.Error(), string(resBytes))
+			return fmt.Errorf("import-secrets returned unexpected status: %s", string(resBytes))
+
+		}
+		return fmt.Errorf("import-secrets returned unknown error, status: %d", res.StatusCode)
 	}
 
 	auditEvent := sdk.AuditEvent{
