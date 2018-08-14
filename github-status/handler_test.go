@@ -336,7 +336,7 @@ func TestStatusReportFailure(t *testing.T) {
 	status.AddStatus(sdk.StatusPending, "description stack", sdk.StackContext)
 
 	gateway := "invalid:8080/"
-	token, err := status.Report(gateway)
+	token, err := status.Report(gateway, "")
 	if token != "" {
 		t.Errorf("validating report failure token: want %v got %v", "", token)
 	}

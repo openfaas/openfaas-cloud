@@ -28,10 +28,14 @@ var (
 func Handle(req []byte) string {
 
 	if hmacEnabled() {
-		key := getHMACSecretKey()
-		digest := os.Getenv("Http_X_Hub_Signature")
 
-		fmt.Println(digest)
+		key, keyErr := sdk.ReadSecret("github-webhook-secret")
+		if keyErr != nil {
+			fmt.Fprintf(os.Stderr, keyErr.Error())
+			os.Exit(-1)
+		}
+
+		digest := os.Getenv("Http_X_Hub_Signature")
 
 		validated := hmac.Validate(req, digest, key)
 
@@ -158,10 +162,6 @@ func getPrivateKey() string {
 	}
 	privateKeyPath := filepath.Join(secretMountPath, privateKeyName)
 	return privateKeyPath
-}
-
-func getHMACSecretKey() string {
-	return os.Getenv("github_webhook_secret")
 }
 
 func hmacEnabled() bool {
