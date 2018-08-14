@@ -42,7 +42,6 @@ type Status struct {
 	CommitStatuses map[string]CommitStatus `json:"commit-statuses"`
 	EventInfo      Event                   `json:"event"`
 	AuthToken      string                  `json:"auth-token"`
-	hmacKey        string                  `json:"-"`
 }
 
 // BuildStatus constructs a status object from event
@@ -54,11 +53,6 @@ func BuildStatus(event *Event, token string) *Status {
 	status.AuthToken = token
 
 	return &status
-}
-
-// Add Hmac Key to status object
-func (status *Status) SetHmacKey(key string) {
-	status.hmacKey = key
 }
 
 // UnmarshalStatus unmarshal a status object from json
@@ -121,20 +115,20 @@ make sure combine_output is disabled for github-status`, token)
 }
 
 // Report send a status update to github-status function
-func (status *Status) Report(gateway string) (string, error) {
+func (status *Status) Report(gateway string, hmacKey string) (string, error) {
 	body, _ := status.Marshal()
 
 	var hash []byte
 	// sign with hmac key if set
-	if len(status.hmacKey) > 0 {
-		hash = hmac.Sign(body, []byte(status.hmacKey))
+	if len(hmacKey) > 0 {
+		hash = hmac.Sign(body, []byte(hmacKey))
 	}
 
 	c := http.Client{}
 	bodyReader := bytes.NewBuffer(body)
 	httpReq, _ := http.NewRequest(http.MethodPost, gateway+"function/github-status", bodyReader)
 
-	if len(status.hmacKey) > 0 {
+	if len(hmacKey) > 0 {
 		httpReq.Header.Add("X-Hub-Signature", "sha1="+hex.EncodeToString(hash))
 	}
 

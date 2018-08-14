@@ -28,7 +28,6 @@ func Handle(req []byte) []byte {
 
 	statusEvent := sdk.BuildEventFromPushEvent(pushEvent)
 	status := sdk.BuildStatus(statusEvent, sdk.EmptyAuthToken)
-	status.SetHmacKey(os.Getenv("github_webhook_secret"))
 
 	clonePath, err := clone(pushEvent)
 	if err != nil {
@@ -145,9 +144,15 @@ func reportStatus(status *sdk.Status) {
 		return
 	}
 
+	hmacKey, keyErr := sdk.ReadSecret("github-webhook-secret")
+	if keyErr != nil {
+		log.Printf("failed to load hmac key for status, error " + keyErr.Error())
+		return
+	}
+
 	gatewayURL := os.Getenv("gateway_url")
 
-	_, reportErr := status.Report(gatewayURL)
+	_, reportErr := status.Report(gatewayURL, hmacKey)
 	if reportErr != nil {
 		log.Printf("failed to report status, error: %s", reportErr.Error())
 	}
