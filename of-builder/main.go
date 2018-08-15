@@ -6,11 +6,11 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/docker/docker/pkg/archive"
 	"github.com/gorilla/mux"
@@ -22,11 +22,22 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+var (
+	lchownEnabled bool
+)
+
 func main() {
 	flag.Parse()
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/build", buildHandler)
+
+	lchownEnabled = true
+	if val, exists := os.LookupEnv("enable_lchown"); exists {
+		if val == "false" {
+			lchownEnabled = false
+		}
+	}
 
 	server := &http.Server{
 		Addr:    "0.0.0.0:8080",
@@ -53,7 +64,18 @@ func buildHandler(w http.ResponseWriter, r *http.Request) {
 	dt, err := build(w, r)
 	if err != nil {
 		w.WriteHeader(500)
-		w.Write([]byte(fmt.Sprintf("%s", err.Error())))
+
+		if dt == nil {
+			buildResult := BuildResult{
+				ImageName: "",
+				Log:       nil,
+				Status:    fmt.Sprintf("unexpected failure: %s", err.Error()),
+			}
+			dt, _ = json.Marshal(buildResult)
+		}
+		w.Write(dt)
+
+		// w.Write([]byte(fmt.Sprintf("%s", err.Error())))
 		return
 	}
 	w.WriteHeader(200)
@@ -66,8 +88,11 @@ func build(w http.ResponseWriter, r *http.Request) ([]byte, error) {
 		return nil, err
 	}
 	defer os.RemoveAll(tmpdir)
+	opts := archive.TarOptions{
+		NoLchown: !lchownEnabled,
+	}
 
-	if err := archive.Untar(r.Body, tmpdir, nil); err != nil {
+	if err := archive.Untar(r.Body, tmpdir, &opts); err != nil {
 		return nil, err
 	}
 
@@ -130,22 +155,72 @@ func build(w http.ResponseWriter, r *http.Request) ([]byte, error) {
 	eg.Go(func() error {
 		return c.Solve(ctx, nil, solveOpt, ch)
 	})
+
+	build := buildLog{
+		Line: []string{},
+		Sync: &sync.Mutex{},
+	}
+
 	eg.Go(func() error {
 		for s := range ch {
 			for _, v := range s.Vertexes {
-				log.Printf("vertex: %s %s %v %v", v.Digest, v.Name, v.Started, v.Completed)
+				msg := fmt.Sprintf("%s %v %v", v.Name, v.Started, v.Completed)
+				build.Append(msg)
+				fmt.Printf("vertex: %s %s %v %v\n", v.Digest, v.Name, v.Started, v.Completed)
 			}
 			for _, s := range s.Statuses {
-				log.Printf("status: %s %s %d", s.Vertex, s.ID, s.Current)
+				msg := fmt.Sprintf("%s %d", s.ID, s.Current)
+				build.Append(msg)
+				fmt.Printf("status: %s %s %d\n", s.Vertex, s.ID, s.Current)
 			}
 			for _, l := range s.Logs {
-				log.Printf("log: %s\n%s", l.Vertex, l.Data)
+				msg := fmt.Sprintf("%s", l.Data)
+				build.Append(msg)
+				fmt.Printf("log: %s\n%s\n", l.Vertex, l.Data)
 			}
+
 		}
 		return nil
 	})
+
 	if err := eg.Wait(); err != nil {
-		return nil, err
+
+		buildResult := BuildResult{
+			ImageName: cfg.Ref,
+			Log:       build.Line,
+			Status:    fmt.Sprintf("failure: %s", err.Error()),
+		}
+
+		bytesOut, _ := json.Marshal(buildResult)
+		return bytesOut, err
 	}
-	return []byte(cfg.Ref), nil
+
+	buildResult := BuildResult{
+		ImageName: cfg.Ref,
+		Log:       build.Line,
+		Status:    "success",
+	}
+
+	bytesOut, _ := json.Marshal(buildResult)
+
+	return bytesOut, nil
+}
+
+// BuildResult represents a successful Docker build and
+// push operation to a remote registry
+type BuildResult struct {
+	Log       []string `json:"log"`
+	ImageName string   `json:"imageName"`
+	Status    string   `json:"status"`
+}
+
+type buildLog struct {
+	Line []string
+	Sync *sync.Mutex
+}
+
+func (b *buildLog) Append(msg string) {
+	b.Sync.Lock()
+	b.Line = append(b.Line, msg)
+	b.Sync.Unlock()
 }
