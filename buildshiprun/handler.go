@@ -63,8 +63,21 @@ func Handle(req []byte) string {
 
 	defer res.Body.Close()
 
-	buildStatus, _ := ioutil.ReadAll(res.Body)
-	imageName := strings.TrimSpace(string(buildStatus))
+	buildBytes, _ := ioutil.ReadAll(res.Body)
+
+	result := BuildResult{}
+	unmarshalErr := json.Unmarshal(buildBytes, &result)
+
+	if unmarshalErr != nil {
+		fmt.Println(err)
+		auditEvent.Message = fmt.Sprintf("buildshiprun failure reading response: %s, error: %s", unmarshalErr.Error(), string(buildBytes))
+		sdk.PostAudit(auditEvent)
+		status.AddStatus(sdk.StatusFailure, err.Error(), sdk.BuildFunctionContext(event.Service))
+		reportStatus(status)
+		return auditEvent.Message
+	}
+
+	imageName := result.ImageName
 
 	repositoryURL := os.Getenv("repository_url")
 	pushRepositoryURL := os.Getenv("push_repository_url")
@@ -364,4 +377,12 @@ func getRegistryAuthSecret() string {
 		return strings.TrimSpace(string(res))
 	}
 	return ""
+}
+
+// BuildResult represents a successful Docker build and
+// push operation to a remote registry
+type BuildResult struct {
+	Log       []string `json:"log"`
+	ImageName string   `json:"imageName"`
+	Status    string   `json:"status"`
 }

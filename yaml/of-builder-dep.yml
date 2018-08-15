@@ -16,8 +16,13 @@ spec:
             secretName: registry-secret
       containers:
       - name: of-builder
-        image: openfaas/of-builder:0.4.1
+        image: openfaas/of-builder:0.5.0
         imagePullPolicy: Always
+        environment:
+          - name: enable_lchown
+            value: "true"
+          - name: insecure
+            value: "false"
         ports:
         - containerPort: 8080
           protocol: TCP
