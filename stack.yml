@@ -6,7 +6,7 @@ functions:
   github-push:
     lang: go
     handler: ./github-push
-    image: alexellis2/github-push:0.5.2
+    image: alexellis/github-push:0.5.2
     labels:
       openfaas-cloud: "1"
     environment:

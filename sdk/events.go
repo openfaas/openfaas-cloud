@@ -2,20 +2,26 @@ package sdk
 
 // PushEvent as received from GitHub
 type PushEvent struct {
-	Ref        string `json:"ref"`
-	Repository struct {
-		Name     string `json:"name"`
-		FullName string `json:"full_name"`
-		CloneURL string `json:"clone_url"`
-		Owner    struct {
-			Login string `json:"login"`
-			Email string `json:"email"`
-		} `json:"owner"`
-	}
-	AfterCommitID string `json:"after"`
-	Installation  struct {
-		ID int `json:"id"`
-	}
+	Ref           string       `json:"ref"`
+	Repository    Repository   `json:"repository"`
+	AfterCommitID string       `json:"after"`
+	Installation  Installation `json:"installation"`
+}
+
+type Repository struct {
+	Name     string `json:"name"`
+	FullName string `json:"full_name"`
+	CloneURL string `json:"clone_url"`
+	Owner    Owner  `json:"owner"`
+}
+
+type Owner struct {
+	Login string `json:"login"`
+	Email string `json:"email"`
+}
+
+type Installation struct {
+	ID int `json:"id"`
 }
 
 // Event info to pass/store events across functions
