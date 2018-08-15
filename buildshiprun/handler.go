@@ -167,7 +167,7 @@ func Handle(req []byte) string {
 	sdk.PostAudit(auditEvent)
 	status.AddStatus(sdk.StatusSuccess, fmt.Sprintf("deployed: %s", serviceValue), sdk.BuildFunctionContext(event.Service))
 	reportStatus(status)
-	return fmt.Sprintf("buildStatus %s %s %s", buildStatus, imageName, res.Status)
+	return fmt.Sprintf("buildStatus %v %s %s", status, imageName, res.Status)
 }
 
 // readOnlyRootFS defaults to true, override with env-var of readonly_root_filesystem=false
