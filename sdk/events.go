@@ -24,6 +24,27 @@ type Installation struct {
 	ID int `json:"id"`
 }
 
+// PushEvent as received from GitLab
+
+type GitLabPushEvent struct {
+	Ref              string           `json:"ref"`
+	UserUsername     string           `json:"user_username"`
+	UserEmail        string           `json:"user_email"`
+	GitLabProject    GitLabProject    `json:"project"`
+	GitLabRepository GitLabRepository `json:"repository"`
+	AfterCommitID    string           `json:"after"`
+}
+
+type GitLabProject struct {
+	Namespace         string `json:"namespace"`
+	Name              string `json:"name"`
+	PathWithNamespace string `json:"path_with_namespace"` //would be repo full name
+}
+
+type GitLabRepository struct {
+	CloneURL string `json:"git_http_url"`
+}
+
 // Event info to pass/store events across functions
 type Event struct {
 	Service        string            `json:"service"`
