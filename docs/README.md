@@ -118,7 +118,7 @@ docker login
 
 This populates `~/.docker/config.json` which is used in the builder.
 
-* For Kubernetes
+#### For Kubernetes
 
 Create the secret for your registry
 
@@ -134,7 +134,7 @@ Create of-builder and of-buildkit:
 kubectl apply -f ./yaml
 ```
 
-* For Swarm
+#### For Swarm
 
 Create the secret for your registry
 
@@ -161,9 +161,9 @@ environment:
   push_repository_url: docker.io/ofcommunity/
 ```
 
-Replace "ofcommunity" with your Docker Hub account or replace the whole string with the address of your private registry.
+Replace "ofcommunity" with your Docker Hub account i.e. `alexellis2/cloud/` or replace the whole string with the address of your private registry `reg.my-domain.xyz`.
 
-Set your gateway's public URL
+Now set your gateway's public URL in the `gateway_public_url` field.
 
 ### Configure pull secret
 
@@ -183,7 +183,7 @@ echo -n username:password | base64 | docker secret create registry-auth -
 
 #### Kubernetes
 
-Configure your service account with a pull secret as per [docs.openfaas.com](https://docs.openfaas.com/)
+Configure your service account with a pull secret as per [OpenFaaS docs](https://docs.openfaas.com/deployment/kubernetes/#link-the-image-pull-secret-to-a-namespace-service-account). Pick the `openfaas-fn` namespace.
 
 ### Create basic-auth secrets for the functions
 
@@ -210,6 +210,27 @@ echo "password" > basic-auth-password
 kubectl create secret generic basic-auth-user --from-file=basic-auth-user=./basic-auth-user -n openfaas-fn
 kubectl create secret generic basic-auth-password --from-file=basic-auth-password=./basic-auth-password -n openfaas-fn
 ```
+
+### Deploy the OpenFaaS Cloud Functions
+
+Optionally set the gateway URL:
+
+```
+export OPENFAAS_URL=https://gw.my-site.xyz
+```
+
+Now deploy:
+
+```
+faas-cli deploy
+```
+
+### Test it out
+
+Now find the public URL of your GitHub App and navigate to it. Click "Install" and pick a GitHub repo you want to use.
+
+Now create a new function, rename the YAML file for the functions to `stack.yml` and then commit it. When you put it up you'll see the logs in the `github-push` function.
+
 
 ## Appendix
 
