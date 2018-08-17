@@ -9,6 +9,9 @@ For the legacy instructions see [./README_LEGACY.md](./README_LEGACY.md)
 * Kubernetes or Docker Swarm
 * Registry account - Docker Hub account or private registry with TLS
 * OpenFaaS deployed with authentication enabled
+* Extended timeouts for the queue-worker, gateway and the backend provider
+
+For the queue-worker, set the `ack_wait` field to `15m` to allow for a Docker build of up to 15 minutes total.
 
 ### Moving parts
 
@@ -231,16 +234,121 @@ Now find the public URL of your GitHub App and navigate to it. Click "Install" a
 
 Now create a new function, rename the YAML file for the functions to `stack.yml` and then commit it. When you put it up you'll see the logs in the `github-push` function.
 
+#### Troubleshoot Kubernetes
+
+Find out whether the pull/checkout/tar and build and deploy operation passed for each function.
+
+```
+kubectl logs -f deploy/github-push -n openfaas-fn
+```
+
+```
+kubectl logs -f deploy/git-tar -n openfaas-fn
+```
+
+Find out if the build and deployment passed:
+
+```
+kubectl logs -f deploy/buildshiprun -n openfaas-fn
+```
+
+Find all events on the functions namespace
+
+```
+kubectl get events --sort-by=.metadata.creationTimestamp -n openfaas-fn
+```
+
+#### Troubleshoot Swarm
+
+```
+docker service logs github-push --tail 50
+```
+
+```
+docker service logs git-tar --tail 50
+```
+
+```
+docker service logs buildshiprun --tail 50
+```
 
 ## Appendix
 
 ### Dashboard
 
-See README_LEGACY.md
+The Dashboard is optional and can be installed to visualise your functions.
+
+A pretty URL means that users get their own sub-domain per function. You will need to setup a wildcard DNS entry for this, but it's not essential, using the gateway address will also work.
+
+Pretty vs non-pretty:
+
+https://alexellis.domain.com/function1
+
+https://gateway.domain.com/alexellis-function1
+
+* On Docker Swarm you must remove the suffix `.openfaas` from the gateway address.
+
+* Edit stack.yml
+
+Set `query_pretty_url`  to `true` when using a sub-domain for each user, if not, then set this to an empty string or remove the line. If set, also define `pretty_url` with the pattern for the URL.
+
+For a pretty URL you should also prefix each function with `system-` before deployinh.
+
+Example with domain `o6s.io`:
+
+```
+      pretty_url: "http://user.o6s.io/function"
+```
+
+Set `public_url` to be the URL for the IP / DNS if not using a `pretty_url`
+
+* Deploy
+
+```
+cd dashboard
+faas-cli deploy
+```
 
 ### SealedSecret support
 
-See README_LEGACY.md
+The support for SealedSecrets is optional.
+
+* Add the CRD entry for SealedSecret:
+
+```sh
+release=$(curl --silent "https://api.github.com/repos/bitnami-labs/sealed-secrets/releases/latest" | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p')
+kubectl create -f https://github.com/bitnami-labs/sealed-secrets/releases/download/$release/sealedsecret-crd.yaml
+```
+
+* Install the CRD controller to manage SealedSecrets:
+
+```sh
+kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/$release/controller.yaml
+```
+
+* Install kubeseal CLI
+
+You can perform the following two commands on the client or the server providing that you have a `.kube/config` file available and have switched to that context with `kubectl config set-context`.
+
+```sh
+release=$(curl --silent "https://api.github.com/repos/bitnami-labs/sealed-secrets/releases/latest" | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p')
+GOOS=$(go env GOOS)
+GOARCH=$(go env GOARCH)
+wget https://github.com/bitnami/sealed-secrets/releases/download/$release/kubeseal-$GOOS-$GOARCH
+sudo install -m 755 kubeseal-$GOOS-$GOARCH /usr/local/bin/kubeseal
+```
+
+* Export your public key
+
+Now export the public key from Kubernetes cluster
+
+```sh
+kubeseal --fetch-cert > pub-cert.pem
+```
+
+You will need to distribute or share pub-cert.pem so that people can use this with the OpenFaaS CLI `faas-cli cloud seal` command to seal secrets.
+
+
 
 ### Wildcard domains with of-router
 
