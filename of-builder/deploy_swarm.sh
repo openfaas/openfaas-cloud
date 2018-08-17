@@ -16,7 +16,10 @@ export OF_BUILDER_TAG=0.5.1
 
 # You should mount your .docker/config.json file here, but first make sure it is
 # readable. `chmod 777 $HOME/.docker/config.json`
-docker service rm of-builder
-docker service create --constraint="node.role==manager" --detach=true \
- --network func_functions --name of-builder openfaas/of-builder:$OF_BUILDER_TAG
 
+docker service create --constraint="node.role==manager" \
+ --name of-builder \
+ --env insecure=false --detach=true --network func_functions \
+ --secret src=registry-secret,target="/home/app/.docker/config.json" \
+ --env enable_lchown=false \
+openfaas/of-builder:$OF_BUILDER_TAG
