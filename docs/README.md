@@ -23,6 +23,14 @@ You will create/deploy:
 * Customise limits for Swarm or K8s
 * Setup a container image builder
 
+### Before you begin
+
+* You must enable basic auth to prevent user-functions from accessing the admin API of the gateway
+* Only public GitHub repos are supported
+* A list of valid users is defined in the CUSTOMERS file in this GitHub repo, this acts as an ACL, but you can define your own
+* Swarm offers no isolation between functions (they can call each other)
+* For Kubernetes istolation can be applied through NetworkPolicy
+
 ## Steps
 
 ### Create your GitHub App
@@ -96,6 +104,12 @@ docker secret create private-key private-key
 ```yaml
 private_key_filename: my-private-key
 ```
+
+### Setup your customer access control list (ACL)
+
+Edit `customers_url` in gateway_config.yml.
+
+Enter a list of GitHub usernames for your customers, these are case-sensitive.
 
 ### Customize for Kubernetes or Swarm
 
@@ -210,8 +224,10 @@ Create secrets in the openfaas-fn namespace:
 ```
 echo "username" > basic-auth-user
 echo "password" > basic-auth-password
-kubectl create secret generic basic-auth-user --from-file=basic-auth-user=./basic-auth-user -n openfaas-fn
-kubectl create secret generic basic-auth-password --from-file=basic-auth-password=./basic-auth-password -n openfaas-fn
+kubectl create secret generic basic-auth-user \
+ --from-file=basic-auth-user=./basic-auth-user -n openfaas-fn
+kubectl create secret generic basic-auth-password \
+ --from-file=basic-auth-password=./basic-auth-password -n openfaas-fn
 ```
 
 ### Deploy the OpenFaaS Cloud Functions
@@ -347,8 +363,6 @@ kubeseal --fetch-cert > pub-cert.pem
 ```
 
 You will need to distribute or share pub-cert.pem so that people can use this with the OpenFaaS CLI `faas-cli cloud seal` command to seal secrets.
-
-
 
 ### Wildcard domains with of-router
 
