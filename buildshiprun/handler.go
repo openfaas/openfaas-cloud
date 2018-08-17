@@ -101,9 +101,13 @@ func Handle(req []byte) string {
 		msg := "Unable to build image, check builder logs"
 		status.AddStatus(sdk.StatusFailure, msg, sdk.BuildFunctionContext(event.Service))
 		reportStatus(status)
-		log.Fatal(msg)
+
 		auditEvent.Message = fmt.Sprintf("buildshiprun failure: %s", msg)
 		sdk.PostAudit(auditEvent)
+
+		log.Printf("of-builder result: %s, logs: %s\n", result.Status, strings.Join(result.Log, "\n"))
+
+		log.Fatal(msg)
 		return msg
 	}
 
@@ -150,7 +154,7 @@ func Handle(req []byte) string {
 			deploy.RegistryAuth = registryAuth
 		}
 
-		result, err := deployFunction(deploy, gatewayURL, c)
+		deployResult, err := deployFunction(deploy, gatewayURL, c)
 
 		if err != nil {
 			status.AddStatus(sdk.StatusFailure, err.Error(), sdk.BuildFunctionContext(event.Service))
@@ -161,13 +165,13 @@ func Handle(req []byte) string {
 			auditEvent.Message = fmt.Sprintf("buildshiprun succeeded: deployed %s", imageName)
 		}
 
-		log.Println(result)
+		log.Println(deployResult)
 	}
 
 	sdk.PostAudit(auditEvent)
 	status.AddStatus(sdk.StatusSuccess, fmt.Sprintf("deployed: %s", serviceValue), sdk.BuildFunctionContext(event.Service))
 	reportStatus(status)
-	return fmt.Sprintf("buildStatus %v %s %s", status, imageName, res.Status)
+	return fmt.Sprintf("buildStatus %s %s", imageName, res.Status)
 }
 
 // readOnlyRootFS defaults to true, override with env-var of readonly_root_filesystem=false
