@@ -16,19 +16,25 @@ If you are using a remote Docker registry you need to edit `./deploy_swarm.sh`
 
 Run `docker login` and specify either your own registry address and username, or if using the Docker Hub leave off the server address.
 
-You have to mount your `~/.docker/config.json` file into the of-builder service so that it can push to your remote registry. You will also need to create that file on each node.
+> Note: make sure if you do this on a Mac or Windows that you prevent Docker from storing passwords in the keychain.
 
-Make sure that the file is readable on each Docker Swarm node:
+We need to provide authentication to the builder so that it can push images on our behalf.
 
-* Run `chmod 777 $HOME/.docker/config.json`
+Create a secret that makes `~/.docker/config.json` available.
+
+```
+cat $HOME/.docker/config.json | docker secret create registry-secret -
+```
 
 Assuming you are logged into your server as `root` edit `./deploy_swarm.sh`:
 
 ```sh
 docker service create --constraint="node.role==manager" \
- --mount type=bind,src=/root/.docker/,dst=/home/app/.docker/ \
+ --name of-builder \
  --env insecure=false --detach=true --network func_functions \
- --name of-builder openfaas/of-builder:$OF_BUILDER_TAG
+ --secret src=registry-secret,target="/home/app/.docker/config.json" \
+ --env enable_lchown=false \
+openfaas/of-builder:$OF_BUILDER_TAG
 ```
 
 This edit mounts your Docker registry credentials into the builder service so that they are available for pushing images.
@@ -37,7 +43,7 @@ If you are using an insecure registry then add -e "insecure=true" to the of-buil
 
 ## For development (Swarm)
 
-### Setup the registry
+### Setup an insecure registry
 
 ```
 docker service rm registry
