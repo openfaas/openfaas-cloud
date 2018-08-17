@@ -8,14 +8,17 @@ RUN go build -o /usr/bin/of-builder .
 
 FROM alpine:3.7
 
-RUN addgroup -S app && adduser app -S -G app \
+# Setting the group prevented access to /tmp at runtime
+# lchown started to fail
+# -G app 
+RUN addgroup -S app && adduser app -S \
  && mkdir -p /home/app
 
 WORKDIR /home/app
 
 COPY --from=builder /usr/bin/of-builder /home/app/
 
-RUN chown -R app:app /home/app
+RUN chown -R app /home/app
 USER app
 
 EXPOSE 8080
