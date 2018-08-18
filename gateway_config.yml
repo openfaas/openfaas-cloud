@@ -8,6 +8,8 @@ environment:
   basic_auth: true
   secret_mount_path: /var/openfaas/secrets
   builder_url: http://of-builder.openfaas:8080/
+  s3_url: cloud-minio.openfaas.svc.cluster.local:9000
+  s3_region: us-east-1
 
 # To use a shared Docker Hub account.
 #  repository_url: docker.io/ofcommunity/
