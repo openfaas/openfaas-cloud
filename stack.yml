@@ -156,3 +156,17 @@ functions:
       openfaas-cloud: "1"
     environment_file:
       - slack.yml
+
+  pipeline-log:
+    lang: go
+    handler: ./pipeline-log
+    image: alexellis2/pipeline-log:latest
+    environment:
+      write_debug: true
+      read_debug: true
+      combine_output: false
+    environment_file:
+      - gateway_config.yml
+    secrets:
+      - s3-access-key
+      - s3-secret-key

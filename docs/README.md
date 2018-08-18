@@ -6,7 +6,7 @@ For the legacy instructions see [./README_LEGACY.md](./README_LEGACY.md)
 
 ### Pre-reqs
 
-* Kubernetes or Docker Swarm
+* Kubernetes or Docker Swarm (Docker cannot be running with XFS as a backing file-system due to buildkit restrictions)
 * Registry account - Docker Hub account or private registry with TLS
 * OpenFaaS deployed with authentication enabled
 * Extended timeouts for the queue-worker, gateway and the backend provider
@@ -324,6 +324,42 @@ Set `public_url` to be the URL for the IP / DNS if not using a `pretty_url`
 cd dashboard
 faas-cli deploy
 ```
+
+### Log storage with S3
+
+Generate secrets
+
+```
+SECRET_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
+ACCESS_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
+```
+
+#### Kubernetes
+
+Store the secets in Kubernetes
+
+```
+kubectl create secret generic -n openfaas-fn \
+ s3-secret-key --from-literal s3-secret-key="$SECRET_KEY"
+kubectl create secret generic -n openfaas-fn \
+ s3-access-key --from-literal s3-access-key="$ACCESS_KEY"
+```
+
+Install Minio with helm
+
+```
+helm install --name cloud --namespace openfaas \
+   --set accessKey=$ACCESS_KEY,secretKey=$SECRET_KEY,replicas=1,persistence.enabled=false,service.port=9000,service.type=NodePort \
+  stable/minio
+```
+
+The name value should be `cloud-minio.openfaas.svc.cluster.local`
+
+Enter the value of the DNS above into `s3_url` in `gateway_config.yml` adding the port at the end:`cloud-minio-svc.openfaas.svc.cluster.local:9000`
+
+#### Swarm
+
+See https://docs.minio.io/docs/minio-quickstart-guide
 
 ### SealedSecret support
 
