@@ -90,7 +90,8 @@ Download the `.pem` file from the GitHub App page, then save it as a file named 
 * Kubernetes
 
 ```
-kubectl secret create generic private-key --from-file=private-key -n openfaas-fn
+kubectl create secret generic private-key \
+ --from-file=private-key -n openfaas-fn
 ```
 
 * Docker Swarm
