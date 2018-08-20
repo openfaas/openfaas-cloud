@@ -367,14 +367,22 @@ echo -n "$SECRET_KEY" | docker secret create s3-secret-key -
 echo -n "$ACCESS_KEY" | docker secret create s3-access-key -
 ```
 
+Deploy Minio
+
 ```
+docker service rm minio
+
 docker service create --constraint="node.role==manager" \
  --name minio \
  --detach=true --network func_functions \
- --secret src=s3-secret-key,target="/home/app/.docker/config.json" \
- --env enable_lchown=false \
-openfaas/of-builder:$OF_BUILDER_TAG
+ --secret s3-access-key \
+ --secret s3-secret-key \
+ --env MINIO_SECRET_KEY_FILE=s3-secret-key \
+ --env MINIO_ACCESS_KEY_FILE=s3-access-key \
+minio/minio:latest server /export
 ```
+
+> Note: For debugging and testing. You can expose the port of Minio with `docker service update minio --publish-add 9000:9000`, but this is not recommended on the public internet.
 
 See https://docs.minio.io/docs/minio-quickstart-guide
 
