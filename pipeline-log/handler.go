@@ -18,8 +18,17 @@ const bucketName = "pipeline"
 
 // Handle a serverless request
 func Handle(req []byte) string {
-	region := os.Getenv("s3_region")
 	method := os.Getenv("Http_Method")
+
+	if method == http.MethodPost {
+
+		hmacErr := sdk.ValidHMAC(&req, "github-webhook-secret", os.Getenv("Http_X_Github_Event"))
+		if hmacErr != nil {
+			return hmacErr.Error()
+		}
+	}
+
+	region := os.Getenv("s3_region")
 
 	minioClient, err := connectToMinio(region)
 	if err != nil {
@@ -28,6 +37,7 @@ func Handle(req []byte) string {
 
 	switch method {
 	case http.MethodPost:
+
 		pipelineLog := sdk.PipelineLog{}
 		json.Unmarshal(req, &pipelineLog)
 

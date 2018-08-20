@@ -231,6 +231,74 @@ kubectl create secret generic basic-auth-password \
  --from-file=basic-auth-password=./basic-auth-password -n openfaas-fn
 ```
 
+### Log storage with Minio/S3
+
+Logs from the container builder are stored in S3. This can be Minio which is S3-compatible, or AWS S3.
+
+You can disable Log storage by commenting out the pipeline-log function from `stack.yml`.
+
+> Note: AWS S3 needs an additional two flags to be implemented to make sure TLS and a custom bucket name are used.
+
+* Generate secrets for Minio
+
+```
+SECRET_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
+ACCESS_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
+```
+
+#### Kubernetes
+
+Store the secrets in Kubernetes
+
+```
+kubectl create secret generic -n openfaas-fn \
+ s3-secret-key --from-literal s3-secret-key="$SECRET_KEY"
+kubectl create secret generic -n openfaas-fn \
+ s3-access-key --from-literal s3-access-key="$ACCESS_KEY"
+```
+
+Install Minio with helm
+
+```
+helm install --name cloud --namespace openfaas \
+   --set accessKey=$ACCESS_KEY,secretKey=$SECRET_KEY,replicas=1,persistence.enabled=false,service.port=9000,service.type=NodePort \
+  stable/minio
+```
+
+The name value should be `cloud-minio.openfaas.svc.cluster.local`
+
+Enter the value of the DNS above into `s3_url` in `gateway_config.yml` adding the port at the end:`cloud-minio-svc.openfaas.svc.cluster.local:9000`
+
+#### Swarm
+
+Store the secrets
+
+```
+echo -n "$SECRET_KEY" | docker secret create s3-secret-key -
+echo -n "$ACCESS_KEY" | docker secret create s3-access-key -
+```
+
+Deploy Minio
+
+```
+docker service rm minio
+
+docker service create --constraint="node.role==manager" \
+ --name minio \
+ --detach=true --network func_functions \
+ --secret s3-access-key \
+ --secret s3-secret-key \
+ --env MINIO_SECRET_KEY_FILE=s3-secret-key \
+ --env MINIO_ACCESS_KEY_FILE=s3-access-key \
+minio/minio:latest server /export
+```
+
+Enter the value of the DNS above into `s3_url` in `gateway_config.yml` adding the port at the end:`minio:9000`
+
+> Note: For debugging and testing. You can expose the port of Minio with `docker service update minio --publish-add 9000:9000`, but this is not recommended on the public internet.
+
+See https://docs.minio.io/docs/minio-quickstart-guide
+
 ### Deploy the OpenFaaS Cloud Functions
 
 Optionally set the gateway URL:
@@ -325,68 +393,6 @@ Set `public_url` to be the URL for the IP / DNS if not using a `pretty_url`
 cd dashboard
 faas-cli deploy
 ```
-
-### Log storage with S3
-
-Generate secrets
-
-```
-SECRET_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
-ACCESS_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
-```
-
-#### Kubernetes
-
-Store the secrets in Kubernetes
-
-```
-kubectl create secret generic -n openfaas-fn \
- s3-secret-key --from-literal s3-secret-key="$SECRET_KEY"
-kubectl create secret generic -n openfaas-fn \
- s3-access-key --from-literal s3-access-key="$ACCESS_KEY"
-```
-
-Install Minio with helm
-
-```
-helm install --name cloud --namespace openfaas \
-   --set accessKey=$ACCESS_KEY,secretKey=$SECRET_KEY,replicas=1,persistence.enabled=false,service.port=9000,service.type=NodePort \
-  stable/minio
-```
-
-The name value should be `cloud-minio.openfaas.svc.cluster.local`
-
-Enter the value of the DNS above into `s3_url` in `gateway_config.yml` adding the port at the end:`cloud-minio-svc.openfaas.svc.cluster.local:9000`
-
-#### Swarm
-
-Store the secrets
-
-```
-echo -n "$SECRET_KEY" | docker secret create s3-secret-key -
-echo -n "$ACCESS_KEY" | docker secret create s3-access-key -
-```
-
-Deploy Minio
-
-```
-docker service rm minio
-
-docker service create --constraint="node.role==manager" \
- --name minio \
- --detach=true --network func_functions \
- --secret s3-access-key \
- --secret s3-secret-key \
- --env MINIO_SECRET_KEY_FILE=s3-secret-key \
- --env MINIO_ACCESS_KEY_FILE=s3-access-key \
-minio/minio:latest server /export
-```
-
-Enter the value of the DNS above into `s3_url` in `gateway_config.yml` adding the port at the end:`minio:9000`
-
-> Note: For debugging and testing. You can expose the port of Minio with `docker service update minio --publish-add 9000:9000`, but this is not recommended on the public internet.
-
-See https://docs.minio.io/docs/minio-quickstart-guide
 
 ### SealedSecret support
 
