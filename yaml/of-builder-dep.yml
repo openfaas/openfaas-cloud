@@ -18,7 +18,7 @@ spec:
       - name: of-builder
         image: openfaas/of-builder:0.5.1
         imagePullPolicy: Always
-        environment:
+        env:
           - name: enable_lchown
             value: "true"
           - name: insecure
