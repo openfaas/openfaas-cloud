@@ -183,7 +183,7 @@ func createPipelineLog(result sdk.BuildResult, event *sdk.Event, gatewayURL stri
 		CommitSHA: event.SHA,
 		Function:  event.Service,
 		RepoPath:  event.Owner + "/" + event.Repository,
-		Data:      strings.Join(result.Log, ""),
+		Data:      strings.Join(result.Log, "\n"),
 	}
 
 	bytesOut, _ := json.Marshal(&p)
