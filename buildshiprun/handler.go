@@ -26,6 +26,7 @@ func Handle(req []byte) string {
 	c := &http.Client{}
 
 	builderURL := os.Getenv("builder_url")
+	gatewayURL := os.Getenv("gateway_url")
 
 	event, eventErr := getEvent()
 	if eventErr != nil {
@@ -50,8 +51,6 @@ func Handle(req []byte) string {
 
 	res, err := c.Do(r)
 
-	log.Printf("Image build status: %d\n", res.StatusCode)
-
 	if err != nil {
 		fmt.Println(err)
 		auditEvent.Message = fmt.Sprintf("buildshiprun failure: %s", err.Error())
@@ -61,11 +60,13 @@ func Handle(req []byte) string {
 		return auditEvent.Message
 	}
 
+	log.Printf("Image build status: %d\n", res.StatusCode)
+
 	defer res.Body.Close()
 
 	buildBytes, _ := ioutil.ReadAll(res.Body)
 
-	result := BuildResult{}
+	result := sdk.BuildResult{}
 	unmarshalErr := json.Unmarshal(buildBytes, &result)
 
 	if unmarshalErr != nil {
@@ -96,6 +97,8 @@ func Handle(req []byte) string {
 	}
 
 	log.Printf("buildshiprun: image '%s'\n", imageName)
+
+	createPipelineLog(result, event, gatewayURL, c)
 
 	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusAccepted {
 		msg := "Unable to build image, check builder logs"
@@ -172,6 +175,32 @@ func Handle(req []byte) string {
 	status.AddStatus(sdk.StatusSuccess, fmt.Sprintf("deployed: %s", serviceValue), sdk.BuildFunctionContext(event.Service))
 	reportStatus(status)
 	return fmt.Sprintf("buildStatus %s %s", imageName, res.Status)
+}
+
+func createPipelineLog(result sdk.BuildResult, event *sdk.Event, gatewayURL string, c *http.Client) {
+
+	p := sdk.PipelineLog{
+		CommitSHA: event.SHA,
+		Function:  event.Service,
+		RepoPath:  event.Owner + "/" + event.Repository,
+		Data:      strings.Join(result.Log, ""),
+	}
+
+	bytesOut, _ := json.Marshal(&p)
+	reader := bytes.NewReader(bytesOut)
+
+	r, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/pipeline-log", reader)
+
+	res, err := c.Do(r)
+	if err != nil {
+		log.Printf("pipeline-log: error: %s", err.Error())
+	} else {
+		if r.Body != nil {
+			defer r.Body.Close()
+		}
+
+		log.Printf("pipeline-log: status: %d", res.StatusCode)
+	}
 }
 
 // readOnlyRootFS defaults to true, override with env-var of readonly_root_filesystem=false
@@ -387,12 +416,4 @@ func getRegistryAuthSecret() string {
 		return strings.TrimSpace(string(res))
 	}
 	return ""
-}
-
-// BuildResult represents a successful Docker build and
-// push operation to a remote registry
-type BuildResult struct {
-	Log       []string `json:"log"`
-	ImageName string   `json:"imageName"`
-	Status    string   `json:"status"`
 }

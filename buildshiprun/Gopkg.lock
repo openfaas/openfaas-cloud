@@ -2,20 +2,24 @@
 
 
 [[projects]]
+  digest = "1:cb12bf73c4bbdf76b5ea487a551a6fc6f1c61dd7629c96d6f956f32f24832701"
   name = "github.com/openfaas/faas"
   packages = ["gateway/types"]
+  pruneopts = "UT"
   revision = "8f0d2d1fd6c5e3c9d2e0a73d6d256c4e232b3737"
   version = "0.8.9"
 
 [[projects]]
+  digest = "1:a780396c26727caf9a826a65f5cabb3ce95e46bdca10e088aeec395a9a2e1af9"
   name = "github.com/openfaas/openfaas-cloud"
   packages = ["sdk"]
-  revision = "07ad9ccaea796c2d03cd217d3f67b7ba67bd0e95"
-  version = "0.4.1"
+  pruneopts = "UT"
+  revision = "66d2c5373e6316fb05cf777c2312f436a33bf551"
+  version = "0.5.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "3b46cbe210d8470503bb633e0c2312fd533dacd0501263a464f04dda03862b10"
+  input-imports = ["github.com/openfaas/openfaas-cloud/sdk"]
   solver-name = "gps-cdcl"
   solver-version = 1

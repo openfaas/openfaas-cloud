@@ -337,7 +337,7 @@ ACCESS_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
 
 #### Kubernetes
 
-Store the secets in Kubernetes
+Store the secrets in Kubernetes
 
 ```
 kubectl create secret generic -n openfaas-fn \
@@ -359,6 +359,22 @@ The name value should be `cloud-minio.openfaas.svc.cluster.local`
 Enter the value of the DNS above into `s3_url` in `gateway_config.yml` adding the port at the end:`cloud-minio-svc.openfaas.svc.cluster.local:9000`
 
 #### Swarm
+
+Store the secrets
+
+```
+echo -n "$SECRET_KEY" | docker secret create s3-secret-key -
+echo -n "$ACCESS_KEY" | docker secret create s3-access-key -
+```
+
+```
+docker service create --constraint="node.role==manager" \
+ --name minio \
+ --detach=true --network func_functions \
+ --secret src=s3-secret-key,target="/home/app/.docker/config.json" \
+ --env enable_lchown=false \
+openfaas/of-builder:$OF_BUILDER_TAG
+```
 
 See https://docs.minio.io/docs/minio-quickstart-guide
 
