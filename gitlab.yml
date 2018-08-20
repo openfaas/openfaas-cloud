@@ -1,0 +1,18 @@
+provider:
+  name: faas
+  gateway: http://127.0.0.1:8080
+
+functions:
+  gitlab-push:
+    lang: go
+    handler: ./gitlab-push
+    image: martindekov/gitlab-push:0.1
+    environment:
+      validate_secret: false
+      write_debug: false
+      validate_customers: false
+      customers_url: "https://raw.githubusercontent.com/martindekov/goforfun/master/CUSTOMERS"
+    environment_file:
+      - gateway_config.yml
+    secrets:
+      - gitlab-webhook-secret
