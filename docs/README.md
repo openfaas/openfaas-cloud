@@ -175,6 +175,7 @@ This populates `~/.docker/config.json` which is used in the builder:
 }
 
 ```
+> Note: the auth string above is using an example value and is not a real authentication string.
 
 #### For Kubernetes
 
