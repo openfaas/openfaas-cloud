@@ -126,15 +126,56 @@ You will need to edit `stack.yml` and make sure `buildshiprun_limits_swarm.yml` 
 
 ### Deploy your container builder
 
-Make sure Docker for Mac / Windows isn't storing your credentials in its keychain. If you're on Linux there is no need to make a change.
+You need to generate the ```~/.docker/config.json``` using the ```docker login``` command. 
 
+If you are not on Linux, i.e. you are on Mac or Windows, docker stores credentials in credentials store by default and your docker config.json file will look like this:
+```
+{
+  "credSstore" : "osxkeychain",
+  "auths" : {
+    "https://index.docker.io/v1/" : {
+
+    }
+  },
+  "HttpHeaders" : {
+    "User-Agent" : "Docker-Client/18.06.0-ce (darwin)"
+  }
+}
+```
+Run ```docker login``` to generate the ```config.json``` (if you haven't already) and edit it by removing the "credSstore" property:
+```json
+{
+  "auths" : {
+    "https://index.docker.io/v1/" : {
+
+    }
+  },
+  "HttpHeaders" : {
+    "User-Agent" : "Docker-Client/18.06.0-ce (darwin)"
+  }
+}
+```
 Log into your registry or the Docker hub
 
 ```
 docker login
 ```
+Expect to see ```WARNING! Your password will be stored unencrypted in /Users/kvuchkov/.docker/config.json``` in the output.
 
-This populates `~/.docker/config.json` which is used in the builder.
+This populates `~/.docker/config.json` which is used in the builder:
+```json
+{
+	"auths": {
+		"https://index.docker.io/v1/": {
+			"auth": "asdf12djs37ASfs732sFa3fdsw=="
+		}
+	},
+	"HttpHeaders": {
+		"User-Agent": "Docker-Client/18.06.0-ce (darwin)"
+	}
+}
+
+```
 
 #### For Kubernetes
 
