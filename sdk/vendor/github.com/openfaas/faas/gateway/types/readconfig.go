@@ -112,6 +112,7 @@ func (ReadConfig) Read(hasEnv HasEnv) GatewayConfig {
 		secretPath = "/run/secrets/"
 	}
 	cfg.SecretMountPath = secretPath
+	cfg.ScaleFromZero = parseBoolValue(hasEnv.Getenv("scale_from_zero"))
 
 	return cfg
 }
@@ -154,6 +155,8 @@ type GatewayConfig struct {
 
 	// SecretMountPath specifies where to read secrets from for embedded basic auth
 	SecretMountPath string
+	// Enable the gateway to scale any service from 0 replicas to its configured "min replicas"
+	ScaleFromZero bool
 }
 
 // UseNATS Use NATSor not
