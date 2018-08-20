@@ -382,6 +382,8 @@ docker service create --constraint="node.role==manager" \
 minio/minio:latest server /export
 ```
 
+Enter the value of the DNS above into `s3_url` in `gateway_config.yml` adding the port at the end:`minio:9000`
+
 > Note: For debugging and testing. You can expose the port of Minio with `docker service update minio --publish-add 9000:9000`, but this is not recommended on the public internet.
 
 See https://docs.minio.io/docs/minio-quickstart-guide
