@@ -2,6 +2,7 @@ package function
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -13,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/alexellis/hmac"
 	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
@@ -27,6 +29,13 @@ func Handle(req []byte) string {
 
 	builderURL := os.Getenv("builder_url")
 	gatewayURL := os.Getenv("gateway_url")
+
+	hmacKey, keyErr := sdk.ReadSecret("github-webhook-secret")
+	if keyErr != nil {
+		err := fmt.Errorf("failed to load hmac key, error %s", keyErr.Error())
+		log.Printf(err.Error())
+		return err.Error()
+	}
 
 	event, eventErr := getEvent()
 	if eventErr != nil {
@@ -98,7 +107,7 @@ func Handle(req []byte) string {
 
 	log.Printf("buildshiprun: image '%s'\n", imageName)
 
-	createPipelineLog(result, event, gatewayURL, c)
+	createPipelineLog(result, event, gatewayURL, c, hmacKey)
 
 	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusAccepted {
 		msg := "Unable to build image, check builder logs"
@@ -177,7 +186,7 @@ func Handle(req []byte) string {
 	return fmt.Sprintf("buildStatus %s %s", imageName, res.Status)
 }
 
-func createPipelineLog(result sdk.BuildResult, event *sdk.Event, gatewayURL string, c *http.Client) {
+func createPipelineLog(result sdk.BuildResult, event *sdk.Event, gatewayURL string, c *http.Client, hmacKey string) {
 
 	p := sdk.PipelineLog{
 		CommitSHA: event.SHA,
@@ -187,16 +196,19 @@ func createPipelineLog(result sdk.BuildResult, event *sdk.Event, gatewayURL stri
 	}
 
 	bytesOut, _ := json.Marshal(&p)
+
+	digest := hmac.Sign(bytesOut, []byte(hmacKey))
 	reader := bytes.NewReader(bytesOut)
 
-	r, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/pipeline-log", reader)
+	req, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/pipeline-log", reader)
+	req.Header.Add("X-Hub-Signature", "sha1="+hex.EncodeToString(digest))
 
-	res, err := c.Do(r)
+	res, err := c.Do(req)
 	if err != nil {
 		log.Printf("pipeline-log: error: %s", err.Error())
 	} else {
-		if r.Body != nil {
-			defer r.Body.Close()
+		if req.Body != nil {
+			defer req.Body.Close()
 		}
 
 		log.Printf("pipeline-log: status: %d", res.StatusCode)

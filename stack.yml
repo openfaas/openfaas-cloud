@@ -43,7 +43,7 @@ functions:
   buildshiprun:
     lang: go
     handler: ./buildshiprun
-    image: alexellis2/of-buildshiprun:0.5.3
+    image: alexellis2/of-buildshiprun:0.5.4
     labels:
       openfaas-cloud: "1"
     environment:
@@ -160,7 +160,7 @@ functions:
   pipeline-log:
     lang: go
     handler: ./pipeline-log
-    image: alexellis2/pipeline-log:latest
+    image: alexellis2/pipeline-log:0.1.1
     environment:
       write_debug: true
       read_debug: true
