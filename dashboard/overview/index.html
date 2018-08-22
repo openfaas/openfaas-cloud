@@ -2,6 +2,8 @@
     <head>
         <meta charset="utf-8">
         <title>OpenFaaS Cloud Overview</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <link rel="stylesheet" href="https://s3.eu-west-2.amazonaws.com/afrael/bootstrap/css/bootstrap.min.css">
 
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
@@ -53,11 +55,11 @@
                         <th>Name</th>
                         <th>Repo</th>
                         <th>Endpoint</th>
+                        <th>Logs</th>
                         <th>SHA</th>
                         <th>Built</th>
                         <th>Invocation Count</th>
                         <th>Replicas</th>
-                        <th>Logs</th>
                         </tr>
                     </thead>
                     <tbody id="items">
@@ -164,12 +166,12 @@
                     $("#items").append('<tr '+rowClass+' data-url="'+url+'">' +
                      '<td>'+shortName+'</td>'+
                      '<td>'+ repoLink +'</td>'+
-                     '<td><a href="'+url+'">Link</a></td>'+
+                     '<td><a href="'+url+'"><span class="glyphicon glyphicon-link"></span></a></td>'+
+                     '<td><a href="'+logURL+'"><span class="glyphicon glyphicon-folder-open"></span></a></td>'+
                      '<td>'+sha+'</td>'+
                      '<td>'+sinceDuration+'</td>'+
                      '<td>'+item.invocationCount+'</td>'+
                      '<td>'+item.replicas+'</td>'+
-                     '<td><a href="'+logURL+'">Logs</a></td>'+
                      '</tr>');
                 }
             });
