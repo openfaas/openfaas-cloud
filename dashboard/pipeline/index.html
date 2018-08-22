@@ -1,0 +1,81 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>OpenFaaS Cloud Overview</title>
+        <link rel="stylesheet" href="https://s3.eu-west-2.amazonaws.com/afrael/bootstrap/css/bootstrap.min.css">
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.1/moment.min.js"></script>
+        <style>
+            .navbar-brand {
+              padding: 10px;
+            }
+
+            .navbar-brand img {
+              height: 30px
+            }
+
+            @media (min-width: 768px) {
+              .navbar-text {
+                margin-left: 5px;
+              }
+            }
+        </style>
+        <style type="text/css" media="screen">
+            #editor { 
+                height: 100%;
+                position: relative;
+            }
+        </style>
+    </head>
+<body>
+<div class="container">
+    <nav class="navbar navbar-inverse">
+        <div class="container-fluid">
+            <div class="navbar-header">
+              <a class="navbar-brand" href="#">
+                <img alt="OpenFaaS" src="https://docs.openfaas.com/images/logo.svg">
+              </a>
+              <a class="navbar-text" href="#">
+                OpenFaaS
+              </a>
+            </div>
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="#">Home</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="panel panel-success">
+        <div class="panel-heading">Logs for {{.Function}} in {{.RepoPath}} @ {{.CommitSHA}}</div>
+        <div class="panel-body" style="height: 600px;">
+
+            <div id="editor">{{.Log}}</div>
+
+        </div>
+    </div>
+
+    <p></p>
+
+    <p>
+        Powered by <a href="https://www.openfaas.com">OpenFaaS</a>
+    </p>
+
+    <script lang="javascript">
+        $(document).ready(function() {
+          
+        });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.1/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script>
+        var editor = ace.edit("editor");
+        editor.setTheme("ace/theme/monokai");
+        editor.setReadOnly(true);
+        editor.session.setMode("ace/mode/sh");
+        editor.setWrapBehavioursEnabled();
+        editor.getSession().setUseWrapMode(true);
+        editor.resize();
+    </script>
+</div>
+</body>
+</html>

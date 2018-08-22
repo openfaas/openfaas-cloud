@@ -57,11 +57,13 @@
                         <th>Built</th>
                         <th>Invocation Count</th>
                         <th>Replicas</th>
+                        <th>Logs</th>
                         </tr>
                     </thead>
                     <tbody id="items">
                         <tr id="loading">
                             <td>Loading...</td>
+                            <td></td>
                             <td></td>
                             <td></td>
                             <td></td>
@@ -134,6 +136,7 @@
                     } else {
                         url = baseURL + "/function/" + item.name;
                     }
+
                     var fullPath = item.labels["Git-Owner"] + "/" + item.labels["Git-Repo"];
                     var repoLink = '<a href="https://github.com/' + fullPath + '/commits/master">' + item.labels["Git-Repo"] + '</a>';
 
@@ -147,7 +150,27 @@
                     } else {
                         sha = "unknown";
                     }
-                    $("#items").append('<tr '+rowClass+' data-url="'+url+'"><td>'+shortName+'</td><td>'+ repoLink +'</td><td><a href="'+url+'">Link</a></td><td>'+sha+'</td><td>'+sinceDuration+'</td><td>'+item.invocationCount+'</td><td>'+item.replicas+'</td></tr>');
+
+                    var logURL = "";
+
+                    if(prettyDomain.length) {
+                        logURL = prettyDomain.replace("user", "system").replace("function", "pipeline");
+                    } else {
+                        logURL = baseURL + "/function/system-pipeline";
+                    }
+
+                    logURL += "?repoPath="+ item.labels["Git-Owner"]+"/"+item.labels["Git-Repo"] + "&commitSHA="+item.labels["Git-SHA"]+"&function="+shortName;
+
+                    $("#items").append('<tr '+rowClass+' data-url="'+url+'">' +
+                     '<td>'+shortName+'</td>'+
+                     '<td>'+ repoLink +'</td>'+
+                     '<td><a href="'+url+'">Link</a></td>'+
+                     '<td>'+sha+'</td>'+
+                     '<td>'+sinceDuration+'</td>'+
+                     '<td>'+item.invocationCount+'</td>'+
+                     '<td>'+item.replicas+'</td>'+
+                     '<td><a href="'+logURL+'">Logs</a></td>'+
+                     '</tr>');
                 }
             });
         });
