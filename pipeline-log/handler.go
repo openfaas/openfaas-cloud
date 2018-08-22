@@ -52,6 +52,7 @@ func Handle(req []byte) string {
 			minio.PutObjectOptions{})
 
 		if err != nil {
+			log.Printf("error writing: %s, error: %s", fullPath, err.Error())
 			return err.Error()
 		}
 		return fmt.Sprintf("Wrote %d bytes to %s\n", n, fullPath)
@@ -74,6 +75,7 @@ func Handle(req []byte) string {
 		obj, err := minioClient.GetObject(bucketName, fullPath, minio.GetObjectOptions{})
 
 		if err != nil {
+			log.Printf("error reading: %s, error: %s", fullPath, err.Error())
 			return err.Error()
 		}
 
