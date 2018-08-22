@@ -170,3 +170,5 @@ functions:
     secrets:
       - s3-access-key
       - s3-secret-key
+      - github-webhook-secret
+

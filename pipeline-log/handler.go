@@ -24,15 +24,17 @@ func Handle(req []byte) string {
 
 		hmacErr := sdk.ValidHMAC(&req, "github-webhook-secret", os.Getenv("Http_X_Github_Event"))
 		if hmacErr != nil {
-			return hmacErr.Error()
+			log.Printf("hmac error %s\n", hmacErr.Error())
+			os.Exit(1)
 		}
 	}
 
 	region := os.Getenv("s3_region")
 
-	minioClient, err := connectToMinio(region)
-	if err != nil {
-		return err.Error()
+	minioClient, connectErr := connectToMinio(region)
+	if connectErr != nil {
+		log.Printf("S3/Minio connection error %s\n", connectErr.Error())
+		os.Exit(1)
 	}
 
 	switch method {
@@ -53,7 +55,7 @@ func Handle(req []byte) string {
 
 		if err != nil {
 			log.Printf("error writing: %s, error: %s", fullPath, err.Error())
-			return err.Error()
+			os.Exit(1)
 		}
 		return fmt.Sprintf("Wrote %d bytes to %s\n", n, fullPath)
 
@@ -76,7 +78,7 @@ func Handle(req []byte) string {
 
 		if err != nil {
 			log.Printf("error reading: %s, error: %s", fullPath, err.Error())
-			return err.Error()
+			os.Exit(1)
 		}
 
 		logBytes, _ := ioutil.ReadAll(obj)
