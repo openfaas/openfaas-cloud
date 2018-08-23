@@ -1,0 +1,16 @@
+provider:
+  name: faas
+  gateway: http://127.0.0.1:8080
+
+functions:
+  gitlab-push:
+    lang: go
+    handler: ./gitlab-push
+    image: martindekov/gitlab-push:0.2
+    environment:
+      write_debug: true
+      report_status: true
+    environment_file:
+      - gateway_config.yml
+    secrets:
+      - payload-secret
