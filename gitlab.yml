@@ -24,3 +24,18 @@ functions:
       - gitlab-webhook-secret
       - payload-secret
       - gitlab-api-token
+
+  gitlab-push:
+    lang: go
+    handler: ./gitlab-push
+    image: functions/gitlab-push:0.2.0
+    labels:
+      openfaas-cloud: "1"
+      role: openfaas-system
+    environment:
+      write_debug: true
+      read_debug: true
+    environment_file:
+      - gateway_config.yml
+    secrets:
+      - payload-secret
