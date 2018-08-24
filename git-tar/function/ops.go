@@ -292,25 +292,26 @@ func importSecrets(pushEvent sdk.PushEvent, stack *stack.Services, clonePath str
 		return nil
 	}
 
-	fileBytes, err := ioutil.ReadFile(secretPath)
+	bytesOut, err := ioutil.ReadFile(secretPath)
 
 	if err != nil {
 		return fmt.Errorf("unable to read secret: %s", secretPath)
 	}
 
-	webhookSecretKey, secretErr := sdk.ReadSecret("github-webhook-secret")
+	payloadSecret, secretErr := sdk.ReadSecret("payload-secret")
 	if secretErr != nil {
 		return secretErr
 	}
 
-	hash := hmac.Sign(fileBytes, []byte(webhookSecretKey))
-
 	c := http.Client{}
-	reader := bytes.NewReader(fileBytes)
+
+	reader := bytes.NewReader(bytesOut)
 	httpReq, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/import-secrets", reader)
 
 	httpReq.Header.Add("Owner", owner)
-	httpReq.Header.Add("X-Hub-Signature", "sha1="+hex.EncodeToString(hash))
+
+	digest := hmac.Sign(bytesOut, []byte(payloadSecret))
+	httpReq.Header.Add("X-Cloud-Signature", "sha1="+hex.EncodeToString(digest))
 
 	res, reqErr := c.Do(httpReq)
 
@@ -349,7 +350,7 @@ func importSecrets(pushEvent sdk.PushEvent, stack *stack.Services, clonePath str
 	return nil
 }
 
-//getShortSHA returns shorter version of git commit SHA
+// getShortSHA returns shorter version of git commit SHA
 func getShortSHA(sha string) string {
 	if len(sha) <= 7 {
 		return sha

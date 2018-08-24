@@ -55,6 +55,26 @@ Any account
 The GitHub app will deliver webhooks to your OpenFaaS Cloud instance every time code is pushed in a user's function repository. Make sure you provide the public URL for your OpenFaaS gateway to the GitHub app. Like:  
 `http://my.openfaas.cloud/function/github-push`
 
+### Create an internal trust secret
+
+This secret will be used by each OpenFaaS Cloud function to validate requests and to sign calls it needs to make to other functions.
+
+```
+PAYLOAD_SECRET=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
+```
+
+Kubernetes:
+
+```bash
+kubectl create secret generic -n openfaas-fn payload-secret --from-literal payload-secret="$PAYLOAD_SECRET"
+```
+
+Swarm:
+
+```bash
+echo -n "$PAYLOAD_SECRET" | docker secret create payload-secret -
+```
+
 ### Set your GitHub App config
 
 #### Set the App ID

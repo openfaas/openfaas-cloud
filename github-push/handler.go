@@ -2,6 +2,7 @@ package function
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -37,7 +38,7 @@ func Handle(req []byte) string {
 
 	shouldValidate := readBool("validate_hmac")
 	if shouldValidate {
-		webhookSecretKey, secretErr := sdk.ReadSecret("github-webhook-secret")
+		webhookSecretKey, secretErr := sdk.ReadSecret("payload-secret")
 		if secretErr != nil {
 			return secretErr.Error()
 		}
@@ -157,11 +158,20 @@ func getCustomers(customerURL string) ([]string, error) {
 func postEvent(pushEvent sdk.PushEvent) (int, error) {
 	gatewayURL := os.Getenv("gateway_url")
 
+	payloadSecret, err := sdk.ReadSecret("payload-secret")
+	if err != nil {
+		return http.StatusUnauthorized, err
+	}
+
 	body, _ := json.Marshal(pushEvent)
 
 	c := http.Client{}
 	bodyReader := bytes.NewBuffer(body)
 	httpReq, _ := http.NewRequest(http.MethodPost, gatewayURL+"async-function/git-tar", bodyReader)
+
+	digest := hmac.Sign(body, []byte(payloadSecret))
+	httpReq.Header.Add("X-Cloud-Signature", "sha1="+hex.EncodeToString(digest))
+
 	res, reqErr := c.Do(httpReq)
 
 	if reqErr != nil {
@@ -196,7 +206,7 @@ func reportStatus(status *sdk.Status) {
 		return
 	}
 
-	hmacKey, keyErr := sdk.ReadSecret("github-webhook-secret")
+	hmacKey, keyErr := sdk.ReadSecret("payload-secret")
 	if keyErr != nil {
 		log.Printf("failed to load hmac key for status, error " + keyErr.Error())
 		return

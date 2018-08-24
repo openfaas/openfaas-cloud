@@ -22,7 +22,7 @@ func Handle(req []byte) string {
 
 	if method == http.MethodPost {
 
-		hmacErr := sdk.ValidHMAC(&req, "github-webhook-secret", os.Getenv("Http_X_Hub_Signature"))
+		hmacErr := sdk.ValidHMAC(&req, "payload-secret", os.Getenv("Http_X_Cloud_Signature"))
 		if hmacErr != nil {
 			log.Printf("hmac error %s\n", hmacErr.Error())
 			os.Exit(1)
