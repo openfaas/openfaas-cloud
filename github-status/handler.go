@@ -128,6 +128,21 @@ func buildPublicStatusURL(status string, statusContext string, event *sdk.Event)
 				url = publicURL
 			}
 		}
+	} else if status == sdk.StatusFailure {
+		publicURL := os.Getenv("gateway_public_url")
+		gatewayPrettyURL := os.Getenv("gateway_pretty_url")
+
+		if len(gatewayPrettyURL) > 0 {
+			url = strings.Replace(gatewayPrettyURL, "user", "system", 1)
+			url = strings.Replace(url, "function", "pipeline", 1)
+
+		} else if len(publicURL) > 0 {
+			if strings.HasSuffix(publicURL, "/") == false {
+				publicURL = publicURL + "/"
+			}
+			url = publicURL + "/function/system-pipeline"
+		}
+		url += "?repoPath=" + event.Owner + "/" + event.Repository + "&commitSHA=" + event.SHA + "&function=" + event.Service
 	}
 
 	return url
