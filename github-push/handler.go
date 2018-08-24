@@ -38,7 +38,7 @@ func Handle(req []byte) string {
 
 	shouldValidate := readBool("validate_hmac")
 	if shouldValidate {
-		webhookSecretKey, secretErr := sdk.ReadSecret("payload-secret")
+		webhookSecretKey, secretErr := sdk.ReadSecret("github-webhook-secret")
 		if secretErr != nil {
 			return secretErr.Error()
 		}
@@ -185,10 +185,6 @@ func postEvent(pushEvent sdk.PushEvent) (int, error) {
 	return res.StatusCode, nil
 }
 
-func init() {
-
-}
-
 func readBool(key string) bool {
 	if val, exists := os.LookupEnv(key); exists {
 		return val == "true" || val == "1"
@@ -218,4 +214,8 @@ func reportStatus(status *sdk.Status) {
 	if reportErr != nil {
 		log.Printf("failed to report status, error: %s", reportErr.Error())
 	}
+}
+
+func init() {
+
 }
