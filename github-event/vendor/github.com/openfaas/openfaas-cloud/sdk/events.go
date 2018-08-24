@@ -7,15 +7,20 @@ type PushEvent struct {
 		Name     string `json:"name"`
 		FullName string `json:"full_name"`
 		CloneURL string `json:"clone_url"`
-		Owner    struct {
-			Login string `json:"login"`
-			Email string `json:"email"`
-		} `json:"owner"`
+		Private  bool   `json:"private"`
+
+		Owner Owner `json:"owner"`
 	}
 	AfterCommitID string `json:"after"`
 	Installation  struct {
 		ID int `json:"id"`
 	}
+}
+
+// Owner is the owner of a GitHub repo
+type Owner struct {
+	Login string `json:"login"`
+	Email string `json:"email"`
 }
 
 // Event info to pass/store events across functions
@@ -29,6 +34,7 @@ type Event struct {
 	InstallationID int               `json:"installationID"`
 	Environment    map[string]string `json:"environment"`
 	Secrets        []string          `json:"secrets"`
+	Private        bool              `json:"private"`
 }
 
 // BuildEventFromPushEvent function to build Event from PushEvent
@@ -38,8 +44,10 @@ func BuildEventFromPushEvent(pushEvent PushEvent) *Event {
 	info.Service = pushEvent.Repository.Name
 	info.Owner = pushEvent.Repository.Owner.Login
 	info.Repository = pushEvent.Repository.Name
-	info.SHA = pushEvent.AfterCommitID
 	info.URL = pushEvent.Repository.CloneURL
+	info.Private = pushEvent.Repository.Private
+
+	info.SHA = pushEvent.AfterCommitID
 	info.InstallationID = pushEvent.Installation.ID
 
 	return &info
