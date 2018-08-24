@@ -144,7 +144,7 @@ func reportStatus(status *sdk.Status) {
 		return
 	}
 
-	hmacKey, keyErr := sdk.ReadSecret("github-webhook-secret")
+	hmacKey, keyErr := sdk.ReadSecret("payload-secret")
 	if keyErr != nil {
 		log.Printf("failed to load hmac key for status, error " + keyErr.Error())
 		return

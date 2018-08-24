@@ -2,13 +2,13 @@ package function
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/alexellis/hmac"
 	"github.com/openfaas/openfaas-cloud/sdk"
@@ -126,26 +126,25 @@ func Handle(req []byte) string {
 	return fmt.Sprintf("Message received with event: %s", eventHeader)
 }
 
-func readSecret(key string) (string, error) {
-	path := fmt.Sprintf("/var/openfaas/secrets/%s", key)
-	secretBytes, readErr := ioutil.ReadFile(path)
-	if readErr != nil {
-		return "", fmt.Errorf("unable to read secret: %s, error: %s", path, readErr)
-	}
-	val := strings.TrimSpace(string(secretBytes))
-	return val, nil
-}
-
 func garbageCollect(garbageRequests []GarbageRequest) error {
 	client := http.Client{}
 
 	gatewayURL := os.Getenv("gateway_url")
+
+	payloadSecret, err := sdk.ReadSecret("payload-secret")
+	if err != nil {
+		return err
+	}
 
 	for _, garbageRequest := range garbageRequests {
 
 		body, _ := json.Marshal(garbageRequest)
 		bodyReader := bytes.NewReader(body)
 		req, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/garbage-collect", bodyReader)
+
+		digest := hmac.Sign(body, []byte(payloadSecret))
+		req.Header.Add("X-Cloud-Signature", "sha1="+hex.EncodeToString(digest))
+
 		res, err := client.Do(req)
 		if err != nil {
 			return err
@@ -185,13 +184,22 @@ type Installation struct {
 }
 
 func forward(req []byte, function string, headers map[string]string) (string, int, error) {
+	payloadSecret, err := sdk.ReadSecret("payload-secret")
+	if err != nil {
+		return "", http.StatusInternalServerError, err
+	}
+
+	c := http.Client{}
+
 	bodyReader := bytes.NewBuffer(req)
 	pushReq, _ := http.NewRequest(http.MethodPost, os.Getenv("gateway_url")+"function/"+function, bodyReader)
+	digest := hmac.Sign(req, []byte(payloadSecret))
+	pushReq.Header.Add("X-Cloud-Signature", "sha1="+hex.EncodeToString(digest))
+
 	for k, v := range headers {
 		pushReq.Header.Add(k, v)
 	}
 
-	c := http.Client{}
 	res, err := c.Do(pushReq)
 	if err != nil {
 		msg := "cannot post to " + function + ": " + err.Error()

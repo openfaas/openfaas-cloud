@@ -30,7 +30,7 @@ func Handle(req []byte) string {
 	builderURL := os.Getenv("builder_url")
 	gatewayURL := os.Getenv("gateway_url")
 
-	hmacKey, keyErr := sdk.ReadSecret("github-webhook-secret")
+	payloadSecret, keyErr := sdk.ReadSecret("payload-secret")
 	if keyErr != nil {
 		err := fmt.Errorf("failed to load hmac key, error %s", keyErr.Error())
 		log.Printf(err.Error())
@@ -112,7 +112,12 @@ func Handle(req []byte) string {
 
 	log.Printf("buildshiprun: image '%s'\n", imageName)
 
-	createPipelineLog(result, event, gatewayURL, c, hmacKey)
+	logStatus, logErr := createPipelineLog(result, event, gatewayURL, c, payloadSecret)
+	if logErr != nil {
+		log.Printf("pipeline-log: error: %s", err.Error())
+	} else {
+		log.Printf("pipeline-log: status: %d", logStatus)
+	}
 
 	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusAccepted {
 		msg := "Unable to build image, check builder logs"
@@ -193,7 +198,7 @@ func Handle(req []byte) string {
 
 // createPipelineLog sends a log to pipeline-log and will
 // fail silently if unavailable.
-func createPipelineLog(result sdk.BuildResult, event *sdk.Event, gatewayURL string, c *http.Client, hmacKey string) {
+func createPipelineLog(result sdk.BuildResult, event *sdk.Event, gatewayURL string, c *http.Client, payloadSecret string) (int, error) {
 
 	p := sdk.PipelineLog{
 		CommitSHA: event.SHA,
@@ -204,22 +209,24 @@ func createPipelineLog(result sdk.BuildResult, event *sdk.Event, gatewayURL stri
 
 	bytesOut, _ := json.Marshal(&p)
 
-	digest := hmac.Sign(bytesOut, []byte(hmacKey))
 	reader := bytes.NewReader(bytesOut)
 
 	req, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/pipeline-log", reader)
-	req.Header.Add("X-Hub-Signature", "sha1="+hex.EncodeToString(digest))
+
+	digest := hmac.Sign(bytesOut, []byte(payloadSecret))
+	req.Header.Add("X-Cloud-Signature", "sha1="+hex.EncodeToString(digest))
 
 	res, err := c.Do(req)
 	if err != nil {
-		log.Printf("pipeline-log: error: %s", err.Error())
-	} else {
-		if req.Body != nil {
-			defer req.Body.Close()
-		}
+		return http.StatusInternalServerError, err
 
-		log.Printf("pipeline-log: status: %d", res.StatusCode)
 	}
+
+	if req.Body != nil {
+		defer req.Body.Close()
+	}
+
+	return res.StatusCode, nil
 }
 
 // readOnlyRootFS defaults to true, override with env-var of readonly_root_filesystem=false
@@ -373,13 +380,13 @@ func reportStatus(status *sdk.Status) {
 
 	gatewayURL := os.Getenv("gateway_url")
 
-	hmacKey, keyErr := sdk.ReadSecret("github-webhook-secret")
+	payloadSecret, keyErr := sdk.ReadSecret("payload-secret")
 	if keyErr != nil {
 		log.Printf("failed to load hmac key for status, error " + keyErr.Error())
 		return
 	}
 
-	_, reportErr := status.Report(gatewayURL, hmacKey)
+	_, reportErr := status.Report(gatewayURL, payloadSecret)
 	if reportErr != nil {
 		log.Printf("failed to report status, error: %s", reportErr.Error())
 	}

@@ -22,7 +22,7 @@ func Handle(req []byte) string {
 	event := getEventFromHeader()
 
 	if hmacEnabled() {
-		key, err := sdk.ReadSecret("github-webhook-secret")
+		key, err := sdk.ReadSecret("payload-secret")
 		if err != nil {
 			fmt.Fprintf(os.Stderr, err.Error())
 			os.Exit(1)
@@ -30,7 +30,7 @@ func Handle(req []byte) string {
 			return err.Error()
 		}
 
-		digest := os.Getenv("Http_X_Hub_Signature")
+		digest := os.Getenv("Http_X_Cloud_Signature")
 
 		validated := hmac.Validate(req, digest, key)
 
