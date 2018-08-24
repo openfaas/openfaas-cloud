@@ -43,7 +43,7 @@ functions:
   buildshiprun:
     lang: go
     handler: ./buildshiprun
-    image: alexellis2/of-buildshiprun:0.5.4
+    image: alexellis2/of-buildshiprun:0.6.0
     labels:
       openfaas-cloud: "1"
     environment:
@@ -59,7 +59,7 @@ functions:
       - basic-auth-user
       - basic-auth-password
       - github-webhook-secret
-#      - registry-auth
+#      - swarm-pull-secret
 
   list-functions:
     lang: go
@@ -102,6 +102,7 @@ functions:
       read_debug: true
       combine_output: false
       validate_hmac: true
+      debug_token: true
     environment_file:
       - gateway_config.yml
       - github.yml

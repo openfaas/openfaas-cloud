@@ -231,14 +231,14 @@ This is only needed if your registry uses authentication to pull images. The Doc
 
 #### Swarm
 
-* Uncomment the `registry-auth` secret in stack.yml
+* Uncomment the `swarm-pull-secret` secret in stack.yml
 
-* Create the `registry-auth` pull secret:
+* Create the `swarm-pull-secret` pull secret:
 
 Use the username and password from `docker login`
 
 ```
-echo -n username:password | base64 | docker secret create registry-auth -
+echo -n username:password | base64 | docker secret create swarm-pull-secret -
 ```
 
 #### Kubernetes

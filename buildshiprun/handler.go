@@ -61,11 +61,14 @@ func Handle(req []byte) string {
 	res, err := c.Do(r)
 
 	if err != nil {
-		fmt.Println(err)
+		log.Printf("of-builder error: %s\n", err)
+
 		auditEvent.Message = fmt.Sprintf("buildshiprun failure: %s", err.Error())
 		sdk.PostAudit(auditEvent)
+
 		status.AddStatus(sdk.StatusFailure, err.Error(), sdk.BuildFunctionContext(event.Service))
 		reportStatus(status)
+
 		return auditEvent.Message
 	}
 
@@ -79,9 +82,11 @@ func Handle(req []byte) string {
 	unmarshalErr := json.Unmarshal(buildBytes, &result)
 
 	if unmarshalErr != nil {
-		fmt.Println(err)
-		auditEvent.Message = fmt.Sprintf("buildshiprun failure reading response: %s, error: %s", unmarshalErr.Error(), string(buildBytes))
+		log.Printf("BuildResult unmarshalErr %s\n", err)
+
+		auditEvent.Message = fmt.Sprintf("buildshiprun failure reading response: %s, response: %s", unmarshalErr.Error(), string(buildBytes))
 		sdk.PostAudit(auditEvent)
+
 		status.AddStatus(sdk.StatusFailure, err.Error(), sdk.BuildFunctionContext(event.Service))
 		reportStatus(status)
 		return auditEvent.Message
@@ -186,6 +191,8 @@ func Handle(req []byte) string {
 	return fmt.Sprintf("buildStatus %s %s", imageName, res.Status)
 }
 
+// createPipelineLog sends a log to pipeline-log and will
+// fail silently if unavailable.
 func createPipelineLog(result sdk.BuildResult, event *sdk.Event, gatewayURL string, c *http.Client, hmacKey string) {
 
 	p := sdk.PipelineLog{
@@ -419,7 +426,7 @@ type function struct {
 }
 
 func getRegistryAuthSecret() string {
-	path := "/var/openfaas/secrets/registry-auth"
+	path := "/var/openfaas/secrets/swarm-pull-secret"
 	if _, err := os.Stat(path); err == nil {
 		res, readErr := ioutil.ReadFile(path)
 		if readErr != nil {

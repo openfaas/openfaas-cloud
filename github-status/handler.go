@@ -83,6 +83,12 @@ func Handle(req []byte) string {
 		}
 	}
 
+	if val, exists := os.LookupEnv("debug_token"); exists {
+		if val == "true" {
+			log.Printf("Token: %s for Installation: %d", token, status.EventInfo.InstallationID)
+		}
+	}
+
 	// marshal token
 	token = sdk.MarshalToken(token)
 
