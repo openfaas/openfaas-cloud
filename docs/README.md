@@ -41,6 +41,7 @@ Select these OAuth permissions:
 
 - "Repository contents" read-only
 - "Commit statuses" read and write
+- "Checks" read and write
 
 * Now select only the "push" event.
 
@@ -50,7 +51,7 @@ Any account
 
 * Save the new app.
 
-* Now download the private key for your GitHub App which we will use later in the guide for allowing OpenFaaS Cloud to write to commit statuses when a build passes or fails.
+* Now download the private key for your GitHub App which we will use later in the guide for allowing OpenFaaS Cloud to write to Checks or Commit statuses when a build passes or fails.
 
 The GitHub app will deliver webhooks to your OpenFaaS Cloud instance every time code is pushed in a user's function repository. Make sure you provide the public URL for your OpenFaaS gateway to the GitHub app:
 

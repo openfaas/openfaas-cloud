@@ -356,3 +356,49 @@ func TestPrivateKey(t *testing.T) {
 		t.Errorf("validating private key path: watch %v got %v", expectedPath, privateKey)
 	}
 }
+
+func TestGetCheckRunTitle(t *testing.T) {
+	status := &sdk.CommitStatus{
+		Context:     sdk.StackContext,
+		Description: "deployed: kvuchkov-hello-go",
+		Status:      sdk.StatusSuccess,
+	}
+	title := getCheckRunTitle(status)
+	if *title != "Deploy to OpenFaas" {
+		t.Fatalf("Expected %s but got %s", "Deploy to OpenFaas", *title)
+	}
+
+	status.Context = sdk.BuildFunctionContext("hello-go")
+	title = getCheckRunTitle(status)
+	if *title != "Build hello-go" {
+		t.Fatalf("Expected %s but got %s", "Build hello-go", *title)
+	}
+}
+
+func TestGetCheckRunStatus(t *testing.T) {
+	status := sdk.StatusFailure
+	checkStatus := getCheckRunStatus(&status)
+	if checkStatus != "completed" {
+		t.Fatalf("Expected %s, got %s", "completed", checkStatus)
+	}
+
+	status = sdk.StatusSuccess
+	checkStatus = getCheckRunStatus(&status)
+	if checkStatus != "completed" {
+		t.Fatalf("Expected %s, got %s", "completed", checkStatus)
+	}
+
+	status = sdk.StatusPending
+	checkStatus = getCheckRunStatus(&status)
+	if checkStatus != "queued" {
+		t.Fatalf("Expected %s, got %s", "queued", checkStatus)
+	}
+}
+
+func TestFormatLogs(t *testing.T) {
+	logs := "  		"
+	formatted := formatLogs(&logs)
+	if formatted != nil {
+		t.Fatalf("Empty logs shoud produce null formatted text")
+	}
+}
