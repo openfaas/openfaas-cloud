@@ -3,9 +3,12 @@ package function
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/alexellis/derek/auth"
 	"github.com/alexellis/derek/factory"
@@ -15,13 +18,17 @@ import (
 )
 
 const (
-	defaultPrivateKeyName  = "private-key"
-	defaultSecretMountPath = "/var/openfaas/secrets"
+	defaultPrivateKeyName   = "private-key"
+	defaultSecretMountPath  = "/var/openfaas/secrets"
+	githubCheckCompleted    = "completed"
+	githubCheckQueued       = "queued"
+	githubConclusionFailure = "failure"
+	githubConclusionSuccess = "success"
+	githubConclusionNeutral = "neutral"
 )
 
 var (
-	token        = ""
-	serviceValue = ""
+	token = ""
 )
 
 // Handle a serverless request
@@ -55,8 +62,6 @@ func Handle(req []byte) string {
 		log.Fatal("failed commit statuses are empty: ", status.CommitStatuses)
 	}
 
-	serviceValue = status.EventInfo.Owner + "-" + status.EventInfo.Repository
-
 	// use auth token if provided
 	if status.AuthToken != sdk.EmptyAuthToken && sdk.ValidToken(status.AuthToken) {
 		token = status.AuthToken
@@ -77,15 +82,9 @@ func Handle(req []byte) string {
 	}
 
 	for _, commitStatus := range status.CommitStatuses {
-		err := reportStatus(commitStatus.Status, commitStatus.Description, commitStatus.Context, &status.EventInfo)
+		err := reportToGithub(&commitStatus, &status.EventInfo)
 		if err != nil {
 			log.Fatalf("failed to report status %v, error: %s", status, err.Error())
-		}
-	}
-
-	if val, exists := os.LookupEnv("debug_token"); exists {
-		if val == "true" {
-			log.Printf("Token: %s for Installation: %d", token, status.EventInfo.InstallationID)
 		}
 	}
 
@@ -96,10 +95,33 @@ func Handle(req []byte) string {
 	return token
 }
 
+func getLogs(status *sdk.CommitStatus, event *sdk.Event) (string, error) {
+	client := &http.Client{}
+	var err error
+	gatewayURL := os.Getenv("gateway_url")
+	// TODO: support logs for different commit status contexts
+	url := fmt.Sprintf("%s/function/pipeline-log?repoPath=%s/%s&commitSHA=%s&function=%s", gatewayURL, event.Owner, event.Repository, event.SHA, event.Service)
+	log.Println(url)
+	request, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return "", err
+	}
+	response, err := client.Do(request)
+	if err != nil {
+		return "", err
+	}
+	defer response.Body.Close()
+	responsePayload, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(responsePayload), nil
+}
+
 func buildPublicStatusURL(status string, statusContext string, event *sdk.Event) string {
 	url := event.URL
 
-	if status == "success" {
+	if status == sdk.StatusSuccess {
 		publicURL := os.Getenv("gateway_public_url")
 		gatewayPrettyURL := os.Getenv("gateway_pretty_url")
 		if statusContext != sdk.StackContext {
@@ -148,6 +170,13 @@ func buildPublicStatusURL(status string, statusContext string, event *sdk.Event)
 	return url
 }
 
+func reportToGithub(commitStatus *sdk.CommitStatus, event *sdk.Event) error {
+	if os.Getenv("use_checks") == "false" {
+		return reportStatus(commitStatus.Status, commitStatus.Description, commitStatus.Context, event)
+	}
+	return reportCheck(commitStatus, event)
+}
+
 func reportStatus(status string, desc string, statusContext string, event *sdk.Event) error {
 
 	ctx := context.Background()
@@ -156,7 +185,7 @@ func reportStatus(status string, desc string, statusContext string, event *sdk.E
 
 	repoStatus := buildStatus(status, desc, statusContext, url)
 
-	log.Printf("Status: %s, Context: %s, Service: %s, GitHub AppID: %d, Repo: %s, Owner: %s", status, statusContext, serviceValue, event.InstallationID, event.Repository, event.Owner)
+	log.Printf("Status: %s, Context: %s, GitHub AppID: %d, Repo: %s, Owner: %s", status, statusContext, event.InstallationID, event.Repository, event.Owner)
 
 	client := factory.MakeClient(ctx, token)
 
@@ -166,6 +195,130 @@ func reportStatus(status string, desc string, statusContext string, event *sdk.E
 	}
 
 	return nil
+}
+
+func reportCheck(commitStatus *sdk.CommitStatus, event *sdk.Event) error {
+	ctx := context.Background()
+
+	status := commitStatus.Status
+	url := buildPublicStatusURL(commitStatus.Status, commitStatus.Context, event)
+
+	log.Printf("Check: %s, Context: %s, GitHub AppID: %d, Repo: %s, Owner: %s", status, commitStatus.Context, event.InstallationID, event.Repository, event.Owner)
+
+	client := factory.MakeClient(ctx, token)
+
+	now := github.Timestamp{time.Now()}
+
+	logs, err := getLogs(commitStatus, event)
+	if err != nil {
+		return err
+	}
+
+	checks, _, _ := client.Checks.ListCheckRunsForRef(ctx, event.Owner, event.Repository, event.SHA, &github.ListCheckRunsOptions{CheckName: &commitStatus.Context})
+
+	checkRunStatus := getCheckRunStatus(&status)
+	conclusion := getCheckRunConclusion(&status)
+	summary := getCheckRunDescription(commitStatus, &url)
+	log.Printf("Check run status: %s", checkRunStatus)
+
+	var apiErr error
+	if *checks.Total == 0 {
+		check := github.CreateCheckRunOptions{
+			StartedAt: &now,
+			Name:      commitStatus.Context,
+			HeadSHA:   event.SHA,
+			Status:    &checkRunStatus,
+			Output: &github.CheckRunOutput{
+				Text:    formatLogs(&logs),
+				Title:   getCheckRunTitle(commitStatus),
+				Summary: summary,
+			},
+		}
+
+		if checkRunStatus == githubCheckCompleted {
+			check.Conclusion = &conclusion
+			check.CompletedAt = &now
+		}
+		log.Printf("Creating check run %s", check.Name)
+		_, _, apiErr = client.Checks.CreateCheckRun(ctx, event.Owner, event.Repository, check)
+	} else {
+		check := github.UpdateCheckRunOptions{
+			Name:       *checks.CheckRuns[0].Name,
+			DetailsURL: &url,
+			Output: &github.CheckRunOutput{
+				Text:    formatLogs(&logs),
+				Title:   getCheckRunTitle(commitStatus),
+				Summary: summary,
+			},
+		}
+		if checkRunStatus == "completed" {
+			check.Conclusion = &conclusion
+			check.CompletedAt = &now
+		}
+		_, _, apiErr = client.Checks.UpdateCheckRun(ctx, event.Owner, event.Repository, *checks.CheckRuns[0].ID, check)
+		log.Printf("Creating check run %s", check.Name)
+	}
+	if apiErr != nil {
+		return fmt.Errorf("Failed to report status %s, error: %s", status, apiErr.Error())
+	}
+	return nil
+}
+
+// formatLogs return logs formatted as markdown
+func formatLogs(logs *string) *string {
+	if logs == nil {
+		return nil
+	}
+	if len(strings.TrimSpace(*logs)) > 0 {
+		markdown := fmt.Sprintf("\n```shell\n%s\n```\n", *logs)
+		return &markdown
+	} else {
+		return nil
+	}
+}
+
+// getCheckRunStatus returns the check run status matching the sdk status
+func getCheckRunStatus(status *string) string {
+	switch *status {
+	case sdk.StatusFailure:
+		return githubCheckCompleted
+	case sdk.StatusSuccess:
+		return githubCheckCompleted
+	}
+	return githubCheckQueued
+}
+
+// getCheckRunConclusion returns the conclusion matching the sdk status
+func getCheckRunConclusion(status *string) string {
+	switch *status {
+	case sdk.StatusFailure:
+		return githubConclusionFailure
+	case sdk.StatusSuccess:
+		return githubConclusionSuccess
+	}
+	return githubConclusionNeutral
+}
+
+// getCheckRunTitle returns a title for the given status to be displayed in Github Checks UI
+func getCheckRunTitle(status *sdk.CommitStatus) *string {
+	title := status.Description
+	switch status.Context {
+	case sdk.StackContext:
+		title = "Deploy to OpenFaas"
+	default: // Assuming status is either a function name (building) or stack deploy
+		title = fmt.Sprintf("Build %s", status.Context)
+	}
+	return &title
+}
+
+// getCheckRunDescription returns a formatted summary for the Check Run page
+func getCheckRunDescription(status *sdk.CommitStatus, url *string) *string {
+	if status.Status == sdk.StatusSuccess || status.Status == sdk.StatusFailure {
+		s := fmt.Sprintf("[%s](%s)", status.Description, *url)
+		return &s
+	}
+
+	return &status.Description
 }
 
 func hmacEnabled() bool {
