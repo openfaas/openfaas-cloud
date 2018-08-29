@@ -129,7 +129,7 @@ func (status *Status) Report(gateway string, hmacKey string) (string, error) {
 	httpReq, _ := http.NewRequest(http.MethodPost, gateway+"function/github-status", bodyReader)
 
 	if len(hmacKey) > 0 {
-		httpReq.Header.Add("X-Hub-Signature", "sha1="+hex.EncodeToString(hash))
+		httpReq.Header.Add("X-Cloud-Signature", "sha1="+hex.EncodeToString(hash))
 	}
 
 	res, err := c.Do(httpReq)
