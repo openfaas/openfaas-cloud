@@ -10,14 +10,14 @@
 [[projects]]
   name = "github.com/openfaas/faas"
   packages = ["gateway/types"]
-  revision = "91b6c244941c41b4750c9fcc90fc678d196d4619"
-  version = "0.8.12"
+  revision = "9c2f6dd2a4e2aac0b253b29cc031865b76802ed5"
+  version = "0.9.0"
 
 [[projects]]
   name = "github.com/openfaas/openfaas-cloud"
   packages = ["sdk"]
-  revision = "2cf97d7c25701cc7333781d7b61dcdfbbee2e911"
-  version = "0.5.4"
+  revision = "c6ee93341c53962d9edd5578dacc5b2e2e7bf1db"
+  version = "0.5.5"
 
 [solve-meta]
   analyzer-name = "dep"

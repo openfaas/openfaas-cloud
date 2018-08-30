@@ -18,8 +18,14 @@ import (
 // Source name for this function when auditing
 const Source = "github-push"
 
+var audit sdk.Audit
+
 // Handle a serverless request
 func Handle(req []byte) string {
+
+	if audit == nil {
+		audit = sdk.AuditLogger{}
+	}
 
 	event := os.Getenv("Http_X_Github_Event")
 	if event != "push" {
@@ -28,8 +34,8 @@ func Handle(req []byte) string {
 			Message: "bad event: " + event,
 			Source:  Source,
 		}
-
-		sdk.PostAudit(auditEvent)
+		audit.Post(auditEvent)
+		// sdk.PostAudit(auditEvent)
 
 		return fmt.Sprintf("%s cannot handle event: %s", Source, event)
 	}
