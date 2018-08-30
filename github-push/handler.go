@@ -35,7 +35,6 @@ func Handle(req []byte) string {
 			Source:  Source,
 		}
 		audit.Post(auditEvent)
-		// sdk.PostAudit(auditEvent)
 
 		return fmt.Sprintf("%s cannot handle event: %s", Source, event)
 	}
@@ -57,6 +56,7 @@ func Handle(req []byte) string {
 
 	pushEvent := sdk.PushEvent{}
 	err := json.Unmarshal(req, &pushEvent)
+
 	if err != nil {
 		return err.Error()
 	}
@@ -72,11 +72,8 @@ func Handle(req []byte) string {
 			return getErr.Error()
 		}
 
-		for _, customer := range customers {
-			if strings.EqualFold(customer, pushEvent.Repository.Owner.Login) {
-				found = true
-			}
-		}
+		found = validCustomer(customers, pushEvent.Repository.Owner.Login)
+
 		if !found {
 
 			auditEvent := sdk.AuditEvent{
@@ -86,13 +83,14 @@ func Handle(req []byte) string {
 				Source:  Source,
 			}
 
-			sdk.PostAudit(auditEvent)
+			audit.Post(auditEvent)
 
 			return fmt.Sprintf("Customer: %s not found in CUSTOMERS file via %s", pushEvent.Repository.Owner.Login, customersURL)
 		}
 	}
 
-	if pushEvent.Ref != "refs/heads/master" {
+	if len(pushEvent.Ref) == 0 ||
+		pushEvent.Ref != "refs/heads/master" {
 		msg := "refusing to build non-master branch: " + pushEvent.Ref
 		auditEvent := sdk.AuditEvent{
 			Message: msg,
@@ -101,7 +99,7 @@ func Handle(req []byte) string {
 			Source:  Source,
 		}
 
-		sdk.PostAudit(auditEvent)
+		audit.Post(auditEvent)
 		return msg
 	}
 
@@ -136,6 +134,10 @@ func Handle(req []byte) string {
 // who are valid users of OpenFaaS cloud
 func getCustomers(customerURL string) ([]string, error) {
 	customers := []string{}
+
+	if len(customerURL) == 0 {
+		return nil, fmt.Errorf("customerURL was nil")
+	}
 
 	c := http.Client{}
 
@@ -224,4 +226,17 @@ func reportStatus(status *sdk.Status) {
 
 func init() {
 
+}
+
+func validCustomer(customers []string, owner string) bool {
+	found := false
+	for _, customer := range customers {
+		if len(customer) > 0 &&
+			strings.EqualFold(customer, owner) {
+			found = true
+			break
+		}
+	}
+
+	return found
 }
