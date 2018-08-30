@@ -50,6 +50,7 @@ func Test_validCustomer_EmptyInput_Fails(t *testing.T) {
 func Test_Handle_ValidateCustomersInvalid(t *testing.T) {
 	audit = sdk.NilLogger{}
 	server := httptest.NewServer(&HTTPHandler{})
+	defer server.Close()
 
 	os.Setenv("Http_X_Github_Event", "push")
 	os.Setenv("validate_customers", "true")
