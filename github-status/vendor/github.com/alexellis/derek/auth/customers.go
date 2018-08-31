@@ -1,16 +1,20 @@
+// Copyright (c) Derek Author(s) 2017. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 package auth
 
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"strings"
 )
 
-const defaultCustomersURL string = "https://raw.githubusercontent.com/alexellis/derek/master/.CUSTOMERS"
-const customersURLEnv string = "customers_url"
+const (
+	defaultCustomersURL string = "https://raw.githubusercontent.com/alexellis/derek/master/.CUSTOMERS"
+	customersURLEnv     string = "customers_url"
+)
 
 func buildCustomerURL() string {
 
@@ -57,12 +61,12 @@ func IsCustomer(ownerLogin string, c *http.Client) (bool, error) {
 			goto DO_RETURN
 		}
 
-		lines := strings.Split(strings.TrimSpace(string(body)), "\n")
+		trimmedBody := strings.TrimSpace(string(body))
+		lines := strings.Split(trimmedBody, "\n")
 
 		for _, line := range lines {
 			if line == ownerLogin {
 				found = true
-				log.Println(ownerLogin, line, lines)
 				break
 			}
 		}

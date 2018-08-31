@@ -3,9 +3,12 @@
 
 [[projects]]
   name = "github.com/alexellis/derek"
-  packages = ["auth"]
-  revision = "e6d1a85c45ba3ae11f57f7044775952d5ce9e05f"
-  version = "0.5.0"
+  packages = [
+    "auth",
+    "factory"
+  ]
+  revision = "f8c2d49fd14b3e913c56ad2bd37193775836e906"
+  version = "0.6.1"
 
 [[projects]]
   name = "github.com/alexellis/hmac"
@@ -56,7 +59,7 @@
     "context",
     "context/ctxhttp"
   ]
-  revision = "faa378e6dbaed88bd8100f8bcf09939375c6e8fa"
+  revision = "8a410e7b638dca158bf9e766925842f6651ff828"
 
 [[projects]]
   branch = "master"
@@ -84,6 +87,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "cd4535e5cda2c2f09a252e6ce14aca3225b5f3de4ae446552f934dcf3702461a"
+  inputs-digest = "910255cded951f935a946b72314c68ce58af0e5dd0943c13763f01bc73328cd0"
   solver-name = "gps-cdcl"
   solver-version = 1

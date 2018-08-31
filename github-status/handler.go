@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/alexellis/derek/auth"
+	"github.com/alexellis/derek/factory"
 	hmac "github.com/alexellis/hmac"
 	"github.com/google/go-github/github"
 	"github.com/openfaas/openfaas-cloud/sdk"
@@ -143,7 +144,7 @@ func reportStatus(status string, desc string, statusContext string, event *sdk.E
 
 	log.Printf("Status: %s, Context: %s, Service: %s, GitHub AppID: %d, Repo: %s, Owner: %s", status, statusContext, serviceValue, event.InstallationID, event.Repository, event.Owner)
 
-	client := auth.MakeClient(ctx, token)
+	client := factory.MakeClient(ctx, token)
 
 	_, _, apiErr := client.Repositories.CreateStatus(ctx, event.Owner, event.Repository, event.SHA, repoStatus)
 	if apiErr != nil {
