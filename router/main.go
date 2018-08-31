@@ -25,7 +25,7 @@ func main() {
 
 	router := http.NewServeMux()
 
-	router.HandleFunc("/", makeHandler(c, cfg.UpstreamURL))
+	router.HandleFunc("/", makeHandler(c, cfg.Timeout, cfg.UpstreamURL))
 
 	s := &http.Server{
 		Addr:           ":" + cfg.Port,
@@ -38,7 +38,7 @@ func main() {
 	log.Fatal(s.ListenAndServe())
 }
 
-func makeHandler(c *http.Client, upstreamURL string) func(w http.ResponseWriter, r *http.Request) {
+func makeHandler(c *http.Client, timeout time.Duration, upstreamURL string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		if len(r.Host) == 0 {
@@ -59,7 +59,7 @@ func makeHandler(c *http.Client, upstreamURL string) func(w http.ResponseWriter,
 		}
 		req, _ := http.NewRequest(r.Method, path, r.Body)
 
-		timeoutContext, cancel := context.WithTimeout(context.Background(), c.Timeout)
+		timeoutContext, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
 
 		copyHeaders(req.Header, &r.Header)
