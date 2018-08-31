@@ -21,15 +21,7 @@ func Handle(req []byte) string {
 	method := os.Getenv("Http_Method")
 
 	if method == http.MethodPost {
-		payloadSecret, err := sdk.ReadSecret("payload-secret")
-		if err != nil {
-			fmt.Fprintf(os.Stderr, err.Error())
-			os.Exit(1)
-
-			return err.Error()
-		}
-
-		hmacErr := sdk.ValidHMAC(&req, payloadSecret, os.Getenv("Http_X_Cloud_Signature"))
+		hmacErr := sdk.ValidHMAC(&req, "payload-secret", os.Getenv("Http_X_Cloud_Signature"))
 		if hmacErr != nil {
 			log.Printf("hmac error %s\n", hmacErr.Error())
 			os.Exit(1)
