@@ -26,7 +26,6 @@ You will create/deploy:
 ### Before you begin
 
 * You must enable basic auth to prevent user-functions from accessing the admin API of the gateway
-* Only public GitHub repos are supported
 * A list of valid users is defined in the CUSTOMERS file in this GitHub repo, this acts as an ACL, but you can define your own
 * Swarm offers no isolation between functions (they can call each other)
 * For Kubernetes istolation can be applied through NetworkPolicy

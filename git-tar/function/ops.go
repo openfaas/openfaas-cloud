@@ -10,15 +10,18 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/openfaas/faas-cli/schema"
 
-	hmac "github.com/alexellis/hmac"
+	"github.com/alexellis/derek/auth"
+	"github.com/alexellis/hmac"
 	"github.com/openfaas/faas-cli/stack"
 	"github.com/openfaas/openfaas-cloud/sdk"
 )
@@ -165,6 +168,64 @@ func formatImageShaTag(registry string, function *stack.Function, sha string, ow
 	return imageRef
 }
 
+type githubAuthToken struct {
+	appID          string
+	installationID int
+	privateKeyPath string
+	token          string
+}
+
+func (t *githubAuthToken) getToken() (string, error) {
+	if t.token != "" {
+		return t.token, nil
+	}
+
+	token, err := auth.MakeAccessTokenForInstallation(t.appID, t.installationID, t.privateKeyPath)
+
+	if err != nil {
+		return "", err
+	}
+
+	t.token = token
+
+	return token, nil
+}
+
+func (t *githubAuthToken) getInstallationID() int {
+	return t.installationID
+}
+
+type tokener interface {
+	getToken() (string, error)
+	getInstallationID() int
+}
+
+func getRepositoryURL(e sdk.PushEvent, authToken tokener) (string, error) {
+	cu := e.Repository.CloneURL
+
+	if e.Repository.Private {
+		u, err := url.Parse(cu)
+
+		if err != nil {
+			return "", fmt.Errorf("couldn't parse URL in getRepositoryURL: %t", err)
+		}
+
+		token, err := authToken.getToken()
+
+		if err != nil {
+			return "", fmt.Errorf("cannot get auth token: %t", err)
+		}
+
+		iid := authToken.getInstallationID()
+
+		u.User = url.UserPassword(strconv.Itoa(iid), token)
+
+		return u.String(), nil
+	}
+
+	return cu, nil
+}
+
 func clone(pushEvent sdk.PushEvent) (string, error) {
 	workDir := os.TempDir()
 	destPath := path.Join(workDir, path.Join(pushEvent.Repository.Owner.Login, pushEvent.Repository.Name))
@@ -183,7 +244,19 @@ func clone(pushEvent sdk.PushEvent) (string, error) {
 		return "", fmt.Errorf("cannot create user-dir: %s", userDir)
 	}
 
-	git := exec.Command("git", "clone", pushEvent.Repository.CloneURL)
+	at := &githubAuthToken{
+		appID:          os.Getenv("github_app_id"),
+		installationID: pushEvent.Installation.ID,
+		privateKeyPath: sdk.GetPrivateKeyPath(),
+	}
+
+	cloneURL, err := getRepositoryURL(pushEvent, at)
+
+	if err != nil {
+		return "", fmt.Errorf("cannot get repository url to clone: %t", err)
+	}
+
+	git := exec.Command("git", "clone", cloneURL)
 	git.Dir = path.Join(workDir, pushEvent.Repository.Owner.Login)
 	log.Println(git.Dir)
 	err = git.Start()

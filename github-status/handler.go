@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/alexellis/derek/auth"
 	"github.com/alexellis/derek/factory"
-	hmac "github.com/alexellis/hmac"
+	"github.com/alexellis/hmac"
 	"github.com/google/go-github/github"
 	"github.com/openfaas/openfaas-cloud/sdk"
 )
@@ -64,7 +63,7 @@ func Handle(req []byte) string {
 		log.Printf("reusing provided auth token")
 	} else {
 		var tokenErr error
-		privateKeyPath := getPrivateKey()
+		privateKeyPath := sdk.GetPrivateKeyPath()
 		token, tokenErr = auth.MakeAccessTokenForInstallation(os.Getenv("github_app_id"), status.EventInfo.InstallationID, privateKeyPath)
 		if tokenErr != nil {
 			log.Fatalf("failed to report status %v, error: %s\n", status, tokenErr.Error())
@@ -152,23 +151,6 @@ func reportStatus(status string, desc string, statusContext string, event *sdk.E
 	}
 
 	return nil
-}
-
-func getPrivateKey() string {
-	// Private key name can be different from the default 'private-key'
-	// When providing a different name in the stack.yaml, user need to specify the name
-	// in github.yml as `private_key_filename: <user_private_key>`
-	privateKeyName := os.Getenv("private_key_filename")
-	if privateKeyName == "" {
-		privateKeyName = defaultPrivateKeyName
-	}
-
-	secretMountPath := os.Getenv("secret_mount_path")
-	if secretMountPath == "" {
-		secretMountPath = defaultSecretMountPath
-	}
-	privateKeyPath := filepath.Join(secretMountPath, privateKeyName)
-	return privateKeyPath
 }
 
 func hmacEnabled() bool {

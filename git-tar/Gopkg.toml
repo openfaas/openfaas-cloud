@@ -33,10 +33,14 @@
   name = "github.com/openfaas/openfaas-cloud"
   version = "0.5.2"
 
-[prune]
-  go-tests = true
-  unused-packages = true
-
 [[constraint]]
   name = "github.com/alexellis/hmac"
   version = "1.2.0"
+
+[[constraint]]
+  name = "github.com/alexellis/derek"
+  version = "0.6.1"
+
+[prune]
+  go-tests = true
+  unused-packages = true
