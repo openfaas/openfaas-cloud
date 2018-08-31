@@ -1,6 +1,7 @@
 template
 build
 .vscode
+.idea
 image
 *.pem
 

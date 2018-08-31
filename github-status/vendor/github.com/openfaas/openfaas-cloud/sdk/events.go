@@ -1,20 +1,24 @@
 package sdk
 
 // PushEvent as received from GitHub
-type PushEvent struct {
-	Ref        string `json:"ref"`
-	Repository struct {
-		Name     string `json:"name"`
-		FullName string `json:"full_name"`
-		CloneURL string `json:"clone_url"`
-		Private  bool   `json:"private"`
+type PushEventInstallation struct {
+	ID int `json:"id"`
+}
 
-		Owner Owner `json:"owner"`
-	}
+type PushEventRepository struct {
+	Name     string `json:"name"`
+	FullName string `json:"full_name"`
+	CloneURL string `json:"clone_url"`
+	Private  bool   `json:"private"`
+
+	Owner Owner `json:"owner"`
+}
+
+type PushEvent struct {
+	Ref           string `json:"ref"`
+	Repository    PushEventRepository
 	AfterCommitID string `json:"after"`
-	Installation  struct {
-		ID int `json:"id"`
-	}
+	Installation  PushEventInstallation
 }
 
 // Owner is the owner of a GitHub repo

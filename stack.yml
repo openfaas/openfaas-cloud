@@ -55,7 +55,9 @@ functions:
       - gateway_config.yml
       - github.yml
     secrets:
+      - github-webhook-secret
       - payload-secret
+      - private-key
 
   buildshiprun:
     lang: go

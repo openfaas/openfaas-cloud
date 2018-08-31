@@ -351,7 +351,7 @@ func TestPrivateKey(t *testing.T) {
 	os.Setenv("secret_mount_path", "/function/secrets")
 
 	expectedPath := filepath.Join("/function/secrets/", "github_key")
-	privateKey := getPrivateKey()
+	privateKey := sdk.GetPrivateKeyPath()
 	if privateKey != expectedPath {
 		t.Errorf("validating private key path: watch %v got %v", expectedPath, privateKey)
 	}
