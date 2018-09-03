@@ -1,5 +1,10 @@
 package sdk
 
+import (
+	"fmt"
+	"strings"
+)
+
 // PushEvent as received from GitHub
 type PushEvent struct {
 	Ref        string `json:"ref"`
@@ -51,4 +56,8 @@ func BuildEventFromPushEvent(pushEvent PushEvent) *Event {
 	info.InstallationID = pushEvent.Installation.ID
 
 	return &info
+}
+
+func ServiceName(userName, functionName string) string {
+	return fmt.Sprintf("%s-%s", strings.ToLower(userName), functionName)
 }
