@@ -1,6 +1,7 @@
 package function
 
 import (
+	"os"
 	"testing"
 
 	"github.com/openfaas/openfaas-cloud/sdk"
@@ -16,5 +17,62 @@ func Test_getPath(t *testing.T) {
 	if got != want {
 		t.Errorf("got: %s, but want: %s", got, want)
 		t.Fail()
+	}
+}
+
+func Test_tlsEnabled(t *testing.T) {
+	connection := []struct {
+		title         string
+		value         string
+		expectedValue bool
+	}{
+		{
+			title:         "Connection enabled",
+			value:         "true",
+			expectedValue: true,
+		},
+		{
+			title:         "Connection enabled",
+			value:         "1",
+			expectedValue: true,
+		},
+		{
+			title:         "Connection disabled",
+			value:         "every other case is disabled",
+			expectedValue: false,
+		},
+	}
+	for _, test := range connection {
+		os.Setenv("s3_tls", test.value)
+		secured := tlsEnabled()
+		if secured != test.expectedValue {
+			t.Fatalf("Expected: %v got :%v.\n", test.expectedValue, secured)
+		}
+	}
+}
+
+func Test_bucketName(t *testing.T) {
+	bucketNames := []struct {
+		title         string
+		value         string
+		expectedValue string
+	}{
+		{
+			title:         "Bucket name env-var is present",
+			value:         "example-name",
+			expectedValue: "example-name",
+		},
+		{
+			title:         "Bucket name when env-var does not exist/unset",
+			value:         "",
+			expectedValue: "pipeline",
+		},
+	}
+	for _, test := range bucketNames {
+		os.Setenv("s3_bucket", test.value)
+		bucketName := bucketName()
+		if bucketName != test.expectedValue {
+			t.Errorf("Unexpected bucket name wanted: `%v` got: `%v`", test.expectedValue, bucketName)
+		}
 	}
 }
