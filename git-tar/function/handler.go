@@ -16,8 +16,21 @@ import (
 
 const Source = "git-tar"
 
+var (
+	secret   sdk.Secret
+	reporter sdk.StatusReporter
+)
+
 // Handle a serverless request
 func Handle(req []byte) []byte {
+
+	if reporter == nil {
+		reporter = initStatusReporter()
+	}
+
+	if secret == nil {
+		secret = sdk.SecretReader{}
+	}
 
 	pushEvent := sdk.PushEvent{}
 	err := json.Unmarshal(req, &pushEvent)
@@ -33,7 +46,7 @@ func Handle(req []byte) []byte {
 	if err != nil {
 		log.Println("Clone ", err.Error())
 		status.AddStatus(sdk.StatusFailure, "clone error : "+err.Error(), sdk.StackContext)
-		reportStatus(status)
+		reporter.Report(status)
 		os.Exit(-1)
 	}
 
@@ -41,7 +54,7 @@ func Handle(req []byte) []byte {
 	if err != nil {
 		log.Println("parseYAML ", err.Error())
 		status.AddStatus(sdk.StatusFailure, "parseYAML error : "+err.Error(), sdk.StackContext)
-		reportStatus(status)
+		reporter.Report(status)
 		os.Exit(-1)
 	}
 
@@ -50,7 +63,7 @@ func Handle(req []byte) []byte {
 	if err != nil {
 		log.Println("Shrinkwrap ", err.Error())
 		status.AddStatus(sdk.StatusFailure, "shrinkwrap error : "+err.Error(), sdk.StackContext)
-		reportStatus(status)
+		reporter.Report(status)
 		os.Exit(-1)
 	}
 
@@ -59,7 +72,7 @@ func Handle(req []byte) []byte {
 	if err != nil {
 		log.Println("Error creating tar(s): ", err.Error())
 		status.AddStatus(sdk.StatusFailure, "tar(s) creation failed, error : "+err.Error(), sdk.StackContext)
-		reportStatus(status)
+		reporter.Report(status)
 		os.Exit(-1)
 	}
 
@@ -67,20 +80,20 @@ func Handle(req []byte) []byte {
 	if err != nil {
 		log.Printf("Error parsing secrets: %s\n", err.Error())
 		status.AddStatus(sdk.StatusFailure, "failed to parse secrets, error : "+err.Error(), sdk.StackContext)
-		reportStatus(status)
+		reporter.Report(status)
 		os.Exit(-1)
 	}
 
 	err = deploy(tars, pushEvent, stack, status)
 	if err != nil {
 		status.AddStatus(sdk.StatusFailure, "deploy failed, error : "+err.Error(), sdk.StackContext)
-		reportStatus(status)
+		reporter.Report(status)
 		log.Printf("deploy error: %s", err)
 		os.Exit(-1)
 	}
 
 	status.AddStatus(sdk.StatusSuccess, "stack is successfully deployed", sdk.StackContext)
-	reportStatus(status)
+	reporter.Report(status)
 
 	err = collect(pushEvent, stack)
 	if err != nil {
@@ -134,26 +147,26 @@ type GarbageRequest struct {
 	Owner     string   `json:"owner"`
 }
 
+// enableStatusReporting check if status reporting is enabled
 func enableStatusReporting() bool {
 	return os.Getenv("report_status") == "true"
 }
 
-func reportStatus(status *sdk.Status) {
+// initStatusReporter initialize status reporter
+func initStatusReporter() sdk.StatusReporter {
+	var reporter sdk.StatusReporter
+	if enableStatusReporting() {
+		hmacKey, keyErr := secret.Read("payload-secret")
+		if keyErr != nil {
+			log.Printf("failed to load hmac key for status, error " + keyErr.Error())
+			reporter = sdk.NilStatusReporter{}
+			return reporter
+		}
 
-	if !enableStatusReporting() {
-		return
+		gatewayURL := os.Getenv("gateway_url")
+		reporter = sdk.GithubStatusReporter{HmacKey: hmacKey, Gateway: gatewayURL}
+	} else {
+		reporter = sdk.NilStatusReporter{}
 	}
-
-	hmacKey, keyErr := sdk.ReadSecret("payload-secret")
-	if keyErr != nil {
-		log.Printf("failed to load hmac key for status, error " + keyErr.Error())
-		return
-	}
-
-	gatewayURL := os.Getenv("gateway_url")
-
-	_, reportErr := status.Report(gatewayURL, hmacKey)
-	if reportErr != nil {
-		log.Printf("failed to report status, error: %s", reportErr.Error())
-	}
+	return reporter
 }

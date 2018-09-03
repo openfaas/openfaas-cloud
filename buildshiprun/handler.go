@@ -20,17 +20,27 @@ import (
 
 var (
 	imageValidator = regexp.MustCompile("(?:[a-zA-Z0-9./]*(?:[._-][a-z0-9]?)*(?::[0-9]+)?[a-zA-Z0-9./]+(?:[._-][a-z0-9]+)*/)*[a-zA-Z0-9]+(?:[._-][a-z0-9]+)+(?::[a-zA-Z0-9._-]+)?")
+	reporter       sdk.StatusReporter
+	secret         sdk.Secret
 )
 
 // Handle a build / deploy request - returns empty string for an error
 func Handle(req []byte) string {
+
+	if secret == nil {
+		secret = sdk.SecretReader{}
+	}
+
+	if reporter == nil {
+		reporter = initStatusReporter()
+	}
 
 	c := &http.Client{}
 
 	builderURL := os.Getenv("builder_url")
 	gatewayURL := os.Getenv("gateway_url")
 
-	payloadSecret, keyErr := sdk.ReadSecret("payload-secret")
+	payloadSecret, keyErr := secret.Read("payload-secret")
 	if keyErr != nil {
 		err := fmt.Errorf("failed to load hmac key, error %s", keyErr.Error())
 		log.Printf(err.Error())
@@ -67,7 +77,7 @@ func Handle(req []byte) string {
 		sdk.PostAudit(auditEvent)
 
 		status.AddStatus(sdk.StatusFailure, err.Error(), sdk.BuildFunctionContext(event.Service))
-		reportStatus(status)
+		reporter.Report(status)
 
 		return auditEvent.Message
 	}
@@ -88,7 +98,7 @@ func Handle(req []byte) string {
 		sdk.PostAudit(auditEvent)
 
 		status.AddStatus(sdk.StatusFailure, err.Error(), sdk.BuildFunctionContext(event.Service))
-		reportStatus(status)
+		reporter.Report(status)
 		return auditEvent.Message
 	}
 
@@ -101,7 +111,7 @@ func Handle(req []byte) string {
 		msg := "repository_url env-var not set"
 		fmt.Fprintf(os.Stderr, msg)
 		status.AddStatus(sdk.StatusFailure, msg, sdk.BuildFunctionContext(event.Service))
-		reportStatus(status)
+		reporter.Report(status)
 		os.Exit(1)
 	}
 
@@ -122,7 +132,7 @@ func Handle(req []byte) string {
 	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusAccepted {
 		msg := "Unable to build image, check builder logs"
 		status.AddStatus(sdk.StatusFailure, msg, sdk.BuildFunctionContext(event.Service))
-		reportStatus(status)
+		reporter.Report(status)
 
 		auditEvent.Message = fmt.Sprintf("buildshiprun failure: %s", msg)
 		sdk.PostAudit(auditEvent)
@@ -180,7 +190,7 @@ func Handle(req []byte) string {
 
 		if err != nil {
 			status.AddStatus(sdk.StatusFailure, err.Error(), sdk.BuildFunctionContext(event.Service))
-			reportStatus(status)
+			reporter.Report(status)
 			log.Fatal(err.Error())
 			auditEvent.Message = fmt.Sprintf("buildshiprun failure: %s", err.Error())
 		} else {
@@ -192,7 +202,7 @@ func Handle(req []byte) string {
 
 	sdk.PostAudit(auditEvent)
 	status.AddStatus(sdk.StatusSuccess, fmt.Sprintf("deployed: %s", serviceValue), sdk.BuildFunctionContext(event.Service))
-	reportStatus(status)
+	reporter.Report(status)
 	return fmt.Sprintf("buildStatus %s %s", imageName, res.Status)
 }
 
@@ -369,27 +379,28 @@ func deployFunction(deploy deployment, gatewayURL string, c *http.Client) (strin
 	return string(buildStatus), err
 }
 
+// enableStatusReporting check if status reportng is enabled
 func enableStatusReporting() bool {
 	return os.Getenv("report_status") == "true"
 }
 
-func reportStatus(status *sdk.Status) {
-	if !enableStatusReporting() {
-		return
-	}
+// initStatusReporter initialize status reporter
+func initStatusReporter() sdk.StatusReporter {
+	var reporter sdk.StatusReporter
+	if enableStatusReporting() {
+		hmacKey, keyErr := secret.Read("payload-secret")
+		if keyErr != nil {
+			log.Printf("failed to load hmac key for status, error " + keyErr.Error())
+			reporter = sdk.NilStatusReporter{}
+			return reporter
+		}
 
-	gatewayURL := os.Getenv("gateway_url")
-
-	payloadSecret, keyErr := sdk.ReadSecret("payload-secret")
-	if keyErr != nil {
-		log.Printf("failed to load hmac key for status, error " + keyErr.Error())
-		return
+		gatewayURL := os.Getenv("gateway_url")
+		reporter = sdk.GithubStatusReporter{HmacKey: hmacKey, Gateway: gatewayURL}
+	} else {
+		reporter = sdk.NilStatusReporter{}
 	}
-
-	_, reportErr := status.Report(gatewayURL, payloadSecret)
-	if reportErr != nil {
-		log.Printf("failed to report status, error: %s", reportErr.Error())
-	}
+	return reporter
 }
 
 func getImageName(repositoryURL, pushRepositoryURL, imageName string) string {

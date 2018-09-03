@@ -23,14 +23,19 @@ const (
 var (
 	token        = ""
 	serviceValue = ""
+	secret       sdk.Secret
 )
 
 // Handle a serverless request
 func Handle(req []byte) string {
 
+	if secret == nil {
+		secret = sdk.SecretReader{}
+	}
+
 	if hmacEnabled() {
 
-		key, keyErr := sdk.ReadSecret("payload-secret")
+		key, keyErr := secret.Read("payload-secret")
 		if keyErr != nil {
 			fmt.Fprintf(os.Stderr, keyErr.Error())
 			os.Exit(-1)

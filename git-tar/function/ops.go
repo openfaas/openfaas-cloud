@@ -219,9 +219,10 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, sta
 	for _, tarEntry := range tars {
 		fmt.Println("Deploying service - " + tarEntry.functionName)
 
-		status.AddStatus(sdk.StatusPending, fmt.Sprintf("%s function deploy is in progress", tarEntry.functionName),
+		status.AddStatus(sdk.StatusPending, fmt.Sprintf("%s function deploy is in progress",
+			tarEntry.functionName),
 			sdk.BuildFunctionContext(tarEntry.functionName))
-		reportStatus(status)
+		reporter.Report(status)
 		log.Printf(status.AuthToken)
 
 		fileOpen, err := os.Open(tarEntry.fileName)
@@ -298,7 +299,7 @@ func importSecrets(pushEvent sdk.PushEvent, stack *stack.Services, clonePath str
 		return fmt.Errorf("unable to read secret: %s", secretPath)
 	}
 
-	payloadSecret, secretErr := sdk.ReadSecret("payload-secret")
+	payloadSecret, secretErr := secret.Read("payload-secret")
 	if secretErr != nil {
 		return secretErr
 	}

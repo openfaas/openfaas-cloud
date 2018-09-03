@@ -161,3 +161,11 @@ func (status *Status) Report(gateway string, payloadSecret string) (string, erro
 func BuildFunctionContext(function string) string {
 	return fmt.Sprintf(FunctionContext, function)
 }
+
+// ReportStatus reports a status
+func ReportStatus(status *Status, gateway string, hmacKey string) {
+	_, reportErr := status.Report(gateway, hmacKey)
+	if reportErr != nil {
+		log.Printf("failed to report status, error: %s", reportErr.Error())
+	}
+}

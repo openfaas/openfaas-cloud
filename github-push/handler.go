@@ -18,13 +18,25 @@ import (
 // Source name for this function when auditing
 const Source = "github-push"
 
-var audit sdk.Audit
+var (
+	audit    sdk.Audit
+	reporter sdk.StatusReporter
+	secret   sdk.Secret
+)
 
 // Handle a serverless request
 func Handle(req []byte) string {
 
 	if audit == nil {
 		audit = sdk.AuditLogger{}
+	}
+
+	if secret == nil {
+		secret = sdk.SecretReader{}
+	}
+
+	if reporter == nil {
+		reporter = initStatusReporter()
 	}
 
 	event := os.Getenv("Http_X_Github_Event")
@@ -43,7 +55,7 @@ func Handle(req []byte) string {
 
 	shouldValidate := readBool("validate_hmac")
 	if shouldValidate {
-		webhookSecretKey, secretErr := sdk.ReadSecret("github-webhook-secret")
+		webhookSecretKey, secretErr := secret.Read("github-webhook-secret")
 		if secretErr != nil {
 			return secretErr.Error()
 		}
@@ -109,12 +121,12 @@ func Handle(req []byte) string {
 	status := sdk.BuildStatus(eventInfo, sdk.EmptyAuthToken)
 
 	status.AddStatus(sdk.StatusPending, fmt.Sprintf("%s stack deploy is in progress", serviceValue), sdk.StackContext)
-	reportStatus(status)
+	reporter.Report(status)
 
 	statusCode, postErr := postEvent(pushEvent)
 	if postErr != nil {
 		status.AddStatus(sdk.StatusFailure, postErr.Error(), sdk.StackContext)
-		reportStatus(status)
+		reporter.Report(status)
 		return postErr.Error()
 	}
 
@@ -166,7 +178,7 @@ func getCustomers(customerURL string) ([]string, error) {
 func postEvent(pushEvent sdk.PushEvent) (int, error) {
 	gatewayURL := os.Getenv("gateway_url")
 
-	payloadSecret, err := sdk.ReadSecret("payload-secret")
+	payloadSecret, err := secret.Read("payload-secret")
 	if err != nil {
 		return http.StatusUnauthorized, err
 	}
@@ -200,28 +212,28 @@ func readBool(key string) bool {
 	return false
 }
 
+// enableStatusReporting check if status reportng is enabled
 func enableStatusReporting() bool {
 	return os.Getenv("report_status") == "true"
 }
 
-func reportStatus(status *sdk.Status) {
+// initStatusReporter initialize status reporter
+func initStatusReporter() sdk.StatusReporter {
+	var reporter sdk.StatusReporter
+	if enableStatusReporting() {
+		hmacKey, keyErr := secret.Read("payload-secret")
+		if keyErr != nil {
+			log.Printf("failed to load hmac key for status, error " + keyErr.Error())
+			reporter = sdk.NilStatusReporter{}
+			return reporter
+		}
 
-	if !enableStatusReporting() {
-		return
+		gatewayURL := os.Getenv("gateway_url")
+		reporter = sdk.GithubStatusReporter{HmacKey: hmacKey, Gateway: gatewayURL}
+	} else {
+		reporter = sdk.NilStatusReporter{}
 	}
-
-	hmacKey, keyErr := sdk.ReadSecret("payload-secret")
-	if keyErr != nil {
-		log.Printf("failed to load hmac key for status, error " + keyErr.Error())
-		return
-	}
-
-	gatewayURL := os.Getenv("gateway_url")
-
-	_, reportErr := status.Report(gatewayURL, hmacKey)
-	if reportErr != nil {
-		log.Printf("failed to report status, error: %s", reportErr.Error())
-	}
+	return reporter
 }
 
 func init() {
