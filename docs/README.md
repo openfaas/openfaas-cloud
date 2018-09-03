@@ -298,13 +298,22 @@ Logs from the container builder are stored in S3. This can be Minio which is S3-
 
 You can disable Log storage by commenting out the pipeline-log function from `stack.yml`.
 
-> Note: AWS S3 needs an additional two flags to be implemented to make sure TLS and a custom bucket name are used.
-
 * Generate secrets for Minio
 
 ```
 SECRET_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
 ACCESS_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
+```
+
+* If you'd prefer to use an S3 Bucket hosted on AWS
+
+> Generate access key by using the security credentials page. Expand the Access Keys section, and then Create New Root Key.
+
+> Generate secret key by opening the IAM console. Choose Users in the Details pane, pick the IAM user which will use the keys, and then Create Access Key on the Security Credentials tab.
+
+```
+SECRET_KEY=access_key_here
+ACCESS_KEY=secret_key_here
 ```
 
 #### Kubernetes
@@ -354,9 +363,20 @@ docker service create --constraint="node.role==manager" \
 minio/minio:latest server /export
 ```
 
-Enter the value of the DNS above into `s3_url` in `gateway_config.yml` adding the port at the end:`minio:9000`
+Minio: 
+
+* Enter the value of the DNS above into `s3_url` in `gateway_config.yml` adding the port at the end:`minio:9000`
 
 > Note: For debugging and testing. You can expose the port of Minio with `docker service update minio --publish-add 9000:9000`, but this is not recommended on the public internet.
+
+AWS S3:
+
+* Enter the value of the DNS `s3.amazonaws.com` into `s3_url` in `gateway_config.yml`
+
+* In the same file set `s3_tls: true` and `s3_bucket` to the bucket you created in S3 like `s3_bucket: example-bucket`
+
+* Update the `s3_region` value such as : `s3_region: us-east-1`
+
 
 See https://docs.minio.io/docs/minio-quickstart-guide
 

@@ -10,6 +10,8 @@ environment:
   builder_url: http://of-builder.openfaas:8080/
   s3_url: cloud-minio.openfaas.svc.cluster.local:9000
   s3_region: us-east-1
+  s3_tls: false
+  s3_bucket: pipeline
 
 # To use a shared Docker Hub account.
 #  repository_url: docker.io/ofcommunity/
