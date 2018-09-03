@@ -25,34 +25,47 @@ Features:
 
 Read my [introducing OpenFaaS Cloud](https://blog.alexellis.io/introducing-openfaas-cloud/) blog post for an overview of the idea with examples, screenshots and background on the project.
 
-## Road map
+## Roadmap & Features
 
 * Core experience
 
-- [x] Quick deployment on Docker Swarm
+- [x] Self-hosted deployment on Kuberneters or Docker Swarm
 - [x] GitHub Status API integration for commits
-- [x] Kubernetes deployment YAML/helm (in progress)
-- [x] Automatic secure HTTPS endpoints
-- [x] Free, private-trial with CUSTOMER list
-- [x] HMAC with GitHub App for security
-- [x] Rate limiting for functions
-- [x] CI/CD for OpenFaaS Cloud
-- [x] Builds with BuildKit
+- [x] Automatic HTTPS for endpoints (yes via CertManager/Traefik)
+- [x] Authorization with a CUSTOMER list
+- [x] Trust with GitHub via HMAC and GitHub App
+- [x] CI/CD for functions
+- [x] Container builder using BuildKit
+- [x] Free to use SaaS edition for community members and contributors
+- [x] Log storage on Minio (S3-compatible)
+- [ ] Log storage on AWS S3 (help wanted)
+- [ ] Kubernetes helm chart (plain YAML supported already)
 
 * Developer story
 
-- [x] UI: [Dashboard per user](./dashboard)
-- [x] Support secrets in public repos through SealedSecrets
-- [ ] Make build logs available publicly
-- [ ] Gateway deployments/promotions - i.e. only upon GitHub tag or "release"
-- [ ] Make detailed logs available to show build / unit test failures
+- [x] Multi-user
+- [x] UI: [Dashboard for users](./dashboard)
+- [x] Support secrets in public repos through Bitnami SealedSecrets
+- [x] Make detailed logs available to show build or unit test failures (dashboard)
+- [x] Make build logs available publicly (dashboard finished, Checks API in progress)
+- [ ] Mixed-case user-names (in progress)
+- [ ] Use a git "tag" or "GitHub release" to promote a function to live
+- [ ] UI: OAuth 2 login via GitHub
 
 * Operationalize
-- [x] Support for shared Docker Hub account instead of local registry
-- [ ] Unprivileged builds with BuildKit or similar (help wanted)
-- [x] Isolation between functions (NetworkPolicy)
-- [ ] Support for private repos (help wanted)
-- [ ] Integration with on-prem GitLab/BitBucket (help wanted)
+
+- [x] Support for shared Docker Hub accounts instead of private registry
+- [x] Support for private GitHub repos
+- [ ] Isolation between functions (NetworkPolicy on Kubernetes)
+
+* Stretch goals
+
+- [ ] CI/CD integration with on-prem GitLab (in-progress)
+- [ ] Unprivileged builds with BuildKit or similar (under investigation)
+- [ ] Enable untrusted container builds via docker-machine?
+- [ ] Integration with on-prem BitBucket (help wanted)
+- [ ] Log into OpenFaaS Cloud via CLI (faas-cli cloud login)
+- [ ] UI: OAuth 2 login via GitLab (help wanted)
 
 ## Functions
 
