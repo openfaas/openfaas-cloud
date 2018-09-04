@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/docker/docker/pkg/archive"
 	"github.com/gorilla/mux"
@@ -168,10 +169,13 @@ func build(w http.ResponseWriter, r *http.Request) ([]byte, error) {
 				if v.Completed != nil {
 					msg = fmt.Sprintf("v: %s %s %.2fs", v.Started, v.Name, v.Completed.Sub(*v.Started).Seconds())
 				} else {
-					startedVal := "(no timestamp available)"
+					var startedTime time.Time
 					if v.Started != nil {
-						startedVal = v.Started.String()
+						startedTime = *(v.Started)
+					} else {
+						startedTime = time.Now()
 					}
+					startedVal := startedTime.Format(time.RFC3339)
 					msg = fmt.Sprintf("v: %s %v", startedVal, v.Name)
 				}
 				build.Append(msg)
