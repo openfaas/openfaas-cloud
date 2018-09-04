@@ -22,13 +22,14 @@ You will create/deploy:
 * A stack of OpenFaaS functions via stack.yml
 * Customise limits for Swarm or K8s
 * Setup a container image builder
+* (K8s only) [Network Policies](https://kubernetes.io/docs/concepts/services-networking/network-policies/) for openfaas and openfaas-fn namespaces
 
 ### Before you begin
 
 * You must enable basic auth to prevent user-functions from accessing the admin API of the gateway
 * A list of valid users is defined in the CUSTOMERS file in this GitHub repo, this acts as an ACL, but you can define your own
 * Swarm offers no isolation between functions (they can call each other)
-* For Kubernetes istolation can be applied through NetworkPolicy
+* For Kubernetes isolation can be applied through [NetworkPolicy](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
 
 ## Steps
 
@@ -207,11 +208,18 @@ kubectl create secret generic \
   registry-secret --from-file=$HOME/.docker/config.json 
 ```
 
-Create of-builder and of-buildkit:
+Create of-builder, of-buildkit and network policies:
 
 ```
 kubectl apply -f ./yaml
 ```
+
+Add a role of "openfaas-system" using a label to the namespace where you deployed Ingress Controller. For example if Ingress Controller is deployed in the namespace `ingress-nginx`:
+```
+kubectl label namespace ingress-nginx role=openfaas-system
+```
+
+If you don't have Ingress Controller installed in cluster. [Read this](#troubleshoot-network-policies)
 
 #### For Swarm
 
@@ -402,6 +410,26 @@ Find all events on the functions namespace
 
 ```
 kubectl get events --sort-by=.metadata.creationTimestamp -n openfaas-fn
+```
+
+##### Troubleshoot Network Policies
+The NetworkPolicy configuration is designed to work with a Kubernetes IngressController. If you are using a NodePort or LoadBalancer follow the instructions below.
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: gateway
+  namespace: openfaas
+spec:
+  policyTypes:
+    - Ingress
+  podSelector:
+    matchLabels:
+      app: gateway
+  ingress:
+    - from: []
+      ports:
+        - port: 8080
 ```
 
 #### Troubleshoot Swarm
