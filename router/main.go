@@ -50,7 +50,7 @@ func makeHandler(c *http.Client, timeout time.Duration, upstreamURL string) func
 			requestURI = requestURI[1:]
 		}
 
-		path := fmt.Sprintf("%sfunction/%s-%s", upstreamURL, r.Host[0:strings.Index(r.Host, ".")], requestURI)
+		path := fmt.Sprintf("%sfunction/%s-%s", upstreamURL, r.Host[:strings.Index(r.Host, ".")], requestURI)
 
 		fmt.Printf("Proxying to: %s\n", path)
 
