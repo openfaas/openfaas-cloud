@@ -40,9 +40,11 @@ func main() {
 
 func makeHandler(c *http.Client, timeout time.Duration, upstreamURL string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-
+		var host string
 		if len(r.Host) == 0 {
 			w.WriteHeader(http.StatusBadRequest)
+		} else {
+			host = r.Host[0:strings.Index(r.Host, ".")]
 		}
 
 		requestURI := r.RequestURI
@@ -50,7 +52,7 @@ func makeHandler(c *http.Client, timeout time.Duration, upstreamURL string) func
 			requestURI = requestURI[1:]
 		}
 
-		path := fmt.Sprintf("%sfunction/%s-%s", upstreamURL, r.Host[0:strings.Index(r.Host, ".")], requestURI)
+		path := fmt.Sprintf("%sfunction/%s-%s", upstreamURL, host, requestURI)
 
 		fmt.Printf("Proxying to: %s\n", path)
 
