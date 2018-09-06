@@ -2,79 +2,57 @@
 
 
 [[projects]]
-  digest = "1:241812f3621162c2b1b5791ae74cf9d70b1867645dc8008b441404afbe772f8d"
   name = "github.com/alexellis/derek"
   packages = ["auth"]
-  pruneopts = "UT"
   revision = "f8c2d49fd14b3e913c56ad2bd37193775836e906"
   version = "0.6.1"
 
 [[projects]]
-  digest = "1:871b7cfa5fe18bfdbd4bf117c166c3cff8d3b61c8afe4e998b5b8ac0c160ca24"
   name = "github.com/alexellis/hmac"
   packages = ["."]
-  pruneopts = "UT"
   revision = "d5d71edd7bc74eb6ae4b99eccc6bda738435f43f"
   version = "1.2"
 
 [[projects]]
-  digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
   name = "github.com/dgrijalva/jwt-go"
   packages = ["."]
-  pruneopts = "UT"
   revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
   version = "v3.2.0"
 
 [[projects]]
-  digest = "1:cb12bf73c4bbdf76b5ea487a551a6fc6f1c61dd7629c96d6f956f32f24832701"
   name = "github.com/openfaas/faas"
   packages = ["gateway/types"]
-  pruneopts = "UT"
   revision = "9c2f6dd2a4e2aac0b253b29cc031865b76802ed5"
   version = "0.9.0"
 
 [[projects]]
-  digest = "1:ad27d75d737c2b9a3f8ede08b706159ce8b2ace0b6e5f3209f5c100404cf3837"
   name = "github.com/openfaas/faas-cli"
   packages = [
     "schema",
-    "stack",
+    "stack"
   ]
-  pruneopts = "UT"
   revision = "517378c0441f296860f9906c25b4584d9a47d0cd"
   version = "0.6.20"
 
 [[projects]]
-  digest = "1:da7e951a1ff6b1faa30c43307570f8e0d5ff5ce7256af1cc7f38ad89616fa2ae"
   name = "github.com/openfaas/openfaas-cloud"
   packages = ["sdk"]
-  pruneopts = "UT"
-  revision = "2c8b41d64582ad95d0c9d37bed8b2e60ef88b775"
-  version = "0.5.6"
+  revision = "ce4622958b63a168c04393f6cd2e875fa5be0efe"
+  version = "0.5.7"
 
 [[projects]]
-  digest = "1:5b92d232e81c3e8eec282c92dcaa2e0e1ad3c23157be19a01b3e33f7e6e8d137"
   name = "github.com/ryanuber/go-glob"
   packages = ["."]
-  pruneopts = "UT"
   revision = "256dc444b735e061061cf46c809487313d5b0065"
 
 [[projects]]
-  digest = "1:35c04c23c8aef680782e117c67e29750453c92d11448da616d2e399887e5fc86"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  pruneopts = "UT"
   revision = "cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  input-imports = [
-    "github.com/alexellis/derek/auth",
-    "github.com/alexellis/hmac",
-    "github.com/openfaas/faas-cli/schema",
-    "github.com/openfaas/faas-cli/stack",
-    "github.com/openfaas/openfaas-cloud/sdk",
-  ]
+  inputs-digest = "938b5ea5ce6d68923a392ef927901e00e019864add6a5cf411eaf1973efdf722"
   solver-name = "gps-cdcl"
   solver-version = 1

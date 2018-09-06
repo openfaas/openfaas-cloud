@@ -17,11 +17,11 @@
   name = "github.com/openfaas/openfaas-cloud"
   packages = ["sdk"]
   revision = "2cf97d7c25701cc7333781d7b61dcdfbbee2e911"
-  version = "0.5.4"
+  version = "0.5.7"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d745c72bef8e768503a280b683a6d90591a2f6c75460d8a8b1b3cb9465265e8f"
+  inputs-digest = "c9c2df46f9369415bfbe04678fa109d96ca0cdbaa3edee8033f1d0aec27e8281"
   solver-name = "gps-cdcl"
   solver-version = 1

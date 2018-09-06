@@ -30,6 +30,9 @@
   unused-packages = true
 
 [[constraint]]
-  version = "0.8.2"
+  version = "0.8.10"
   name = "github.com/openfaas/faas"
 
+[[constraint]]
+  name = "github.com/alexellis/hmac"
+  version = "1.2.0"
