@@ -4,8 +4,14 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/openfaas/faas/gateway/types"
+)
+
+const (
+	defaultPrivateKeyName  = "private-key"
+	defaultSecretMountPath = "/var/openfaas/secrets"
 )
 
 // AddBasicAuth to a request by reading secrets when available
@@ -27,4 +33,25 @@ func AddBasicAuth(req *http.Request) error {
 		req.SetBasicAuth(credentials.User, credentials.Password)
 	}
 	return nil
+}
+
+func GetPrivateKeyPath() string {
+	// Private key name can be different from the default 'private-key'
+	// When providing a different name in the stack.yaml, user need to specify the name
+	// in github.yml as `private_key_filename: <user_private_key>`
+	privateKeyName := os.Getenv("private_key_filename")
+
+	if privateKeyName == "" {
+		privateKeyName = defaultPrivateKeyName
+	}
+
+	secretMountPath := os.Getenv("secret_mount_path")
+
+	if secretMountPath == "" {
+		secretMountPath = defaultSecretMountPath
+	}
+
+	privateKeyPath := filepath.Join(secretMountPath, privateKeyName)
+
+	return privateKeyPath
 }

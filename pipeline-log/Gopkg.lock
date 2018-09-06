@@ -47,8 +47,8 @@
 [[projects]]
   name = "github.com/openfaas/openfaas-cloud"
   packages = ["sdk"]
-  revision = "2cf97d7c25701cc7333781d7b61dcdfbbee2e911"
-  version = "0.5.4"
+  revision = "ce4622958b63a168c04393f6cd2e875fa5be0efe"
+  version = "0.5.7"
 
 [[projects]]
   name = "github.com/sirupsen/logrus"
@@ -109,6 +109,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "4ddab2164e78ee2f1b3cb375d259094e26329d5ae95a8d7bf475a8293d66ad70"
+  inputs-digest = "1e0e8c1b596af379a1f9ad5acac8033a0894de5ff598ef30e381d1b6e8d862f5"
   solver-name = "gps-cdcl"
   solver-version = 1
