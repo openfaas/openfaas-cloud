@@ -113,7 +113,7 @@ func buildPublicStatusURL(status string, statusContext string, event *sdk.Event)
 				}
 				// for success status if gateway's public url id set the deployed
 				// function url is used in the commit status
-				serviceValue := sdk.ServiceName(event.Owner, event.Service)
+				serviceValue := sdk.FormatServiceName(event.Owner, event.Service)
 				url = publicURL + "function/" + serviceValue
 			}
 		} else { // For context Stack on success the gateway url is used

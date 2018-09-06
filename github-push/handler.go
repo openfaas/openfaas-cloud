@@ -103,7 +103,7 @@ func Handle(req []byte) string {
 		return msg
 	}
 
-	serviceValue := sdk.ServiceName(pushEvent.Repository.Owner.Login, pushEvent.Repository.Name)
+	serviceValue := sdk.FormatServiceName(pushEvent.Repository.Owner.Login, pushEvent.Repository.Name)
 
 	eventInfo := sdk.BuildEventFromPushEvent(pushEvent)
 	status := sdk.BuildStatus(eventInfo, sdk.EmptyAuthToken)

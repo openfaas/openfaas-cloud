@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func Test_ServiceName(t *testing.T) {
+func Test_FormatServiceName(t *testing.T) {
 	values := []struct {
 		eventOwner   string
 		functionName string
@@ -32,7 +32,7 @@ func Test_ServiceName(t *testing.T) {
 		},
 	}
 	for _, test := range values {
-		serviceName := ServiceName(test.eventOwner, test.functionName)
+		serviceName := FormatServiceName(test.eventOwner, test.functionName)
 		if serviceName != test.expectedName {
 			t.Errorf("Expected name: `%v` got: `%v`", test.expectedName, serviceName)
 		}
