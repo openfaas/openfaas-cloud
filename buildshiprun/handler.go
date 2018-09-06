@@ -48,7 +48,7 @@ func Handle(req []byte) string {
 		Source: "buildshiprun",
 	}
 
-	serviceValue := sdk.ServiceName(event.Owner, event.Service)
+	serviceValue := sdk.FormatServiceName(event.Owner, event.Service)
 	log.Printf("%d env-vars for %s", len(event.Environment), serviceValue)
 
 	status := sdk.BuildStatus(event, sdk.EmptyAuthToken)
