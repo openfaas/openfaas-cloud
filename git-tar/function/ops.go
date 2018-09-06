@@ -42,6 +42,25 @@ func parseYAML(pushEvent sdk.PushEvent, filePath string) (*stack.Services, error
 	return parsed, err
 }
 
+func fetchTemplates(filePath string) error {
+	templateRepos := []string{"https://github.com/openfaas/templates", "https://github.com/openfaas-incubator/node8-express-template.git"}
+
+	for _, repo := range templateRepos {
+		pullCmd := exec.Command("faas-cli", "template", "pull", repo)
+		pullCmd.Dir = filePath
+		err := pullCmd.Start()
+		if err != nil {
+			return fmt.Errorf("Failed to start faas-cli template pull: %t", err)
+		}
+		err = pullCmd.Wait()
+		if err != nil {
+			return fmt.Errorf("Failed to wait faas-cli template pull: %t", err)
+		}
+	}
+
+	return nil
+}
+
 func shrinkwrap(pushEvent sdk.PushEvent, filePath string) (string, error) {
 	buildCmd := exec.Command("faas-cli", "build", "-f", "stack.yml", "--shrinkwrap")
 	buildCmd.Dir = filePath
