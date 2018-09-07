@@ -12,7 +12,7 @@ spec:
     spec:
       containers:
       - name: of-router
-        image: openfaas/cloud-router:0.2
+        image: openfaas/cloud-router:0.2.0
         imagePullPolicy: Always
         env:
           - name: upstream_url
