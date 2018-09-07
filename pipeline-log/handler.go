@@ -26,7 +26,7 @@ func Handle(req []byte) string {
 		}
 	}
 
-	region := os.Getenv("s3_region")
+	region := regionName()
 
 	bucketName := bucketName()
 
@@ -120,4 +120,12 @@ func bucketName() string {
 		log.Printf("Bucket name not found, set to default: %v\n", bucketName)
 	}
 	return bucketName
+}
+
+func regionName() string {
+	regionName, exist := os.LookupEnv("s3_region")
+	if exist == false || len(regionName) == 0 {
+		regionName = "us-east-1"
+	}
+	return regionName
 }

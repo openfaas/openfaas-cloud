@@ -307,9 +307,9 @@ ACCESS_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
 
 * If you'd prefer to use an S3 Bucket hosted on AWS
 
-> Generate access key by using the security credentials page. Expand the Access Keys section, and then Create New Root Key.
+> Generate an access key by using the security credentials page. Expand the Access Keys section, and then Create New Root Key.
 
-> Generate secret key by opening the IAM console. Choose Users in the Details pane, pick the IAM user which will use the keys, and then Create Access Key on the Security Credentials tab.
+> Generate an secret key by opening the IAM console. Choose Users in the Details pane, pick the IAM user which will use the keys, and then Create Access Key on the Security Credentials tab.
 
 ```
 SECRET_KEY=access_key_here
