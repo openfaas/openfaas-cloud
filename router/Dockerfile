@@ -2,10 +2,13 @@ FROM golang:1.9-alpine AS builder
 
 WORKDIR /go/src/github.com/openfaas/openfaas-cloud/router
 
-COPY main.go .
-# COPY vendor  vendor
+COPY main.go            .
+COPY main_test.go       .
+COPY config.go          .
+COPY config_test.go     .
 
-RUN go build -o /usr/bin/router .
+RUN go test -v \
+    && go build -o /usr/bin/router .
 
 FROM alpine:3.7
 COPY --from=builder /usr/bin/router /bin/

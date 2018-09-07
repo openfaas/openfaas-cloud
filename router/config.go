@@ -7,12 +7,15 @@ import (
 	"time"
 )
 
+// RouterConfig configuration for the router
 type RouterConfig struct {
 	Port        string
 	UpstreamURL string
 	Timeout     time.Duration
 }
 
+// NewRouterConfig create a new RouterConfig by loading
+// config from environmental variables.
 func NewRouterConfig() RouterConfig {
 	cfg := RouterConfig{
 		Port: "8080",
