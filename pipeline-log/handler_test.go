@@ -76,3 +76,29 @@ func Test_bucketName(t *testing.T) {
 		}
 	}
 }
+func Test_regionName(t *testing.T) {
+	values := []struct {
+		title         string
+		value         string
+		expectedValue string
+	}{
+		{
+			title:         "Region name is set",
+			value:         "eu-west-3",
+			expectedValue: "eu-west-3",
+		},
+		{
+			title:         "Region name unset",
+			value:         "",
+			expectedValue: "us-east-1",
+		},
+	}
+	for _, test := range values {
+		os.Setenv("s3_region", test.value)
+		regionName := regionName()
+		if regionName != test.expectedValue {
+			t.Errorf("Expected region name: `%v` got: `%v`\n", test.expectedValue, regionName)
+		}
+	}
+
+}
