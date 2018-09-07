@@ -208,13 +208,18 @@ kubectl create secret generic \
   registry-secret --from-file=$HOME/.docker/config.json 
 ```
 
-Create of-builder, of-buildkit and network policies:
+Create of-builder, of-buildkit:
 
 ```
-kubectl apply -f ./yaml
+kubectl apply -f ./yaml/core
 ```
 
-Add a role of "openfaas-system" using a label to the namespace where you deployed Ingress Controller. For example if Ingress Controller is deployed in the namespace `ingress-nginx`:
+(Optional) Deploy NetworkPolicy
+```
+kubectl apply -f ./yaml/network-policy
+```
+
+(Optional) Add a role of "openfaas-system" using a label to the namespace where you deployed Ingress Controller. For example if Ingress Controller is deployed in the namespace `ingress-nginx`:
 ```
 kubectl label namespace ingress-nginx role=openfaas-system
 ```
@@ -433,7 +438,7 @@ kubectl get events --sort-by=.metadata.creationTimestamp -n openfaas-fn
 ```
 
 ##### Troubleshoot Network Policies
-The NetworkPolicy configuration is designed to work with a Kubernetes IngressController. If you are using a NodePort or LoadBalancer follow the instructions below.
+The NetworkPolicy configuration is designed to work with a Kubernetes IngressController. If you are using a NodePort or LoadBalancer you have to deploy NetworkPolicy below.
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
