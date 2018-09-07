@@ -11,7 +11,6 @@ functions:
       openfaas-cloud: "1"
       role: openfaas-system
     environment:
-      # Http_X_Github_Event: push
       validate_hmac: true
       read_timeout: 10s
       write_timeout: 10s
