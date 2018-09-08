@@ -487,25 +487,38 @@ https://gateway.domain.com/alexellis-function1
 
 * On Docker Swarm you must remove the suffix `.openfaas` from the gateway address.
 
-* Edit stack.yml
+#### Prerequisites
 
-Set `query_pretty_url`  to `true` when using a sub-domain for each user, if not, then set this to an empty string or remove the line. If set, also define `pretty_url` with the pattern for the URL.
+The Dashboard is a SPA(Single Page App) made with React and will require the following:
 
-For a pretty URL you should also prefix each function with `system-` before deployinh.
+- Node.js
+- Yarn
+
+#### Build and Bundle the Assets
+
+If you have satisfied the prerequisites, the following command should create the assets for the Dashboard.
+
+```bash
+make
+```
+
+**Edit `stack.yml` if needed.**
+
+Set `query_pretty_url` to `true` when using a sub-domain for each user. If set, also define `pretty_url` with the pattern for the URL.
 
 Example with domain `o6s.io`:
 
 ```
-      pretty_url: "http://user.o6s.io/function"
+pretty_url: "http://user.o6s.io/function"
 ```
 
-Set `public_url` to be the URL for the IP / DNS if not using a `pretty_url`
+Set `public_url` to be the URL for the IP / DNS of the OpenFaaS Cloud.
 
-* Deploy
+**Deploy**
 
 ```
-cd dashboard
-faas-cli deploy
+$ cd dashboard
+$ faas-cli deploy
 ```
 
 ### SealedSecret support
