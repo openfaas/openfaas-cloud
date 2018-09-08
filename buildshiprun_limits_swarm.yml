@@ -1,2 +1,2 @@
 environment:
-  default_memory_limit: 64m   # Kubernetes needs a different style of memory limit i.e. Mi
+  default_memory_limit: 128m   # Kubernetes needs a different style of memory limit i.e. Mi
