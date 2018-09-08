@@ -1,84 +1,88 @@
 package main
 
-// import (
-// 	"fmt"
-// 	"io/ioutil"
-// 	"net/http"
-// 	"net/http/httptest"
-// 	"strings"
-// 	"testing"
-// 	"time"
-// )
+import (
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"testing"
+	"time"
+)
 
-// func Test_makeHandler(t *testing.T) {
-// 	config := []struct {
-// 		RequestHost        string
-// 		UpstreamURL        string
-// 		ExpectedStatusCode int
-// 	}{
-// 		{
-// 			RequestHost:        "martindekov.example.xyz/",
-// 			UpstreamURL:        "http://localhost:8080/myfunction",
-// 			ExpectedStatusCode: http.StatusInternalServerError,
-// 		},
-// 		{
-// 			RequestHost:        "martindekov.example.xyz/",
-// 			UpstreamURL:        "/myfunction",
-// 			ExpectedStatusCode: http.StatusServiceUnavailable,
-// 		},
-// 		{
-// 			RequestHost:        "",
-// 			UpstreamURL:        "http://localhost:8080/myfunction",
-// 			ExpectedStatusCode: http.StatusBadRequest,
-// 		},
-// 		{
-// 			RequestHost:        "",
-// 			UpstreamURL:        "http://localhost:8080/",
-// 			ExpectedStatusCode: http.StatusBadRequest,
-// 		},
-// 	}
+type gateway struct {
+	RequestURI string
+}
 
-// 	timeout := time.Second * 30
+func (h *gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	h.RequestURI = r.URL.String()
+	w.Write([]byte("\n"))
+}
 
-// 	for _, test := range config {
-// 		req, err := http.NewRequest(http.MethodPost, "/", nil)
-// 		if err != nil {
-// 			t.Fatalf("Request error: `%v`\n", err)
-// 		}
+type passHandler struct {
+	Next http.HandlerFunc
+}
 
-// 		URI := strings.TrimPrefix(test.UpstreamURL, "http://localhost:8080")
-// 		req.RequestURI = URI
-// 		req.Host = test.RequestHost
+func (h passHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	h.Next(w, r)
+}
 
-// 		rec := httptest.NewRecorder()
-// 		c := &http.Client{
-// 			Timeout: timeout,
-// 		}
+func Test_makeHandler(t *testing.T) {
+	gatewayHandler := &gateway{}
+	gateway := httptest.NewServer(gatewayHandler)
+	defer gateway.Close()
 
-// 		URL := strings.TrimSuffix(test.UpstreamURL, "myfunction")
-// 		handlerFunc := makeHandler(c, timeout, URL)
-// 		handlerFunc(rec, req)
+	c := http.Client{}
 
-// 		if rec.Code != test.ExpectedStatusCode {
-// 			t.Errorf("Expected status code : `%v` got: `%v`", test.ExpectedStatusCode, rec.Code)
-// 		}
+	tests := []struct {
+		Scenario           string
+		RequestURL         string
+		UpstreamURL        string
+		ExpectedStatusCode int
+	}{
+		{
+			Scenario:           "convert username to prefix",
+			RequestURL:         "http://system.example.xyz/dashboard",
+			UpstreamURL:        "/function/system-dashboard",
+			ExpectedStatusCode: http.StatusOK,
+		},
+		{
+			Scenario:           "no sub-domain is invalid",
+			RequestURL:         "http://example.xyz/dashboard",
+			UpstreamURL:        "",
+			ExpectedStatusCode: http.StatusBadRequest,
+		},
+	}
 
-// 		read, err := ioutil.ReadAll(rec.Body)
-// 		if err != nil {
-// 			t.Errorf("Unexpected response body read error: `%v`", err)
-// 		}
+	router := httptest.NewServer(passHandler{
+		Next: makeHandler(&c, time.Second*10, gateway.URL),
+	})
 
-// 		bodyValue := string(read)
-// 		var ExpectedSuffix string
-// 		userFromURI := strings.TrimPrefix(URI, "/")
-// 		if len(test.RequestHost) == 0 {
-// 			ExpectedSuffix = fmt.Sprintf("%s-%s", test.RequestHost, userFromURI)
-// 		} else {
-// 			functionName := test.RequestHost[0:strings.Index(test.RequestHost, ".")]
-// 			ExpectedSuffix = fmt.Sprintf("%s-%s", functionName, userFromURI)
-// 		}
-// 		if !strings.Contains(bodyValue, ExpectedSuffix) {
-// 			t.Errorf("The message: \n%v\nHad to contain: %v", bodyValue, ExpectedSuffix)
-// 		}
-// 	}
-// }
+	defer router.Close()
+
+	for _, testCase := range tests {
+		t.Run(testCase.Scenario, func(t *testing.T) {
+			gatewayHandler.RequestURI = ""
+
+			u, _ := url.Parse(testCase.RequestURL)
+
+			req, _ := http.NewRequest(http.MethodGet, router.URL+u.Path, nil)
+			req.Host = u.Host
+
+			res, err := c.Do(req)
+			if err != nil {
+				t.Error(err)
+				t.Fail()
+			}
+
+			if res.StatusCode != testCase.ExpectedStatusCode {
+				t.Errorf("Status code want: %d, got %d", testCase.ExpectedStatusCode, res.StatusCode)
+				t.Fail()
+			}
+
+			if gatewayHandler.RequestURI != testCase.UpstreamURL {
+
+				t.Errorf("RequestURI want: %s, got: %s", testCase.UpstreamURL, gatewayHandler.RequestURI)
+				t.Fail()
+			}
+		})
+	}
+}
