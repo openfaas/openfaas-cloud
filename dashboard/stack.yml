@@ -9,7 +9,7 @@ functions:
   system-overview:
     lang: go
     handler: ./overview
-    image: alexellis2/overview:0.4.3
+    image: functions/overview:0.4.4
     environment:
       content_type: "text/html"
       combine_output: "false"
@@ -20,7 +20,7 @@ functions:
 
   system-list-functions:
     skip_build: true
-    image: alexellis2/list-functions:0.4.3
+    image: functions/list-functions:0.4.3
     fprocess: ./handler
     environment:
       gateway_url: http://gateway.openfaas:8080/
@@ -35,7 +35,7 @@ functions:
   system-pipeline:
     lang: go
     handler: ./pipeline
-    image: alexellis2/pipeline:0.1.0
+    image: functions/pipeline:0.1.0
     environment:
       content_type: "text/html"
       combine_output: "false"

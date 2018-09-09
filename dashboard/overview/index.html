@@ -119,6 +119,7 @@
                     return 0
                 });
 
+                var userPrefixRegex = new RegExp("^" + user + "-");
                 for(var i = 0; i < data.length; i++) {
                     var index = i;
                     var item = data[index];
@@ -126,10 +127,7 @@
                     var since = new Date(parseInt(item.labels["Git-DeployTime"])*1000);
                     var sinceDuration = moment(since).fromNow();
 
-                    var shortName = item.name;
-                    if(shortName.indexOf("-") > -1) {
-                        shortName = shortName.substr(shortName.indexOf("-") + 1);
-                    }
+                    var shortName = item.name.replace(userPrefixRegex, "");
 
                     var url;
                    
