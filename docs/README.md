@@ -52,8 +52,12 @@ Any account
 
 * Now download the private key for your GitHub App which we will use later in the guide for allowing OpenFaaS Cloud to write to commit statuses when a build passes or fails.
 
-The GitHub app will deliver webhooks to your OpenFaaS Cloud instance every time code is pushed in a user's function repository. Make sure you provide the public URL for your OpenFaaS gateway to the GitHub app. Like:  
-`http://my.openfaas.cloud/function/github-push`
+The GitHub app will deliver webhooks to your OpenFaaS Cloud instance every time code is pushed in a user's function repository. Make sure you provide the public URL for your OpenFaaS gateway to the GitHub app:
+
+* With the router configured the URL should be like: `http://system.openfaas.cloud/github-event`
+
+* If you don't have the router configured remove the `system-` prefix from `system-github-event` in `stack.yml` and set the URL like: `http://my.openfaas.cloud/functions/github-event`
+
 
 ### Create an internal trust secret
 

@@ -24,7 +24,7 @@ functions:
       - github-webhook-secret
       - payload-secret
 
-  github-event:
+  system-github-event:
     lang: go
     handler: ./github-event
     image: functions/github-event:0.5.0
@@ -32,6 +32,7 @@ functions:
       openfaas-cloud: "1"
       role: openfaas-system
     environment:
+      validate_hmac: true
       write_debug: true
       read_debug: true
     environment_file:

@@ -18,7 +18,7 @@ Features:
 * Applies GitOps principles - GitHub is the single source of truth
 * To build and deploy a new version of a function - just push to your GitHub repo
 * Subscription to OpenFaaS Cloud is done via a single click using a GitHub App
-* Secured through HMAC - the public facing function "github-push" uses HMAC to verify the origin of events
+* Secured through HMAC - the public facing function "github-event" uses HMAC to verify the origin of events
 * HTTPS endpoint and build notifications for your commits
 
 ## Blog post
@@ -71,9 +71,13 @@ Read my [introducing OpenFaaS Cloud](https://blog.alexellis.io/introducing-openf
 
 OpenFaaS Cloud is built using OpenFaaS Golang functions to interact with GitHub and build/deploy your functions just seconds after your `git push`.
 
-* Function: github-push
+* Function: github-event
 
 Receives events from the GitHub app and checks the origin via HMAC
+
+* Function: github-push
+
+Handles push events from the "github-event" function
 
 * Function: git-tar
 
