@@ -13,6 +13,8 @@ environment:
   s3_tls: false
   s3_bucket: pipeline
   readonly_root_filesystem: true
+  scaling_min_limit: 1
+  scaling_max_limit: 4
 
 # To use a shared Docker Hub account.
 #  repository_url: docker.io/ofcommunity/
