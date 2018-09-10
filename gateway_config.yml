@@ -12,6 +12,7 @@ environment:
   s3_region: us-east-1
   s3_tls: false
   s3_bucket: pipeline
+  readonly_root_filesystem: true
 
 # To use a shared Docker Hub account.
 #  repository_url: docker.io/ofcommunity/
