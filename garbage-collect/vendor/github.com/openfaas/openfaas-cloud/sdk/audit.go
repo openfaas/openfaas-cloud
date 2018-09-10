@@ -12,12 +12,18 @@ func PostAudit(auditEvent AuditEvent) {
 	c := http.Client{}
 	bytesOut, _ := json.Marshal(&auditEvent)
 	reader := bytes.NewBuffer(bytesOut)
+	auditURL := os.Getenv("audit_url")
 
-	req, _ := http.NewRequest(http.MethodPost, os.Getenv("audit_url"), reader)
+	if len(auditURL) == 0 {
+		log.Println("PostAudit invalid auditURL, empty string")
+		return
+	}
+
+	req, _ := http.NewRequest(http.MethodPost, auditURL, reader)
 
 	res, err := c.Do(req)
 	if err != nil {
-		log.Println(err)
+		log.Println("PostAudit", err)
 		return
 	}
 	if res.Body != nil {

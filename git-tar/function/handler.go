@@ -10,6 +10,8 @@ import (
 	"os"
 	"time"
 
+	"encoding/hex"
+	"github.com/alexellis/hmac"
 	"github.com/openfaas/faas-cli/stack"
 	"github.com/openfaas/openfaas-cloud/sdk"
 )
@@ -118,7 +120,18 @@ func collect(pushEvent sdk.PushEvent, stack *stack.Services) error {
 
 	bytesReq, _ := json.Marshal(garbageReq)
 	bufferReader := bytes.NewBuffer(bytesReq)
+
+	payloadSecret, err := getPayloadSecret()
+
+	if err != nil {
+		return fmt.Errorf("failed to load payload secret, error %t", err)
+	}
+
 	request, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/garbage-collect", bufferReader)
+
+	digest := hmac.Sign(bytesReq, []byte(payloadSecret))
+
+	request.Header.Add("X-Cloud-Signature", "sha1="+hex.EncodeToString(digest))
 
 	response, err := c.Do(request)
 
@@ -146,15 +159,28 @@ func enableStatusReporting() bool {
 	return os.Getenv("report_status") == "true"
 }
 
+func getPayloadSecret() (string, error) {
+	payloadSecret, err := sdk.ReadSecret("payload-secret")
+
+	if err != nil {
+
+		return "", fmt.Errorf("failed to load hmac key for status, error %t", err)
+	}
+
+	return payloadSecret, nil
+}
+
 func reportStatus(status *sdk.Status) {
 
 	if !enableStatusReporting() {
 		return
 	}
 
-	hmacKey, keyErr := sdk.ReadSecret("payload-secret")
+	hmacKey, keyErr := getPayloadSecret()
+
 	if keyErr != nil {
 		log.Printf("failed to load hmac key for status, error " + keyErr.Error())
+
 		return
 	}
 
