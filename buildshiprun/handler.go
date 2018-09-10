@@ -144,6 +144,14 @@ func Handle(req []byte) string {
 		if len(defaultMemoryLimit) == 0 {
 			defaultMemoryLimit = "20m"
 		}
+		scalingMinLimit := os.Getenv("scaling_min_limit")
+		if len(defaultMemoryLimit) == 0 {
+			scalingMinLimit = "1"
+		}
+		scalingMaxLimit := os.Getenv("scaling_max_limit")
+		if len(defaultMemoryLimit) == 0 {
+			scalingMaxLimit = "4"
+		}
 
 		readOnlyRootFS := getReadOnlyRootFS()
 
@@ -161,6 +169,8 @@ func Handle(req []byte) string {
 				"Git-SHA":        event.SHA,
 				"faas_function":  serviceValue,
 				"app":            serviceValue,
+				"com.openfaas.scale.min": scalingMinLimit,
+				"com.openfaas.scale.max": scalingMaxLimit,
 			},
 			Limits: Limits{
 				Memory: defaultMemoryLimit,
