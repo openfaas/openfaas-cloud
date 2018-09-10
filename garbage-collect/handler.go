@@ -11,23 +11,30 @@ import (
 	"strings"
 	"time"
 
+	"github.com/alexellis/hmac"
 	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
 // Handle a serverless request
 func Handle(req []byte) string {
+	validateErr := validateRequest(req)
+
+	if validateErr != nil {
+		log.Fatal(validateErr)
+	}
 
 	garbageReq := GarbageRequest{}
 	err := json.Unmarshal(req, &garbageReq)
+
 	if err != nil {
-		log.Panic(err)
+		log.Fatal(err)
 	}
 
 	gatewayURL := os.Getenv("gateway_url")
 	deployedFunctions, err := listFunctions(garbageReq.Owner, gatewayURL)
 
 	if err != nil {
-		log.Panic(err)
+		log.Fatal(err)
 	}
 
 	fmt.Printf("Functions owned by %s:\n %s", garbageReq.Owner, deployedFunctions)
@@ -46,6 +53,24 @@ func Handle(req []byte) string {
 	}
 
 	return fmt.Sprintf("Garbage collection ran for %s/%s - %d functions deleted.", garbageReq.Owner, garbageReq.Repo, deleted)
+}
+
+func validateRequest(req []byte) (err error) {
+	payloadSecret, err := sdk.ReadSecret("payload-secret")
+
+	if err != nil {
+		return fmt.Errorf("couldn't get payload-secret: %t", err)
+	}
+
+	xCloudSignature := os.Getenv("Http_X_Cloud_Signature")
+
+	err = hmac.Validate(req, xCloudSignature, payloadSecret)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func formatCloudName(name, owner string) string {
