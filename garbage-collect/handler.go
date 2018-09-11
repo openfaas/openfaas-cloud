@@ -173,9 +173,9 @@ type openFaaSFunction struct {
 }
 
 func (f *openFaaSFunction) GetOwner() string {
-	return f.Labels["com.openfaas.cloud.git-owner"]
+	return f.Labels[sdk.FunctionLabelPrefix+"git-owner"]
 }
 
 func (f *openFaaSFunction) GetRepo() string {
-	return f.Labels["com.openfaas.cloud.git-repo"]
+	return f.Labels[sdk.FunctionLabelPrefix+"git-repo"]
 }

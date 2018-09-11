@@ -23,13 +23,13 @@ class FunctionsApi {
       if (
         !a ||
         !b ||
-        (!a.labels['Git-DeployTime'] || !b.labels['Git-DeployTime'])
+        (!a.labels['com.openfaas.cloud.git-deploytime'] || !b.labels['com.openfaas.cloud.git-deploytime'])
       ) {
         return 0;
       }
       return (
-        parseInt(b.labels['Git-DeployTime'], 10) -
-        parseInt(a.labels['Git-DeployTime'], 10)
+        parseInt(b.labels['com.openfaas.cloud.git-deploytime'], 10) -
+        parseInt(a.labels['com.openfaas.cloud.git-deploytime'], 10)
       );
     });
 
@@ -37,7 +37,7 @@ class FunctionsApi {
 
     return data.map(item => {
       const since = new Date(
-        parseInt(item.labels['Git-DeployTime'], 10) * 1000
+        parseInt(item.labels['com.openfaas.cloud.git-deploytime'], 10) * 1000
       );
       const sinceDuration = moment(since).fromNow();
 
@@ -53,7 +53,7 @@ class FunctionsApi {
         endpoint = this.baseURL + '/function/' + item.name;
       }
 
-      let shortSha = item.labels['Git-SHA'];
+      let shortSha = item.labels['com.openfaas.cloud.git-SHA'];
       if (shortSha) {
         shortSha = shortSha.substr(0, 7);
       } else {
@@ -69,10 +69,10 @@ class FunctionsApi {
         sinceDuration,
         invocationCount: item.invocationCount,
         replicas: item.replicas,
-        gitRepo: item.labels['Git-Repo'],
-        gitOwner: item.labels['Git-Owner'],
-        gitDeployTime: item.labels['Git-DeployTime'],
-        gitSha: item.labels['Git-SHA'],
+        gitRepo: item.labels['com.openfaas.cloud.git-repo'],
+        gitOwner: item.labels['com.openfaas.cloud.git-owner'],
+        gitDeployTime: item.labels['com.openfaas.cloud.git-deploytime'],
+        gitSha: item.labels['com.openfaas.cloud.git-SHA'],
         minReplicas: item.labels['com.openfaas.scale.min'],
         maxReplicas: item.labels['com.openfaas.scale.max'],
       };
