@@ -1,15 +1,21 @@
 import axios from 'axios';
-import * as moment from 'moment';
+import moment from 'moment';
 
 class FunctionsApi {
   constructor() {
     this.selectedRepo = '';
-    this.baseURL = window.PUBLIC_URL;
     this.prettyDomain = window.PRETTY_URL;
     this.queryPrettyUrl = window.QUERY_PRETTY_URL === 'true';
 
-    this.apiBaseUrl =
-      process.env.NODE_ENV === 'production' ? `${window.BASE_HREF}api` : '/api';
+    if (process.env.NODE_ENV === 'production') {
+      this.baseURL = window.PUBLIC_URL;
+      this.apiBaseUrl = `${window.BASE_HREF}api`;
+    } else {
+      this.baseURL = 'http://localhost:8080';
+      this.apiBaseUrl = '/api';
+    }
+
+    this.cachedFunctions = {};
   }
 
   parseFunctionResponse({ data }, user) {
@@ -21,16 +27,13 @@ class FunctionsApi {
       ) {
         return 0;
       }
-      const sinceA = new Date(parseInt(a.labels['Git-DeployTime'], 10) * 1000);
-      var sinceB = new Date(parseInt(b.labels['Git-DeployTime'], 10) * 1000);
-
-      if (sinceA > sinceB) {
-        return 1;
-      } else if (sinceB > sinceA) {
-        return -1;
-      }
-      return 0;
+      return (
+        parseInt(b.labels['Git-DeployTime'], 10) -
+        parseInt(a.labels['Git-DeployTime'], 10)
+      );
     });
+
+    const userPrefixRegex = new RegExp(`^${user}-`);
 
     return data.map(item => {
       const since = new Date(
@@ -38,10 +41,7 @@ class FunctionsApi {
       );
       const sinceDuration = moment(since).fromNow();
 
-      let shortName = item.name;
-      if (shortName.indexOf('-') > -1) {
-        shortName = shortName.substr(shortName.indexOf('-') + 1);
-      }
+      const shortName = item.name.replace(userPrefixRegex, '');
 
       let endpoint;
 
@@ -62,6 +62,7 @@ class FunctionsApi {
 
       return {
         name: item.name,
+        image: item.image,
         shortName,
         endpoint,
         shortSha,
@@ -77,7 +78,36 @@ class FunctionsApi {
   }
   fetchFunctions(user) {
     const url = `${this.apiBaseUrl}/list-functions?user=${user}`;
-    return axios.get(url).then(res => this.parseFunctionResponse(res, user));
+    return axios
+      .get(url)
+      .then(res => this.parseFunctionResponse(res, user))
+      .then(data => {
+        this.cachedFunctions = data.reduce((cache, fn) => {
+          cache[`${user}/${fn.gitOwner}/${fn.gitRepo}/${fn.shortName}`] = fn;
+          return cache;
+        }, {});
+        return data;
+      });
+  }
+
+  fetchFunction(user, gitRepo, fnShortname) {
+    return new Promise((resolve, reject) => {
+      const key = `${user}/${gitRepo}/${fnShortname}`;
+
+      const cachedFn = this.cachedFunctions[key];
+      if (cachedFn) {
+        resolve(cachedFn);
+        return;
+      }
+
+      // fetch functions if cache not found
+      this.fetchFunctions(user).then(() => {
+        const fn = this.cachedFunctions[key];
+        fn !== undefined
+          ? resolve(fn)
+          : reject(new Error(`Function ${key} not found`));
+      });
+    });
   }
 
   fetchFunctionLog({ commitSHA, repoPath, functionName }) {

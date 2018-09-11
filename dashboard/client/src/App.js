@@ -5,8 +5,10 @@ import './App.css';
 
 import { NavBar } from './components/NavBar';
 import { FunctionsOverviewPage } from './pages/FunctionsOverviewPage';
+import { FunctionDetailPage } from './pages/FunctionDetailPage';
 import { FunctionLogPage } from './pages/FunctionLogPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { Breadcrumbs } from './components/Breadcrumbs';
 
 export class App extends Component {
   render() {
@@ -17,10 +19,19 @@ export class App extends Component {
       <BrowserRouter basename={basename}>
         <div className="container">
           <NavBar />
+          <Breadcrumbs />
           <div>
             <Switch>
               <Route exact path="/:user" component={FunctionsOverviewPage} />
-              <Route path="/:user/:functionName/log" component={FunctionLogPage} />
+              <Route
+                exact
+                path="/:user/:functionName"
+                component={FunctionDetailPage}
+              />
+              <Route
+                path="/:user/:functionName/log"
+                component={FunctionLogPage}
+              />
               <Route component={NotFoundPage} />
             </Switch>
           </div>
