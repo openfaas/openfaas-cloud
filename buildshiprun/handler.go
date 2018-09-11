@@ -154,15 +154,15 @@ func Handle(req []byte) string {
 			Image:   imageName,
 			Network: "func_functions",
 			Labels: map[string]string{
-				"Git-Cloud":      "1",
-				"Git-Owner":      event.Owner,
-				"Git-Repo":       event.Repository,
-				"Git-DeployTime": strconv.FormatInt(time.Now().Unix(), 10), //Unix Epoch string
-				"Git-SHA":        event.SHA,
-				"faas_function":  serviceValue,
-				"app":            serviceValue,
-				"com.openfaas.scale.min": scalingMinLimit,
-				"com.openfaas.scale.max": scalingMaxLimit,
+				"com.openfaas.cloud.git-cloud":      "1",
+				"com.openfaas.cloud.git-owner":      event.Owner,
+				"com.openfaas.cloud.git-repo":       event.Repository,
+				"com.openfaas.cloud.git-deploytime": strconv.FormatInt(time.Now().Unix(), 10), //Unix Epoch string
+				"com.openfaas.cloud.git-SHA":        event.SHA,
+				"com.openfaas.cloud.faas_function":  serviceValue,
+				"com.openfaas.cloud.app":            serviceValue,
+				"com.openfaas.scale.min":            scalingMinLimit,
+				"com.openfaas.scale.max":            scalingMaxLimit,
 			},
 			Limits: Limits{
 				Memory: defaultMemoryLimit,
