@@ -107,9 +107,9 @@
                 data = JSON.parse(data);
 
                 data.sort(function(a, b) {
-                    if((!a || !b) || (!a.labels["Git-DeployTime"] || !b.labels["Git-DeployTime"] )) return 0;
-                    var sinceA = new Date(parseInt(a.labels["Git-DeployTime"])*1000);
-                    var sinceB = new Date(parseInt(b.labels["Git-DeployTime"])*1000);
+                    if((!a || !b) || (!a.labels["com.openfaas.cloud.git-deploytime"] || !b.labels["com.openfaas.cloud.git-deploytime"] )) return 0;
+                    var sinceA = new Date(parseInt(a.labels["com.openfaas.cloud.git-deploytime"])*1000);
+                    var sinceB = new Date(parseInt(b.labels["com.openfaas.cloud.git-deploytime"])*1000);
 
                     if(sinceA> sinceB) {
                             return 1
@@ -124,7 +124,7 @@
                     var index = i;
                     var item = data[index];
 
-                    var since = new Date(parseInt(item.labels["Git-DeployTime"])*1000);
+                    var since = new Date(parseInt(item.labels["com.openfaas.cloud.git-deploytime"])*1000);
                     var sinceDuration = moment(since).fromNow();
 
                     var shortName = item.name.replace(userPrefixRegex, "");
@@ -137,14 +137,14 @@
                         url = baseURL + "/function/" + item.name;
                     }
 
-                    var fullPath = item.labels["Git-Owner"] + "/" + item.labels["Git-Repo"];
-                    var repoLink = '<a href="https://github.com/' + fullPath + '/commits/master">' + item.labels["Git-Repo"] + '</a>';
+                    var fullPath = item.labels["com.openfaas.cloud.git-owner"] + "/" + item.labels["com.openfaas.cloud.git-repo"];
+                    var repoLink = '<a href="https://github.com/' + fullPath + '/commits/master">' + item.labels["com.openfaas.cloud.git-repo"] + '</a>';
 
                     var rowClass = "";
-                    if (item.labels["Git-Repo"] == selectedRepo) {
+                    if (item.labels["com.openfaas.cloud.git-repo"] == selectedRepo) {
                         rowClass = "class='warning'";
                     }
-                    var sha = item.labels["Git-SHA"];
+                    var sha = item.labels["com.openfaas.cloud.git-SHA"];
                     if(sha) {
                         sha = sha.substr(0,7);
                     } else {
@@ -159,7 +159,7 @@
                         logURL = baseURL + "/function/system-pipeline";
                     }
 
-                    logURL += "?repoPath="+ item.labels["Git-Owner"]+"/"+item.labels["Git-Repo"] + "&commitSHA="+item.labels["Git-SHA"]+"&function="+shortName;
+                    logURL += "?repoPath="+ item.labels["com.openfaas.cloud.git-owner"]+"/"+item.labels["com.openfaas.cloud.git-repo"] + "&commitSHA="+item.labels["com.openfaas.cloud.git-SHA"]+"&function="+shortName;
 
                     $("#items").append('<tr '+rowClass+' data-url="'+url+'">' +
                      '<td>'+shortName+'</td>'+

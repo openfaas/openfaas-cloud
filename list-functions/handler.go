@@ -68,7 +68,7 @@ func Handle(req []byte) string {
 
 	for _, fn := range functions {
 		for k, v := range fn.Labels {
-			if k == "Git-Owner" && strings.EqualFold(v, user) {
+			if k == (sdk.FunctionLabelPrefix+"git-owner") && strings.EqualFold(v, user) {
 				// Hide internal-repo details
 				fn.Image = fn.Image[strings.Index(fn.Image, "/")+1:]
 				filtered = append(filtered, fn)
