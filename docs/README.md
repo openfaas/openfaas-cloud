@@ -516,9 +516,13 @@ Set `public_url` to be the URL for the IP / DNS of the OpenFaaS Cloud.
 
 **Deploy**
 
+> Don't forget to pull the `node8-express-template`
+
 ```
 $ cd dashboard
-$ faas-cli deploy
+
+$ faas-cli template pull https://github.com/openfaas-incubator/node8-express-template
+$ faas-cli up
 ```
 
 ### SealedSecret support
