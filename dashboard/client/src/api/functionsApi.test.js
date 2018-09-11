@@ -10,11 +10,11 @@ const baseFunction = {
   replicas: 1,
 };
 const baseFunctionLabels = {
-  'Git-Cloud': '1',
-  'Git-DeployTime': '1536401680',
-  'Git-Owner': user,
-  'Git-Repo': 'some-function-repo',
-  'Git-SHA': 'abcdefghijklmnopqrstuvwxyz0123456789ABCD',
+  'com.openfaas.cloud.git-cloud': '1',
+  'com.openfaas.cloud.git-deploytime': '1536401680',
+  'com.openfaas.cloud.git-owner': user,
+  'com.openfaas.cloud.git-repo': 'some-function-repo',
+  'com.openfaas.cloud.git-SHA': 'abcdefghijklmnopqrstuvwxyz0123456789ABCD',
   app: `${user}-some-function`,
   faas_function: `${user}-some-function`,
   uid: '111111111',
@@ -46,14 +46,14 @@ describe('functionsApi', () => {
         labels: { ...baseFunctionLabels },
       };
       functionResponse1.name = `${user}-older-function`;
-      functionResponse1.labels['Git-DeployTime'] = '1500000000';
+      functionResponse1.labels['com.openfaas.cloud.git-deploytime'] = '1500000000';
 
       const functionResponse2 = {
         ...baseFunction,
         labels: { ...baseFunctionLabels },
       };
       functionResponse2.name = `${user}-newer-function`;
-      functionResponse2.labels['Git-DeployTime'] = '1500000001';
+      functionResponse2.labels['com.openfaas.cloud.git-deploytime'] = '1500000001';
 
       axios.get.mockImplementation(() =>
         Promise.resolve({ data: [functionResponse1, functionResponse2] })
