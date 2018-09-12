@@ -175,7 +175,6 @@ func Test_getReadOnlyRootFS_override(t *testing.T) {
 		t.Fail()
 	}
 }
-
 func Test_getMemoryLimit_Swarm(t *testing.T) {
 	tests := []struct {
 		title         string
@@ -277,4 +276,49 @@ func Test_existingVariable_nonExistent(t *testing.T) {
 			t.Errorf("Should be:`%v` got:`%v`", expectedBool, exist)
 		}
 	})
+}
+
+func Test_getConfig(t *testing.T) {
+
+	var configOpts = []struct {
+		name         string
+		value        string
+		defaultValue string
+		isConfugured bool
+	}{
+		{
+			name:         "scaling_max_limit",
+			value:        "",
+			defaultValue: "4",
+			isConfugured: true,
+		},
+		{
+			name:         "scaling_max_limit",
+			value:        "10",
+			defaultValue: "4",
+			isConfugured: true,
+		},
+		{
+			name:         "random_config",
+			value:        "",
+			defaultValue: "18",
+			isConfugured: false,
+		},
+	}
+	for _, config := range configOpts {
+		t.Run(config.name, func(t *testing.T) {
+			if config.isConfugured {
+				os.Setenv(config.name, config.value)
+			}
+			value := getConfig(config.name, config.defaultValue)
+			want := config.defaultValue
+			if len(config.value) > 0 {
+				want = config.value
+			}
+
+			if value != want {
+				t.Errorf("want %s, but got %s", want, value)
+			}
+		})
+	}
 }
