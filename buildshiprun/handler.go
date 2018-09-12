@@ -140,10 +140,8 @@ func Handle(req []byte) string {
 
 		log.Printf("Deploying %s as %s", imageName, serviceValue)
 
-		defaultMemoryLimit := os.Getenv("default_memory_limit")
-		if len(defaultMemoryLimit) == 0 {
-			defaultMemoryLimit = "20m"
-		}
+		defaultMemoryLimit := getMemoryLimit()
+
 		scalingMinLimit := os.Getenv("scaling_min_limit")
 		if len(defaultMemoryLimit) == 0 {
 			scalingMinLimit = "1"
@@ -452,4 +450,27 @@ func getRegistryAuthSecret() string {
 		return strings.TrimSpace(string(res))
 	}
 	return ""
+}
+
+func getMemoryLimit() string {
+	suffix := "m"
+	determiningEnv := "KUBERNETES_SERVICE_PORT"
+	memoryLimit := os.Getenv("function_memory_limit_mb")
+
+	if existingVariable(determiningEnv) {
+		suffix = "Mi"
+	}
+
+	if len(memoryLimit) == 0 {
+		memoryLimit = "20" + suffix
+	} else {
+		memoryLimit = memoryLimit + suffix
+	}
+
+	return memoryLimit
+}
+
+func existingVariable(envVar string) bool {
+	_, exists := os.LookupEnv(envVar)
+	return exists
 }

@@ -74,7 +74,7 @@ functions:
       write_debug: true
       read_debug: true
     environment_file:
-      - buildshiprun_limits_swarm.yml
+      - buildshiprun_limits.yml
       - gateway_config.yml
       - github.yml
     secrets:
