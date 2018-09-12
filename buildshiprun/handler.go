@@ -142,14 +142,8 @@ func Handle(req []byte) string {
 
 		defaultMemoryLimit := getMemoryLimit()
 
-		scalingMinLimit := os.Getenv("scaling_min_limit")
-		if len(defaultMemoryLimit) == 0 {
-			scalingMinLimit = "1"
-		}
-		scalingMaxLimit := os.Getenv("scaling_max_limit")
-		if len(defaultMemoryLimit) == 0 {
-			scalingMaxLimit = "4"
-		}
+		scalingMinLimit := getConfig("scaling_min_limit", "1")
+		scalingMaxLimit := getConfig("scaling_max_limit", "4")
 
 		readOnlyRootFS := getReadOnlyRootFS()
 
@@ -202,6 +196,15 @@ func Handle(req []byte) string {
 	status.AddStatus(sdk.StatusSuccess, fmt.Sprintf("deployed: %s", serviceValue), sdk.BuildFunctionContext(event.Service))
 	reportStatus(status)
 	return fmt.Sprintf("buildStatus %s %s", imageName, res.Status)
+}
+
+func getConfig(key string, defaultValue string) string {
+
+	res := os.Getenv(key)
+	if len(res) == 0 {
+		res = defaultValue
+	}
+	return res
 }
 
 // createPipelineLog sends a log to pipeline-log and will
