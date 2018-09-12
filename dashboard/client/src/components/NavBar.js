@@ -42,7 +42,7 @@ class NavBarWithRouter extends Component {
               />
             </a>
             <p className="navbar-text">
-              <a href="#">OpenFaaS Cloud</a>
+              <a href="https://docs.openfaas.com/openfaas-cloud/intro">OpenFaaS Cloud</a>
             </p>
           </div>
           <ul className="nav navbar-nav">{navLink}</ul>
