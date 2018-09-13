@@ -11,8 +11,7 @@ export class FunctionLogPage extends Component {
   constructor(props) {
     super(props);
     const { commitSHA, repoPath } = queryString.parse(props.location.search);
-    const { functionName } = props.match.params;
-
+    const { functionName } = props.match.params;    
     this.state = {
       isLoading: true,
       log: '',
@@ -28,7 +27,10 @@ export class FunctionLogPage extends Component {
       this.setState({ isLoading: false, log: res });
     });
   }
-
+  onEditorLoad(editor) {
+    editor.scrollToLine(editor.getSession().getLength());
+    editor.navigateLineEnd();
+  } 
   render() {
     const { commitSHA, repoPath, functionName } = this.state;
 
@@ -38,6 +40,7 @@ export class FunctionLogPage extends Component {
       mode: 'sh',
       theme: 'monokai',
       readOnly: true,
+      onLoad: this.onEditorLoad,
       wrapEnabled: true,
       showPrintMargin: false,
       editorProps: {
