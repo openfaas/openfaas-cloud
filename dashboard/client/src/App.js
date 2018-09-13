@@ -16,30 +16,32 @@ export class App extends Component {
     const basename =
       process.env.NODE_ENV === 'production' ? window.BASE_HREF : '/';
     return (
-      <BrowserRouter basename={basename}>
-        <div className="container">
-          <NavBar />
-          <Breadcrumbs />
-          <div>
-            <Switch>
-              <Route exact path="/:user" component={FunctionsOverviewPage} />
-              <Route
-                exact
-                path="/:user/:functionName"
-                component={FunctionDetailPage}
-              />
-              <Route
-                path="/:user/:functionName/log"
-                component={FunctionLogPage}
-              />
-              <Route component={NotFoundPage} />
-            </Switch>
-          </div>
-          <p>
-            Powered by <a href="https://www.openfaas.com">OpenFaaS</a>
-          </p>
-        </div>
-      </BrowserRouter>
+        <BrowserRouter basename={basename}>
+          <React.Fragment>
+            <NavBar />
+            <div className="container">
+              <Breadcrumbs />
+              <div>
+                <Switch>
+                  <Route exact path="/:user" component={FunctionsOverviewPage} />
+                  <Route
+                    exact
+                    path="/:user/:functionName"
+                    component={FunctionDetailPage}
+                  />
+                  <Route
+                    path="/:user/:functionName/log"
+                    component={FunctionLogPage}
+                  />
+                  <Route component={NotFoundPage} />
+                </Switch>
+              </div>
+              <p>
+                Powered by <a href="https://www.openfaas.com">OpenFaaS</a>
+              </p>
+            </div>
+          </React.Fragment>
+        </BrowserRouter>
     );
   }
 }
