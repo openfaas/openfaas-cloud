@@ -53,7 +53,7 @@ yarn
 
 **Set Proxy**
 
-Depending on your environment, set the proxy for the webpack devServer. By default, all `/api` requests get proxied to `http://localhost:8080/function` which will usually be your local OpenFaaS gateway. Change this inside the `package.json` for your environment.
+Depending on your environment, set the proxy for the webpack devServer. By default, all `/api` requests get proxied to `http://127.0.0.1:8080/function` which will usually be your local OpenFaaS gateway. Change this inside the `package.json` for your environment.
 
 ```json
   "proxy": {
@@ -61,7 +61,7 @@ Depending on your environment, set the proxy for the webpack devServer. By defau
       "pathRewrite": {
         "^/api": "/"
       },
-      "target": "http://localhost:8080/function",
+      "target": "http://127.0.0.1:8080/function",
     }
   },
 ```
@@ -73,4 +73,4 @@ Depending on your environment, set the proxy for the webpack devServer. By defau
 yarn start
 ```
 
-You can connect to the UI at http://localhost:3000.
+You can connect to the UI at http://127.0.0.1:3000.

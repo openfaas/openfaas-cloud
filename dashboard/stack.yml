@@ -9,7 +9,7 @@ functions:
   system-dashboard:
     lang: node8-express
     handler: ./of-cloud-dashboard
-    image: functions/of-cloud-dashboard:0.1.1
+    image: functions/of-cloud-dashboard:0.1.2
     environment:
       write_debug: true
       gateway_url: http://gateway.openfaas:8080/

@@ -12,6 +12,7 @@ import {
   faCodeBranch,
   faBolt,
   faCubes,
+  faPlusSquare,
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
@@ -21,7 +22,8 @@ library.add(
   faInfoCircle,
   faCodeBranch,
   faBolt,
-  faCubes
+  faCubes,
+  faPlusSquare
 );
 
 ReactDOM.render(<App />, document.getElementById('root'));

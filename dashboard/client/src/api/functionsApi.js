@@ -11,7 +11,7 @@ class FunctionsApi {
       this.baseURL = window.PUBLIC_URL;
       this.apiBaseUrl = `${window.BASE_HREF}api`;
     } else {
-      this.baseURL = 'http://localhost:8080';
+      this.baseURL = 'http://127.0.0.1:8080';
       this.apiBaseUrl = '/api';
     }
 

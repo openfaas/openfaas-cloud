@@ -9,7 +9,7 @@ function renderBody(fns, user) {
   if (fns.length === 0) {
     return (
       <tr>
-        <td>There are no functions.</td>
+        <td>No functions available.</td>
       </tr>
     );
   } else {
@@ -33,7 +33,9 @@ function renderBody(fns, user) {
       return (
         <tr key={i}>
           <td>
-            <Link to={fnDetailPath}>{shortName}</Link>
+            <Link to={fnDetailPath}>
+              <FontAwesomeIcon icon="plus-square" />&nbsp;{shortName}
+            </Link>
           </td>
           <td>
             <a href={repoUrl}>{gitRepo}</a>
