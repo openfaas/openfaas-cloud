@@ -55,7 +55,7 @@ export class FunctionLogPage extends Component {
     return (
       <div className="panel panel-success">
         <div className="panel-heading">
-          Logs for {functionName} in {repoPath} @ {commitSHA}
+          Build logs from {functionName} @ {commitSHA} - ({repoPath})
         </div>
         <div className="panel-body">{panelBody}</div>
       </div>
