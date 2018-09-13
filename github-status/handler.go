@@ -134,15 +134,15 @@ func buildPublicStatusURL(status string, statusContext string, event *sdk.Event)
 
 		if len(gatewayPrettyURL) > 0 {
 			url = strings.Replace(gatewayPrettyURL, "user", "system", 1)
-			url = strings.Replace(url, "function", "pipeline", 1)
+			url = strings.Replace(url, "function", "dashboard", 1)
 
 		} else if len(publicURL) > 0 {
 			if strings.HasSuffix(publicURL, "/") == false {
 				publicURL = publicURL + "/"
 			}
-			url = publicURL + "/function/system-pipeline"
+			url = publicURL + "/function/system-dashboard"
 		}
-		url += "?repoPath=" + event.Owner + "/" + event.Repository + "&commitSHA=" + event.SHA + "&function=" + event.Service
+		url += "/" + event.Owner + "/" + event.Service + "/log?repoPath=" + event.Owner + "/" + event.Repository + "&commitSHA=" + event.SHA
 	}
 
 	return url
