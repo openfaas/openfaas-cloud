@@ -188,3 +188,10 @@ functions:
       write_debug: true
       read_debug: true
 
+  expose-metrics:
+    lang: go
+    handler: ./expose-metrics
+    image: functions/expose-metrics:0.1.0
+    environment:
+      prometheus_host: prometheus
+      prometheus_port: 9090
