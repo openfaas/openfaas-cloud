@@ -3,9 +3,9 @@ import PropTypes from 'prop-types';
 import './FunctionTable.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { Link } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 
-function renderBody(fns, user) {
+function renderBody(fns, user, clickHandler) {
   if (fns.length === 0) {
     return (
       <tr>
@@ -30,23 +30,23 @@ function renderBody(fns, user) {
       const fnDetailPath = `${user}/${shortName}?repoPath=${gitOwner}/${gitRepo}`;
 
       const repoUrl = `https://github.com/${gitOwner}/${gitRepo}/commits/master`;
+
+      const handleRowClick = () => clickHandler(fnDetailPath);
       return (
-        <tr key={i}>
+        <tr key={i} onClick={handleRowClick}>
+          <td>{shortName}</td>
           <td>
-            <Link to={fnDetailPath}>
-              <FontAwesomeIcon icon="plus-square" />&nbsp;{shortName}
-            </Link>
+            <a href={repoUrl} onClick={e => e.stopPropagation()}>
+              {gitRepo}
+            </a>
           </td>
           <td>
-            <a href={repoUrl}>{gitRepo}</a>
-          </td>
-          <td>
-            <a href={endpoint}>
+            <a href={endpoint} onClick={e => e.stopPropagation()}>
               <FontAwesomeIcon icon="link" />
             </a>
           </td>
           <td>
-            <Link to={logPath}>
+            <Link to={logPath} onClick={e => e.stopPropagation()}>
               <FontAwesomeIcon icon="folder-open" />
             </Link>
           </td>
@@ -60,7 +60,8 @@ function renderBody(fns, user) {
   }
 }
 
-export const FunctionTable = ({ isLoading, fns, user }) => {
+export const FunctionTable = withRouter(({ isLoading, fns, user, history }) => {
+  const onRowClick = to => history.push(to);
   const tbody = isLoading ? (
     <tr>
       <td colSpan="8" style={{ textAlign: 'center' }}>
@@ -68,11 +69,16 @@ export const FunctionTable = ({ isLoading, fns, user }) => {
       </td>
     </tr>
   ) : (
-    renderBody(fns, user)
+    renderBody(fns, user, onRowClick)
   );
+
+  let tableClassName = 'table';
+  if (fns && fns.length > 0) {
+    tableClassName += ' table-hover';
+  }
   return (
-    <div className="table-responsive">
-      <table className="table">
+    <div className="function-table table-responsive">
+      <table className={tableClassName}>
         <thead>
           <tr>
             <th>Name</th>
@@ -80,8 +86,8 @@ export const FunctionTable = ({ isLoading, fns, user }) => {
             <th>Endpoint</th>
             <th>Logs</th>
             <th>SHA</th>
-            <th>Built</th>
-            <th>Invocation Count</th>
+            <th>Deployed</th>
+            <th>Invocations</th>
             <th>Replicas</th>
           </tr>
         </thead>
@@ -89,9 +95,10 @@ export const FunctionTable = ({ isLoading, fns, user }) => {
       </table>
     </div>
   );
-};
+});
 
 FunctionTable.propTypes = {
   isLoading: PropTypes.bool.isRequired,
   fns: PropTypes.array.isRequired,
+  user: PropTypes.string.isRequired,
 };

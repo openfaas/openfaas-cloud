@@ -8,3 +8,7 @@ table {
   text-align: start;
   font-variant: normal;
 }
+
+.function-table .table-hover>tbody>tr:hover {
+  cursor: pointer;
+}
