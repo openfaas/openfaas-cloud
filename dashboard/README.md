@@ -8,8 +8,49 @@ The Dashboard is optional and can be installed to visualise your functions.
 
 The Dashboard is a SPA(Single Page App) made with React and will require the following:
 
-- Node.js
-- Yarn
+- faas-cli
+- OpenFaaS deployed locally on Swarm or Kubernetes
+- Docker
+- Node.js LTS
+- yarn
+
+### Deploy a few functions for sample data
+
+This may be simpler than deploying the builder and connecting your OpenFaaS Cloud to a GitHub App.
+
+```
+$ faas-cli store deploy figlet --name alexellis-figlet --label Git-Owner=alexellis \
+ --label Git-Repo=figlet --label Git-SHA=665d9597547d8e0425630ba2dbb73c2951a61ce2 \
+ --label Git-DeployTime=1533026741 --label Git-Cloud=1 --network=func_functions \
+ --label com.openfaas.scale.min=1 --label com.openfaas.scale.max=4
+```
+
+```
+$ faas-cli store deploy nodeinfo --name alexellis-nodeinfo --label Git-Owner=alexellis \
+ --label Git-Repo=nodeinfo --label Git-SHA=665d9597547d8e0425630ba2dbb73c2951a61ce2 \
+ --label Git-DeployTime=1533026741 --label Git-Cloud=1 \
+ --label com.openfaas.scale.min=1 --label com.openfaas.scale.max=4 --network=func_functions
+```
+
+### Deploy at least the list-functions function
+
+From the root directory edit `gateway_config.yml`, if on Swarm remove any `.openfaas` suffix you see in URLs.
+
+Now run:
+
+```
+$ faas-cli deploy --filter="list-functions"
+```
+
+The `list-functions` function will be accessed by the dashboard and will be querying the metadata from the functions we deployed in the previous step.
+
+### Edit stack.yml for the dashboard
+
+From the dashboard folder make edits to `stack.yml` (read the comments in the file) for the dashboard, then deploy only the new dashboard function:
+
+```
+$ faas-cli deploy --filter="system-dashboard"
+```
 
 ### Build and Bundle the Assets
 
@@ -42,14 +83,21 @@ $ faas-cli up
 
 ## Development
 
-**Install Dependencies**
+Install `yarn` (requires Node.js LTS)
+
+```
+npm i -g yarn
+```
+
+The source code for the dashboard (written in React.js) with Bootstrap 3 has to be built into a generated folder. In order to do this type in `make`
 
 ```bash
-# Move to the client directory
-cd client
-# Install dependencies
-yarn
+make
 ```
+
+You will see new files written into `of-cloud-dashboard/dist`
+
+When you are ready to make a Pull Request, do not commit the `of-cloud-dashboard/dist` folder since it will cause issues with multiple developers clashing over the same files. Instead only commit the `client` folder and make sure that you ignore any edits that you have made to `stack.yml` for your local environment.
 
 **Set Proxy**
 

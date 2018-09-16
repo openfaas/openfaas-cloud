@@ -24,6 +24,8 @@ function renderBody(fns, user, clickHandler) {
         sinceDuration,
         invocationCount,
         replicas,
+        minReplicas,
+        maxReplicas
       } = fn;
 
       const logPath = `${user}/${shortName}/log?repoPath=${gitOwner}/${gitRepo}&commitSHA=${gitSha}`;
@@ -33,8 +35,10 @@ function renderBody(fns, user, clickHandler) {
 
       const handleRowClick = () => clickHandler(fnDetailPath);
 
-      // FIXME: This needs to use the `replicas` and `maxReplicas`. The code below is just mocking data.
-      const percentage = Math.floor(((i + 1) / fns.length) * 100);
+      const lowerReplicas = minReplicas && minReplicas.length && parseInt(minReplicas) ? minReplicas : 1
+      const upperReplicas = maxReplicas && maxReplicas.length && parseInt(maxReplicas) ? maxReplicas : 1
+      const percentage = Math.floor((lowerReplicas / upperReplicas) * 100);
+
       let progressClassName = 'progress-bar';
       if (percentage < 66) {
         progressClassName += ' progress-bar-success';
@@ -43,8 +47,10 @@ function renderBody(fns, user, clickHandler) {
       } else {
         progressClassName += ' progress-bar-danger';
       }
+
       return (
         <tr key={i} onClick={handleRowClick}>
+          <td>{shortName}</td>
           <td>
             <a
               className="btn btn-default btn-xs"
@@ -54,7 +60,6 @@ function renderBody(fns, user, clickHandler) {
               <FontAwesomeIcon icon="link" />
             </a>
           </td>
-          <td>{shortName}</td>
           <td>
             <a href={repoUrl} onClick={e => e.stopPropagation()}>
               {gitRepo}
@@ -76,7 +81,7 @@ function renderBody(fns, user, clickHandler) {
             </div>
             <div className="text-center">
               <small>
-                {i + 1}/{fns.length}
+                {replicas}/{upperReplicas}
               </small>
             </div>
           </td>
@@ -116,8 +121,8 @@ export const FunctionTable = withRouter(({ isLoading, fns, user, history }) => {
       <table className={tableClassName}>
         <thead>
           <tr>
-            <th style={{ width: '42px' }} />
             <th>Name</th>
+            <th style={{ width: '42px' }} />
             <th>Repository</th>
             <th>SHA</th>
             <th>Deployed</th>

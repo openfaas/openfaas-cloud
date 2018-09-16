@@ -23,10 +23,10 @@ export class FunctionsOverviewPage extends Component {
     const { user } = this.state;
     return (
       <div className="panel panel-success">
-        <div className="panel-heading">Functions</div>
+        <div className="panel-heading">Functions for <span id="username">{user}</span></div>
         <div className="panel-body">
           <p>
-            Welcome <span id="username">{user}</span>
+            Welcome to the OpenFaaS Cloud Dashboard! Click on a function for more details.
           </p>
           <FunctionTable
             isLoading={this.state.isLoading}

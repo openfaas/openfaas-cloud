@@ -73,6 +73,8 @@ class FunctionsApi {
         gitOwner: item.labels['Git-Owner'],
         gitDeployTime: item.labels['Git-DeployTime'],
         gitSha: item.labels['Git-SHA'],
+        minReplicas: item.labels['com.openfaas.scale.min'],
+        maxReplicas: item.labels['com.openfaas.scale.max'],
       };
     });
   }
