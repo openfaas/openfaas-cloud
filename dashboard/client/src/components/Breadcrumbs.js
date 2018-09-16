@@ -8,7 +8,8 @@ import './Breadcrumbs.css';
 class BreadcrumbsWithRouter extends Component {
   constructor(props) {
     super(props);
-    console.log(props);
+    // console.log(props);
+
     let parts = this.pathToParts(
       props.location.pathname,
       props.location.search
@@ -22,6 +23,7 @@ class BreadcrumbsWithRouter extends Component {
       .replace(/\/$/, '')
       .split('/')
       .slice(1);
+      
     return parts.reduce((acc, p, i) => {
       let previousPath;
       if (i === 0) {
@@ -66,10 +68,6 @@ class BreadcrumbsWithRouter extends Component {
     });
 
     let breadcrumbClassName = 'breadcrumb';
-    if (parts.length <= 1) {
-      // hide the breadcrumb at root
-      breadcrumbClassName += ' invisible';
-    }
 
     return <ol className={breadcrumbClassName}>{links}</ol>;
   }
