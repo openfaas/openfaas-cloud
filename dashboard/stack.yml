@@ -9,16 +9,20 @@ functions:
   system-dashboard:
     lang: node8-express
     handler: ./of-cloud-dashboard
-    image: functions/of-cloud-dashboard:0.1.2
+    image: functions/of-cloud-dashboard:0.1.3
     environment:
       write_debug: true
+      # gateway_url: http://gateway:8080/ # when using Swarm
       gateway_url: http://gateway.openfaas:8080/
+      # base_href: `/function/system-dashboard` # if not using router
       base_href: '/dashboard/'
+      # public_url: http://laptop-ip:8080/ # if deploying locally
       public_url: https://system.o6s.io
       # Comment out if not using public pretty-URL
       pretty_url: https://user.o6s.io/function
       query_pretty_url: 'true'
 
+# Functions for the legacy dashboard
   system-overview:
     lang: go
     handler: ./overview
