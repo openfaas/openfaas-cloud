@@ -32,28 +32,63 @@ function renderBody(fns, user, clickHandler) {
       const repoUrl = `https://github.com/${gitOwner}/${gitRepo}/commits/master`;
 
       const handleRowClick = () => clickHandler(fnDetailPath);
+
+      // FIXME: This needs to use the `replicas` and `maxReplicas`. The code below is just mocking data.
+      const percentage = Math.floor(((i + 1) / fns.length) * 100);
+      let progressClassName = 'progress-bar';
+      if (percentage < 66) {
+        progressClassName += ' progress-bar-success';
+      } else if (66 <= percentage && percentage < 90) {
+        progressClassName += ' progress-bar-warning';
+      } else {
+        progressClassName += ' progress-bar-danger';
+      }
       return (
         <tr key={i} onClick={handleRowClick}>
+          <td>
+            <a
+              className="btn btn-default btn-xs"
+              href={endpoint}
+              onClick={e => e.stopPropagation()}
+            >
+              <FontAwesomeIcon icon="link" />
+            </a>
+          </td>
           <td>{shortName}</td>
           <td>
             <a href={repoUrl} onClick={e => e.stopPropagation()}>
               {gitRepo}
             </a>
           </td>
-          <td>
-            <a href={endpoint} onClick={e => e.stopPropagation()}>
-              <FontAwesomeIcon icon="link" />
-            </a>
-          </td>
-          <td>
-            <Link to={logPath} onClick={e => e.stopPropagation()}>
-              <FontAwesomeIcon icon="folder-open" />
-            </Link>
-          </td>
           <td>{shortSha}</td>
           <td>{sinceDuration}</td>
           <td>{invocationCount}</td>
-          <td>{replicas}</td>
+          <td>
+            <div className="progress">
+              <div
+                className={progressClassName}
+                role="progressbar"
+                aria-valuenow={percentage}
+                aria-valuemin="0"
+                aria-valuemax="100"
+                style={{ width: `${percentage}%` }}
+              />
+            </div>
+            <div className="text-center">
+              <small>
+                {i + 1}/{fns.length}
+              </small>
+            </div>
+          </td>
+          <td>
+            <Link
+              className="btn btn-default btn-xs"
+              to={logPath}
+              onClick={e => e.stopPropagation()}
+            >
+              <FontAwesomeIcon icon="folder-open" />
+            </Link>
+          </td>
         </tr>
       );
     });
@@ -81,14 +116,14 @@ export const FunctionTable = withRouter(({ isLoading, fns, user, history }) => {
       <table className={tableClassName}>
         <thead>
           <tr>
+            <th style={{ width: '42px' }} />
             <th>Name</th>
-            <th>Repo</th>
-            <th>Endpoint</th>
-            <th>Logs</th>
+            <th>Repository</th>
             <th>SHA</th>
             <th>Deployed</th>
             <th>Invocations</th>
             <th>Replicas</th>
+            <th />
           </tr>
         </thead>
         <tbody id="items">{tbody}</tbody>
