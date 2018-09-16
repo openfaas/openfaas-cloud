@@ -3,9 +3,9 @@ import PropTypes from 'prop-types';
 import './FunctionTable.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { Link } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 
-function renderBody(fns, user) {
+function renderBody(fns, user, clickHandler) {
   if (fns.length === 0) {
     return (
       <tr>
@@ -30,37 +30,73 @@ function renderBody(fns, user) {
       const fnDetailPath = `${user}/${shortName}?repoPath=${gitOwner}/${gitRepo}`;
 
       const repoUrl = `https://github.com/${gitOwner}/${gitRepo}/commits/master`;
+
+      const handleRowClick = () => clickHandler(fnDetailPath);
+
+      // FIXME: This needs to use the `replicas` and `maxReplicas`. The code below is just mocking data.
+      const percentage = Math.floor(((i + 1) / fns.length) * 100);
+      let progressClassName = 'progress-bar';
+      if (percentage < 66) {
+        progressClassName += ' progress-bar-success';
+      } else if (66 <= percentage && percentage < 90) {
+        progressClassName += ' progress-bar-warning';
+      } else {
+        progressClassName += ' progress-bar-danger';
+      }
       return (
-        <tr key={i}>
+        <tr key={i} onClick={handleRowClick}>
           <td>
-            <Link to={fnDetailPath}>
-              <FontAwesomeIcon icon="plus-square" />&nbsp;{shortName}
-            </Link>
-          </td>
-          <td>
-            <a href={repoUrl}>{gitRepo}</a>
-          </td>
-          <td>
-            <a href={endpoint}>
+            <a
+              className="btn btn-default btn-xs"
+              href={endpoint}
+              onClick={e => e.stopPropagation()}
+            >
               <FontAwesomeIcon icon="link" />
             </a>
           </td>
+          <td>{shortName}</td>
           <td>
-            <Link to={logPath}>
-              <FontAwesomeIcon icon="folder-open" />
-            </Link>
+            <a href={repoUrl} onClick={e => e.stopPropagation()}>
+              {gitRepo}
+            </a>
           </td>
           <td>{shortSha}</td>
           <td>{sinceDuration}</td>
           <td>{invocationCount}</td>
-          <td>{replicas}</td>
+          <td>
+            <div className="progress">
+              <div
+                className={progressClassName}
+                role="progressbar"
+                aria-valuenow={percentage}
+                aria-valuemin="0"
+                aria-valuemax="100"
+                style={{ width: `${percentage}%` }}
+              />
+            </div>
+            <div className="text-center">
+              <small>
+                {i + 1}/{fns.length}
+              </small>
+            </div>
+          </td>
+          <td>
+            <Link
+              className="btn btn-default btn-xs"
+              to={logPath}
+              onClick={e => e.stopPropagation()}
+            >
+              <FontAwesomeIcon icon="folder-open" />
+            </Link>
+          </td>
         </tr>
       );
     });
   }
 }
 
-export const FunctionTable = ({ isLoading, fns, user }) => {
+export const FunctionTable = withRouter(({ isLoading, fns, user, history }) => {
+  const onRowClick = to => history.push(to);
   const tbody = isLoading ? (
     <tr>
       <td colSpan="8" style={{ textAlign: 'center' }}>
@@ -68,30 +104,36 @@ export const FunctionTable = ({ isLoading, fns, user }) => {
       </td>
     </tr>
   ) : (
-    renderBody(fns, user)
+    renderBody(fns, user, onRowClick)
   );
+
+  let tableClassName = 'table';
+  if (fns && fns.length > 0) {
+    tableClassName += ' table-hover';
+  }
   return (
-    <div className="table-responsive">
-      <table className="table">
+    <div className="function-table table-responsive">
+      <table className={tableClassName}>
         <thead>
           <tr>
+            <th style={{ width: '42px' }} />
             <th>Name</th>
-            <th>Repo</th>
-            <th>Endpoint</th>
-            <th>Logs</th>
+            <th>Repository</th>
             <th>SHA</th>
-            <th>Built</th>
-            <th>Invocation Count</th>
+            <th>Deployed</th>
+            <th>Invocations</th>
             <th>Replicas</th>
+            <th />
           </tr>
         </thead>
         <tbody id="items">{tbody}</tbody>
       </table>
     </div>
   );
-};
+});
 
 FunctionTable.propTypes = {
   isLoading: PropTypes.bool.isRequired,
   fns: PropTypes.array.isRequired,
+  user: PropTypes.string.isRequired,
 };
