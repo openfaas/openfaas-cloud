@@ -15,6 +15,9 @@ environment:
   readonly_root_filesystem: true
   scaling_min_limit: 1
   scaling_max_limit: 4
+  prometheus_host: prometheus.openfaas
+  prometheus_port: 9090
+  metrics_window: 60m
 
 # To use a shared Docker Hub account.
 #  repository_url: docker.io/ofcommunity/
