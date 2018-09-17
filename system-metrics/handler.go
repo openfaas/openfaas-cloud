@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"regexp"
 	"strconv"
 
 	"github.com/openfaas/faas/gateway/metrics"
@@ -20,9 +19,10 @@ type Metrics struct {
 
 // Handle a serverless request
 func Handle(req []byte) string {
-	fnName, err := parseFunctionName(string(req))
+	fnName, err := parseFunctionName()
+
 	if err != nil {
-		log.Fatalf("Couldn't parse query %b, %t", req, err)
+		log.Fatalf("couldn't parse function name from query: %t", err)
 	}
 
 	host := os.Getenv("prometheus_host")
@@ -33,8 +33,13 @@ func Handle(req []byte) string {
 	}
 
 	metricsQuery := metrics.NewPrometheusQuery(host, port, &http.Client{})
+	metricsWindow := os.Getenv("metrics_window")
 
-	fnMetrics, err := getMetrics(fnName, metricsQuery)
+	if metricsWindow == "" {
+		metricsWindow = "60m"
+	}
+
+	fnMetrics, err := getMetrics(fnName, metricsQuery, metricsWindow)
 	if err != nil {
 		log.Fatalf("Couldn't get metrics from Prometheus for function %s, %t", fnName, err)
 	}
@@ -46,27 +51,29 @@ func Handle(req []byte) string {
 	return string(res)
 }
 
-func parseFunctionName(query string) (string, error) {
-	var fnName string
+func parseFunctionName() (functionName string, error error) {
+	if query, exists := os.LookupEnv("Http_Query"); exists {
+		vals, _ := url.ParseQuery(query)
 
-	matcher := regexp.MustCompile("^/?(?:/system/)??(?:async-)?function/([^/?]+)([^?]*)")
-	parsed, err := url.Parse(query)
-	if err != nil {
-		return "", fmt.Errorf("Couldn't parse url %s, %t", query, err)
-	}
-	nameIndex := 1
+		functionNameQuery := vals.Get("function")
 
-	matches := matcher.FindStringSubmatch(parsed.Path)
-	if len(matches) >= nameIndex+1 {
-		fnName = matches[nameIndex]
+		if len(functionNameQuery) > 0 {
+			return functionNameQuery, nil
+		}
+
+		return "", fmt.Errorf("there is no `function` inside env var Http_Query")
 	}
 
-	return fnName, nil
+	return "", fmt.Errorf("unable to parse Http_Query")
 }
 
-func getMetrics(fnName string, metricsQuery metrics.PrometheusQueryFetcher) (*Metrics, error) {
-
-	expr := url.QueryEscape(fmt.Sprintf(`sum(increase(gateway_function_invocation_total{function_name="%s"}[60m])) by (code)`, fnName))
+func getMetrics(fnName string, metricsQuery metrics.PrometheusQueryFetcher, metricsWindow string) (*Metrics, error) {
+	queryValue := fmt.Sprintf(
+		`sum(increase(gateway_function_invocation_total{function_name="%s"}[%s])) by (code)`,
+		fnName,
+		metricsWindow,
+	)
+	expr := url.QueryEscape(queryValue)
 
 	response, err := metricsQuery.Fetch(expr)
 	if err != nil {
@@ -104,8 +111,15 @@ func getMetrics(fnName string, metricsQuery metrics.PrometheusQueryFetcher) (*Me
 }
 
 func isSuccess(code string) bool {
-	if code == strconv.Itoa(http.StatusOK) || code == strconv.Itoa(http.StatusAccepted) {
+	statusCode, err := strconv.Atoi(code)
+
+	if err != nil {
+		log.Fatalf("couldn't convert code: %s to integeer - received error: %t", code, err)
+	}
+
+	if statusCode >= 200 && statusCode < 400 {
 		return true
 	}
+
 	return false
 }

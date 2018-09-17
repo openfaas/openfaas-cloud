@@ -188,10 +188,11 @@ functions:
       write_debug: true
       read_debug: true
 
-  expose-metrics:
+  system-metrics:
     lang: go
-    handler: ./expose-metrics
-    image: functions/expose-metrics:0.1.0
+    handler: ./system-metrics
+    image: functions/system-metrics:0.1.0
+    environment_file:
+      - gateway_config.yml
     environment:
-      prometheus_host: prometheus
-      prometheus_port: 9090
+      content_type: "application/json"
