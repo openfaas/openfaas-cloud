@@ -58,6 +58,14 @@ func Handle(req []byte) []byte {
 		os.Exit(-1)
 	}
 
+	err = fetchTemplates(clonePath)
+	if err != nil {
+		log.Println("Error fetching templates ", err.Error())
+		status.AddStatus(sdk.StatusFailure, "fetchTemplates error : "+err.Error(), sdk.StackContext)
+		reportStatus(status)
+		os.Exit(-1)
+	}
+
 	var shrinkWrapPath string
 	shrinkWrapPath, err = shrinkwrap(pushEvent, clonePath)
 	if err != nil {

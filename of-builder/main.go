@@ -164,18 +164,31 @@ func build(w http.ResponseWriter, r *http.Request) ([]byte, error) {
 	eg.Go(func() error {
 		for s := range ch {
 			for _, v := range s.Vertexes {
-				msg := fmt.Sprintf("%s %v %v", v.Name, v.Started, v.Completed)
+				var msg string
+				if v.Completed != nil {
+					msg = fmt.Sprintf("v: %s %s %.2fs", v.Started, v.Name, v.Completed.Sub(*v.Started).Seconds())
+				} else {
+					startedVal := "(no timestamp available)"
+					if v.Started != nil {
+						startedVal = v.Started.String()
+					}
+					msg = fmt.Sprintf("v: %s %v", startedVal, v.Name)
+				}
 				build.Append(msg)
-				fmt.Printf("vertex: %s %s %v %v\n", v.Digest, v.Name, v.Started, v.Completed)
+				fmt.Printf("%s\n", msg)
+
 			}
 			for _, s := range s.Statuses {
-				msg := fmt.Sprintf("%s %d", s.ID, s.Current)
+				msg := fmt.Sprintf("s: %s %s %d", s.Timestamp, s.ID, s.Current)
 				build.Append(msg)
+
 				fmt.Printf("status: %s %s %d\n", s.Vertex, s.ID, s.Current)
 			}
 			for _, l := range s.Logs {
-				msg := fmt.Sprintf("%s", l.Data)
+
+				msg := fmt.Sprintf("l: %s %s", l.Timestamp, l.Data)
 				build.Append(msg)
+
 				fmt.Printf("log: %s\n%s\n", l.Vertex, l.Data)
 			}
 

@@ -2,12 +2,15 @@ package sdk
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"regexp"
+
+	hmac "github.com/alexellis/hmac"
 )
 
 // github status constant
@@ -113,12 +116,17 @@ make sure combine_output is disabled for github-status`, token)
 }
 
 // Report send a status update to github-status function
-func (status *Status) Report(gateway string) (string, error) {
+func (status *Status) Report(gateway string, payloadSecret string) (string, error) {
 	body, _ := status.Marshal()
 
 	c := http.Client{}
 	bodyReader := bytes.NewBuffer(body)
 	httpReq, _ := http.NewRequest(http.MethodPost, gateway+"function/github-status", bodyReader)
+
+	if len(payloadSecret) > 0 {
+		digest := hmac.Sign(body, []byte(payloadSecret))
+		httpReq.Header.Add("X-Cloud-Signature", "sha1="+hex.EncodeToString(digest))
+	}
 
 	res, err := c.Do(httpReq)
 	if err != nil {
@@ -126,9 +134,14 @@ func (status *Status) Report(gateway string) (string, error) {
 	}
 
 	defer res.Body.Close()
-	resData, _ := ioutil.ReadAll(res.Body)
-	if resData == nil {
-		return "", fmt.Errorf("empty token received")
+
+	resData, readErr := ioutil.ReadAll(res.Body)
+	if resData == nil || readErr != nil {
+		return "", fmt.Errorf("failed to read response from github-status")
+	}
+
+	if res.StatusCode != http.StatusAccepted && res.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to call github-status, invalid status: %s", res.Status)
 	}
 
 	status.AuthToken, err = UnmarshalToken(resData)

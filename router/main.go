@@ -24,7 +24,6 @@ func main() {
 	log.Printf("Upstream URL: %s\n", cfg.UpstreamURL)
 
 	router := http.NewServeMux()
-
 	router.HandleFunc("/", makeHandler(c, cfg.Timeout, cfg.UpstreamURL))
 
 	s := &http.Server{
@@ -38,26 +37,43 @@ func main() {
 	log.Fatal(s.ListenAndServe())
 }
 
+// makeHandler builds a router to convert sub-domains into OpenFaaS gateway URLs with
+// a username prefix and suffix of the destination function.
+// i.e. system.o6s.io/dashboard
+//      becomes: gateway:8080/function/system-dashboard, where gateway:8080
+//      is specified in upstreamURL
 func makeHandler(c *http.Client, timeout time.Duration, upstreamURL string) func(w http.ResponseWriter, r *http.Request) {
+
+	if strings.HasSuffix(upstreamURL, "/") == false {
+		upstreamURL = upstreamURL + "/"
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		if len(r.Host) == 0 {
+		var host string
+
+		tldSepCount := 1
+		tldSep := "."
+		if len(r.Host) == 0 || strings.Count(r.Host, tldSep) <= tldSepCount {
 			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("invalid sub-domain in Host header"))
+			return
 		}
+
+		host = r.Host[0:strings.Index(r.Host, tldSep)]
 
 		requestURI := r.RequestURI
 		if strings.HasPrefix(requestURI, "/") {
 			requestURI = requestURI[1:]
 		}
 
-		path := fmt.Sprintf("%sfunction/%s-%s", upstreamURL, r.Host[0:strings.Index(r.Host, ".")], requestURI)
-
-		fmt.Printf("Proxying to: %s\n", path)
+		upstreamFullURL := fmt.Sprintf("%sfunction/%s-%s", upstreamURL, host, requestURI)
 
 		if r.Body != nil {
 			defer r.Body.Close()
 		}
-		req, _ := http.NewRequest(r.Method, path, r.Body)
+
+		req, _ := http.NewRequest(r.Method, upstreamFullURL, r.Body)
 
 		timeoutContext, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
@@ -69,12 +85,12 @@ func makeHandler(c *http.Client, timeout time.Duration, upstreamURL string) func
 			w.WriteHeader(http.StatusServiceUnavailable)
 			w.Write([]byte(resErr.Error()))
 
-			fmt.Printf("Upstream %s status: %d\n", path, http.StatusBadGateway)
+			fmt.Printf("Upstream %s status: %d\n", upstreamFullURL, http.StatusBadGateway)
 			return
 		}
 
 		copyHeaders(w.Header(), &res.Header)
-		fmt.Printf("Upstream %s status: %d\n", path, res.StatusCode)
+		fmt.Printf("Upstream %s status: %d\n", upstreamFullURL, res.StatusCode)
 
 		w.WriteHeader(res.StatusCode)
 		if res.Body != nil {
@@ -83,7 +99,6 @@ func makeHandler(c *http.Client, timeout time.Duration, upstreamURL string) func
 			bytesOut, _ := ioutil.ReadAll(res.Body)
 			w.Write(bytesOut)
 		}
-
 	}
 }
 

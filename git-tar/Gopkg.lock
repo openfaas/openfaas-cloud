@@ -2,16 +2,28 @@
 
 
 [[projects]]
+  name = "github.com/alexellis/derek"
+  packages = ["auth"]
+  revision = "f8c2d49fd14b3e913c56ad2bd37193775836e906"
+  version = "0.6.1"
+
+[[projects]]
   name = "github.com/alexellis/hmac"
   packages = ["."]
   revision = "d5d71edd7bc74eb6ae4b99eccc6bda738435f43f"
   version = "1.2"
 
 [[projects]]
+  name = "github.com/dgrijalva/jwt-go"
+  packages = ["."]
+  revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
+  version = "v3.2.0"
+
+[[projects]]
   name = "github.com/openfaas/faas"
   packages = ["gateway/types"]
-  revision = "91b6c244941c41b4750c9fcc90fc678d196d4619"
-  version = "0.8.12"
+  revision = "9c2f6dd2a4e2aac0b253b29cc031865b76802ed5"
+  version = "0.9.0"
 
 [[projects]]
   name = "github.com/openfaas/faas-cli"
@@ -25,8 +37,8 @@
 [[projects]]
   name = "github.com/openfaas/openfaas-cloud"
   packages = ["sdk"]
-  revision = "2cf97d7c25701cc7333781d7b61dcdfbbee2e911"
-  version = "0.5.4"
+  revision = "ce4622958b63a168c04393f6cd2e875fa5be0efe"
+  version = "0.5.7"
 
 [[projects]]
   name = "github.com/ryanuber/go-glob"
@@ -41,6 +53,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6602439f5db90f3351495299c70de5e5a226cfc6b8caa3b9f98e1afe58380880"
+  inputs-digest = "938b5ea5ce6d68923a392ef927901e00e019864add6a5cf411eaf1973efdf722"
   solver-name = "gps-cdcl"
   solver-version = 1

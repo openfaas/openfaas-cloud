@@ -65,8 +65,8 @@
 [[projects]]
   name = "github.com/openfaas/openfaas-cloud"
   packages = ["sdk"]
-  revision = "07ad9ccaea796c2d03cd217d3f67b7ba67bd0e95"
-  version = "0.4.1"
+  revision = "ce4622958b63a168c04393f6cd2e875fa5be0efe"
+  version = "0.5.7"
 
 [[projects]]
   name = "golang.org/x/crypto"
@@ -218,6 +218,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "fb0205e09197cca694b65968d7119885937555d53b8827e4ab73cce9887ae6c9"
+  inputs-digest = "6b54ed779f1c6baeb183a2c081015b7229b751d3508ee559d1c973ad0cf6deb0"
   solver-name = "gps-cdcl"
   solver-version = 1

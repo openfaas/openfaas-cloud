@@ -58,7 +58,7 @@ func Handle(req []byte) string {
 		Source: "buildshiprun",
 	}
 
-	serviceValue := fmt.Sprintf("%s-%s", event.Owner, event.Service)
+	serviceValue := sdk.FormatServiceName(event.Owner, event.Service)
 	log.Printf("%d env-vars for %s", len(event.Environment), serviceValue)
 
 	status := sdk.BuildStatus(event, sdk.EmptyAuthToken)
@@ -150,9 +150,15 @@ func Handle(req []byte) string {
 
 		log.Printf("Deploying %s as %s", imageName, serviceValue)
 
-		defaultMemoryLimit := os.Getenv("default_memory_limit")
+		defaultMemoryLimit := getMemoryLimit()
+
+		scalingMinLimit := os.Getenv("scaling_min_limit")
 		if len(defaultMemoryLimit) == 0 {
-			defaultMemoryLimit = "20m"
+			scalingMinLimit = "1"
+		}
+		scalingMaxLimit := os.Getenv("scaling_max_limit")
+		if len(defaultMemoryLimit) == 0 {
+			scalingMaxLimit = "4"
 		}
 
 		readOnlyRootFS := getReadOnlyRootFS()
@@ -171,6 +177,8 @@ func Handle(req []byte) string {
 				"Git-SHA":        event.SHA,
 				"faas_function":  serviceValue,
 				"app":            serviceValue,
+				"com.openfaas.scale.min": scalingMinLimit,
+				"com.openfaas.scale.max": scalingMaxLimit,
 			},
 			Limits: Limits{
 				Memory: defaultMemoryLimit,
@@ -453,4 +461,27 @@ func getRegistryAuthSecret() string {
 		return strings.TrimSpace(string(res))
 	}
 	return ""
+}
+
+func getMemoryLimit() string {
+	suffix := "m"
+	determiningEnv := "KUBERNETES_SERVICE_PORT"
+	memoryLimit := os.Getenv("function_memory_limit_mb")
+
+	if existingVariable(determiningEnv) {
+		suffix = "Mi"
+	}
+
+	if len(memoryLimit) == 0 {
+		memoryLimit = "20" + suffix
+	} else {
+		memoryLimit = memoryLimit + suffix
+	}
+
+	return memoryLimit
+}
+
+func existingVariable(envVar string) bool {
+	_, exists := os.LookupEnv(envVar)
+	return exists
 }

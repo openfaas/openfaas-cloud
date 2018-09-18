@@ -1,10 +1,27 @@
 package function
 
 import (
+	"net/url"
 	"testing"
 
 	"github.com/openfaas/faas-cli/stack"
 )
+
+func Test_createCloneURL(t *testing.T) {
+
+	testURL := "https://github.com/alexellis/derek"
+
+	url1, _ := url.Parse(testURL)
+	url1.User = url.UserPassword("alex", "test1234")
+
+	want := "https://alex:test1234@github.com/alexellis/derek"
+
+	if url1.String() != want {
+		t.Errorf("clone URL want %s, got %s", want, url1.String())
+		t.Fail()
+	}
+
+}
 
 func Test_FormatImageShaTag_PrivateRepo_WithTag_NoStackPrefix(t *testing.T) {
 	function := &stack.Function{

@@ -9,8 +9,8 @@ functions:
     image: functions/github-push:0.6.0
     labels:
       openfaas-cloud: "1"
+      role: openfaas-system
     environment:
-      # Http_X_Github_Event: push
       validate_hmac: true
       read_timeout: 10s
       write_timeout: 10s
@@ -30,6 +30,7 @@ functions:
     image: functions/github-event:0.5.0
     labels:
       openfaas-cloud: "1"
+      role: openfaas-system
     environment:
       write_debug: true
       read_debug: true
@@ -43,9 +44,10 @@ functions:
   git-tar:
     lang: dockerfile
     handler: ./git-tar
-    image: functions/of-git-tar:0.8.0
+    image: functions/of-git-tar:0.8.2
     labels:
       openfaas-cloud: "1"
+      role: openfaas-system
     environment:
       read_timeout: 15m
       write_timeout: 15m
@@ -55,7 +57,9 @@ functions:
       - gateway_config.yml
       - github.yml
     secrets:
+      - github-webhook-secret
       - payload-secret
+      - private-key
 
   buildshiprun:
     lang: go
@@ -63,13 +67,14 @@ functions:
     image: functions/of-buildshiprun:0.7.0
     labels:
       openfaas-cloud: "1"
+      role: openfaas-system
     environment:
       read_timeout: 5m
       write_timeout: 5m
       write_debug: true
       read_debug: true
     environment_file:
-      - buildshiprun_limits_swarm.yml
+      - buildshiprun_limits.yml
       - gateway_config.yml
       - github.yml
     secrets:
@@ -84,6 +89,7 @@ functions:
     image: functions/garbage-collect:0.4.0
     labels:
       openfaas-cloud: "1"
+      role: openfaas-system
     environment:
       write_debug: true
       read_debug: true
@@ -100,6 +106,8 @@ functions:
     lang: go
     handler: ./github-status
     image: functions/github-status:0.2.1
+    labels:
+      role: openfaas-system
     environment:
       write_debug: true
       read_debug: true
@@ -119,6 +127,7 @@ functions:
     image: functions/import-secrets:0.3.0
     labels:
       openfaas-cloud: "1"
+      role: openfaas-system
     environment:
       write_debug: true
       read_debug: true
@@ -133,6 +142,8 @@ functions:
     lang: go
     handler: ./pipeline-log
     image: functions/pipeline-log:0.3.1
+    labels:
+      role: openfaas-system
     environment:
       write_debug: true
       read_debug: true
@@ -150,6 +161,7 @@ functions:
     image: functions/list-functions:0.4.4
     labels:
       openfaas-cloud: "1"
+      role: openfaas-system
     environment:
       write_debug: true
       read_debug: true

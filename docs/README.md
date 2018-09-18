@@ -22,14 +22,14 @@ You will create/deploy:
 * A stack of OpenFaaS functions via stack.yml
 * Customise limits for Swarm or K8s
 * Setup a container image builder
+* (K8s only) [Network Policies](https://kubernetes.io/docs/concepts/services-networking/network-policies/) for openfaas and openfaas-fn namespaces
 
 ### Before you begin
 
 * You must enable basic auth to prevent user-functions from accessing the admin API of the gateway
-* Only public GitHub repos are supported
 * A list of valid users is defined in the CUSTOMERS file in this GitHub repo, this acts as an ACL, but you can define your own
 * Swarm offers no isolation between functions (they can call each other)
-* For Kubernetes istolation can be applied through NetworkPolicy
+* For Kubernetes isolation can be applied through [NetworkPolicy](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
 
 ## Steps
 
@@ -208,11 +208,23 @@ kubectl create secret generic \
   registry-secret --from-file=$HOME/.docker/config.json 
 ```
 
-Create of-builder and of-buildkit:
+Create of-builder, of-buildkit:
 
 ```
-kubectl apply -f ./yaml
+kubectl apply -f ./yaml/core
 ```
+
+(Optional) Deploy NetworkPolicy
+```
+kubectl apply -f ./yaml/network-policy
+```
+
+(Optional) Add a role of "openfaas-system" using a label to the namespace where you deployed Ingress Controller. For example if Ingress Controller is deployed in the namespace `ingress-nginx`:
+```
+kubectl label namespace ingress-nginx role=openfaas-system
+```
+
+If you don't have Ingress Controller installed in cluster. [Read this](#troubleshoot-network-policies)
 
 #### For Swarm
 
@@ -299,13 +311,22 @@ Logs from the container builder are stored in S3. This can be Minio which is S3-
 
 You can disable Log storage by commenting out the pipeline-log function from `stack.yml`.
 
-> Note: AWS S3 needs an additional two flags to be implemented to make sure TLS and a custom bucket name are used.
-
 * Generate secrets for Minio
 
 ```
 SECRET_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
 ACCESS_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
+```
+
+* If you'd prefer to use an S3 Bucket hosted on AWS
+
+> Generate an access key by using the security credentials page. Expand the Access Keys section, and then Create New Root Key.
+
+> Generate an secret key by opening the IAM console. Choose Users in the Details pane, pick the IAM user which will use the keys, and then Create Access Key on the Security Credentials tab.
+
+```
+SECRET_KEY=access_key_here
+ACCESS_KEY=secret_key_here
 ```
 
 #### Kubernetes
@@ -355,9 +376,20 @@ docker service create --constraint="node.role==manager" \
 minio/minio:latest server /export
 ```
 
-Enter the value of the DNS above into `s3_url` in `gateway_config.yml` adding the port at the end:`minio:9000`
+Minio: 
+
+* Enter the value of the DNS above into `s3_url` in `gateway_config.yml` adding the port at the end:`minio:9000`
 
 > Note: For debugging and testing. You can expose the port of Minio with `docker service update minio --publish-add 9000:9000`, but this is not recommended on the public internet.
+
+AWS S3:
+
+* Enter the value of the DNS `s3.amazonaws.com` into `s3_url` in `gateway_config.yml`
+
+* In the same file set `s3_tls: true` and `s3_bucket` to the bucket you created in S3 like `s3_bucket: example-bucket`
+
+* Update the `s3_region` value such as : `s3_region: us-east-1`
+
 
 See https://docs.minio.io/docs/minio-quickstart-guide
 
@@ -405,6 +437,26 @@ Find all events on the functions namespace
 kubectl get events --sort-by=.metadata.creationTimestamp -n openfaas-fn
 ```
 
+##### Troubleshoot Network Policies
+The NetworkPolicy configuration is designed to work with a Kubernetes IngressController. If you are using a NodePort or LoadBalancer you have to deploy NetworkPolicy below.
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: gateway
+  namespace: openfaas
+spec:
+  policyTypes:
+    - Ingress
+  podSelector:
+    matchLabels:
+      app: gateway
+  ingress:
+    - from: []
+      ports:
+        - port: 8080
+```
+
 #### Troubleshoot Swarm
 
 ```
@@ -435,25 +487,42 @@ https://gateway.domain.com/alexellis-function1
 
 * On Docker Swarm you must remove the suffix `.openfaas` from the gateway address.
 
-* Edit stack.yml
+#### Prerequisites
 
-Set `query_pretty_url`  to `true` when using a sub-domain for each user, if not, then set this to an empty string or remove the line. If set, also define `pretty_url` with the pattern for the URL.
+The Dashboard is a SPA(Single Page App) made with React and will require the following:
 
-For a pretty URL you should also prefix each function with `system-` before deployinh.
+- Node.js
+- Yarn
+
+#### Build and Bundle the Assets
+
+If you have satisfied the prerequisites, the following command should create the assets for the Dashboard.
+
+```bash
+make
+```
+
+**Edit `stack.yml` if needed.**
+
+Set `query_pretty_url` to `true` when using a sub-domain for each user. If set, also define `pretty_url` with the pattern for the URL.
 
 Example with domain `o6s.io`:
 
 ```
-      pretty_url: "http://user.o6s.io/function"
+pretty_url: "http://user.o6s.io/function"
 ```
 
-Set `public_url` to be the URL for the IP / DNS if not using a `pretty_url`
+Set `public_url` to be the URL for the IP / DNS of the OpenFaaS Cloud.
 
-* Deploy
+**Deploy**
+
+> Don't forget to pull the `node8-express-template`
 
 ```
-cd dashboard
-faas-cli deploy
+$ cd dashboard
+
+$ faas-cli template pull https://github.com/openfaas-incubator/node8-express-template
+$ faas-cli up
 ```
 
 ### SealedSecret support

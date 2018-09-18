@@ -1,0 +1,26 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: of-buildkit
+  namespace: openfaas
+spec:
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        prometheus.io.scrape: "false"
+      labels:
+        app: of-buildkit
+    spec:
+      containers:
+      - name: of-buildkit
+        args: ["--addr", "tcp://0.0.0.0:1234"]
+#        image: alexellis2/buildkit:2018-04-17
+        image: alexellis/buildkit:cda0a64eca0b5404a2a0233ba863606da8d4b7be
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 1234
+          protocol: TCP
+        securityContext:
+          privileged: true
+
