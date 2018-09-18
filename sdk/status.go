@@ -28,6 +28,10 @@ const (
 	tokenKey        = "token"
 )
 
+const (
+	FunctionLabelPrefix = "com.openfaas.cloud."
+)
+
 const authTokenPattern = "^[A-Za-z0-9-_.]*"
 
 var validToken = regexp.MustCompile(authTokenPattern)
