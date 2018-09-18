@@ -43,7 +43,7 @@ func parseYAML(pushEvent sdk.PushEvent, filePath string) (*stack.Services, error
 }
 
 func fetchTemplates(filePath string) error {
-	templateRepos := []string{"https://github.com/openfaas/templates", "https://github.com/openfaas-incubator/node8-express-template.git"}
+	templateRepos := []string{"https://github.com/openfaas/templates", "https://github.com/openfaas-incubator/node8-express-template.git", "https://github.com/openfaas-incubator/golang-http-template.git"}
 
 	for _, repo := range templateRepos {
 		pullCmd := exec.Command("faas-cli", "template", "pull", repo)
