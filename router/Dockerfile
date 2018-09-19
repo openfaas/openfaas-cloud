@@ -10,7 +10,10 @@ COPY config_test.go     .
 RUN go test -v \
     && go build -o /usr/bin/router .
 
-FROM alpine:3.7
+FROM alpine:3.8
+
+RUN apk add --no-cache ca-certificates
+
 COPY --from=builder /usr/bin/router /bin/
 
 EXPOSE 8080

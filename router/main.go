@@ -7,9 +7,12 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 )
+
+const authHost = "auth.system"
 
 func main() {
 	cfg := NewRouterConfig()
@@ -17,14 +20,29 @@ func main() {
 	if len(cfg.UpstreamURL) == 0 {
 		log.Panicln("give an upstream_url as an env-var")
 	}
+	if len(cfg.AuthURL) == 0 {
+		log.Panicln("give an auth_url as an env-var")
+	}
 
 	c := makeProxy(cfg.Timeout)
 
 	log.Printf("Timeout set to: %s\n", cfg.Timeout)
 	log.Printf("Upstream URL: %s\n", cfg.UpstreamURL)
 
+	authClient := makeProxy(cfg.Timeout)
+	authClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+
+	authProxy1 := authProxy{
+		URL:    cfg.AuthURL,
+		Client: authClient,
+	}
+
 	router := http.NewServeMux()
-	router.HandleFunc("/", makeHandler(c, cfg.Timeout, cfg.UpstreamURL))
+	router.HandleFunc("/", makeHandler(c, cfg.Timeout, cfg.UpstreamURL, &authProxy1))
+
+	log.Printf("Using port %s\n", cfg.Port)
 
 	s := &http.Server{
 		Addr:           ":" + cfg.Port,
@@ -37,18 +55,65 @@ func main() {
 	log.Fatal(s.ListenAndServe())
 }
 
+type authProxy struct {
+	URL    string
+	Client *http.Client
+}
+
+func (a *authProxy) Validate(upstreamURL string, cookies []*http.Cookie) (int, string) {
+	validateURL := a.URL + "q/?r=" + upstreamURL
+
+	req, _ := http.NewRequest(http.MethodGet, validateURL, nil)
+
+	if cookies == nil {
+		log.Println("No cookies to send.")
+	}
+	if cookies != nil {
+		for _, cookie := range cookies {
+			req.AddCookie(cookie)
+		}
+		log.Printf("Cookies sent upstream: %d", len(req.Cookies()))
+	}
+
+	res, err := a.Client.Do(req)
+
+	if err != nil {
+		log.Printf("Unable to reach auth service: %s", err.Error())
+		return http.StatusBadGateway, ""
+	}
+
+	fmt.Println("Res:", res.Status)
+
+	if res.Body != nil {
+		defer res.Body.Close()
+	}
+
+	var location string
+	locationURL, _ := res.Location()
+	if locationURL != nil {
+		location = locationURL.String()
+	}
+
+	log.Printf("Validating (%s) status: %d, location: %s\n", validateURL, res.StatusCode, location)
+
+	return res.StatusCode, location
+}
+
 // makeHandler builds a router to convert sub-domains into OpenFaaS gateway URLs with
 // a username prefix and suffix of the destination function.
 // i.e. system.o6s.io/dashboard
 //      becomes: gateway:8080/function/system-dashboard, where gateway:8080
 //      is specified in upstreamURL
-func makeHandler(c *http.Client, timeout time.Duration, upstreamURL string) func(w http.ResponseWriter, r *http.Request) {
+func makeHandler(c *http.Client, timeout time.Duration, upstreamURL string, auth *authProxy) func(w http.ResponseWriter, r *http.Request) {
 
 	if strings.HasSuffix(upstreamURL, "/") == false {
 		upstreamURL = upstreamURL + "/"
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Body != nil {
+			defer r.Body.Close()
+		}
 
 		var host string
 
@@ -61,24 +126,90 @@ func makeHandler(c *http.Client, timeout time.Duration, upstreamURL string) func
 		}
 
 		host = r.Host[0:strings.Index(r.Host, tldSep)]
+		fmt.Printf("Router host: %s (%s)\n", host, r.Host)
 
 		requestURI := r.RequestURI
 		if strings.HasPrefix(requestURI, "/") {
 			requestURI = requestURI[1:]
 		}
 
-		upstreamFullURL := fmt.Sprintf("%sfunction/%s-%s", upstreamURL, host, requestURI)
+		var upstreamFullURL *url.URL
 
-		if r.Body != nil {
-			defer r.Body.Close()
+		isAuthHost := strings.HasPrefix(r.Host, authHost)
+		if isAuthHost {
+			var err error
+			upstreamFullURL, err = url.Parse(fmt.Sprintf("%s%s", auth.URL, requestURI))
+			if err != nil {
+				log.Printf("Auth URL transparent error: %s\n", err)
+			} else {
+				log.Printf("Auth URL transparent %s\n", upstreamFullURL.String())
+			}
+		} else {
+			upstreamFullURL, _ = url.Parse(fmt.Sprintf("%sfunction/%s-%s", upstreamURL, host, requestURI))
 		}
 
-		req, _ := http.NewRequest(r.Method, upstreamFullURL, r.Body)
+		if auth != nil && !isAuthHost {
+
+			authStatus, location := auth.Validate(upstreamFullURL.Path, r.Cookies())
+			fmt.Println(authStatus, location)
+
+			responseWritten := false
+			switch authStatus {
+			case http.StatusUnauthorized:
+				w.WriteHeader(http.StatusUnauthorized)
+				w.Write([]byte("Unauthorized"))
+
+				responseWritten = true
+				break
+			case http.StatusTemporaryRedirect:
+
+				directTo, _ := url.Parse(location)
+				q := directTo.Query()
+
+				returnTo := "http://" + r.Host + "" + r.RequestURI
+
+				redirectURI, _ := url.Parse(q.Get("redirect_uri"))
+				log.Printf(`Redirect URL: "%s"\n`, redirectURI)
+
+				redirectURIQuery := redirectURI.Query()
+				redirectURIQuery.Set("r", returnTo)
+
+				redirectURI.RawQuery = redirectURIQuery.Encode()
+
+				log.Printf(`* Redirect URL: "%s"\n`, redirectURI)
+				q.Set("redirect_uri", redirectURI.String())
+
+				directTo.RawQuery = q.Encode()
+
+				log.Println("Go to: ", r.RequestURI, r.URL.String())
+
+				log.Printf("Auth caused redirect to: %s\n", directTo.String())
+				http.Redirect(w, r, directTo.String(), http.StatusTemporaryRedirect)
+				responseWritten = true
+				break
+			case http.StatusBadGateway:
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("bad gateway reaching auth server"))
+				responseWritten = true
+				break
+			case http.StatusOK:
+				log.Printf("Auth cleared. OK.\n")
+				break
+			}
+
+			if responseWritten {
+				return
+			}
+		}
+
+		req, _ := http.NewRequest(r.Method, upstreamFullURL.String(), r.Body)
 
 		timeoutContext, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
 
 		copyHeaders(req.Header, &r.Header)
+
+		log.Printf("Serving: %s\n", req.URL.String())
 
 		res, resErr := c.Do(req.WithContext(timeoutContext))
 		if resErr != nil {
