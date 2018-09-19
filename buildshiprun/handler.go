@@ -465,7 +465,7 @@ func getMemoryLimit() string {
 	}
 
 	if len(memoryLimit) == 0 {
-		memoryLimit = "20" + suffix
+		memoryLimit = "128" + suffix
 	} else {
 		memoryLimit = memoryLimit + suffix
 	}
