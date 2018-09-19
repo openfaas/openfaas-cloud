@@ -132,7 +132,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			p = url.String()
 
 			w.Header().Set("Location", p)
-			w.WriteHeader(http.StatusMovedPermanently)
+			w.WriteHeader(http.StatusTemporaryRedirect)
 			return
 		}
 	}

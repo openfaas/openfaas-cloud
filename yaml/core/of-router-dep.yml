@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: of-router
-        image: openfaas/cloud-router:0.3.0
+        image: openfaas/cloud-router:0.5.0
         imagePullPolicy: Always
         env:
           - name: upstream_url
@@ -23,6 +23,8 @@ spec:
             value: "8080"
           - name: timeout
             value: "60s"
+          - name: auth_url
+            value: "http://auth.openfaas:8080"
         ports:
         - containerPort: 8080
           protocol: TCP
