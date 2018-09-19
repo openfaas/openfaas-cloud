@@ -65,7 +65,7 @@ func Test_makeHandler(t *testing.T) {
 	}
 
 	router := httptest.NewServer(passHandler{
-		Next: makeHandler(&c, time.Second*10, gateway.URL),
+		Next: makeHandler(&c, time.Second*10, gateway.URL, nil),
 	})
 
 	defer router.Close()

@@ -11,6 +11,7 @@ import (
 type RouterConfig struct {
 	Port        string
 	UpstreamURL string
+	AuthURL     string
 	Timeout     time.Duration
 }
 
@@ -23,6 +24,14 @@ func NewRouterConfig() RouterConfig {
 
 	if portVal, exists := os.LookupEnv("port"); exists && len(portVal) > 0 {
 		cfg.Port = portVal
+	}
+
+	if val, exists := os.LookupEnv("auth_url"); exists && len(val) > 0 {
+		if strings.HasSuffix(val, "/") == false {
+			val = val + "/"
+		}
+
+		cfg.AuthURL = val
 	}
 
 	if up, exists := os.LookupEnv("upstream_url"); exists && len(up) > 0 {
