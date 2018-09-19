@@ -456,24 +456,24 @@ func getRegistryAuthSecret() string {
 }
 
 func getMemoryLimit() string {
-	suffix := "m"
-	determiningEnv := "KUBERNETES_SERVICE_PORT"
+	const swarmSuffix = "m"
+	const kubernetesSuffix = "Mi"
+
+	suffix := swarmSuffix
+
+	kubernetesPort := "KUBERNETES_SERVICE_PORT"
 	memoryLimit := os.Getenv("function_memory_limit_mb")
 
-	if existingVariable(determiningEnv) {
-		suffix = "Mi"
+	if _, exists := os.LookupEnv(kubernetesPort); exists {
+		suffix = kubernetesSuffix
 	}
 
-	if len(memoryLimit) == 0 {
-		memoryLimit = "20" + suffix
-	} else {
-		memoryLimit = memoryLimit + suffix
+	const defaultMemoryLimit = "128"
+
+	unit := defaultMemoryLimit
+	if len(memoryLimit) > 0 {
+		unit = memoryLimit
 	}
 
-	return memoryLimit
-}
-
-func existingVariable(envVar string) bool {
-	_, exists := os.LookupEnv(envVar)
-	return exists
+	return fmt.Sprintf("%s%s", unit, suffix)
 }

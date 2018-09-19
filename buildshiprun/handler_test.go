@@ -189,7 +189,7 @@ func Test_getMemoryLimit_Swarm(t *testing.T) {
 		{
 			title:         "Kubernetes environment variables missing and limit is unset",
 			memoryLimit:   "",
-			expectedLimit: "20m",
+			expectedLimit: "128m",
 		},
 	}
 	envVar := "function_memory_limit_mb"
@@ -221,7 +221,7 @@ func Test_getMemoryLimit_Kubernetes(t *testing.T) {
 			title:           "Kubernetes environment variables present and limit is unset",
 			exampleVariable: "KUBERNETES_SERVICE_PORT",
 			memoryLimit:     "",
-			expectedLimit:   "20Mi",
+			expectedLimit:   "128Mi",
 		},
 	}
 	exampleValue := "example_value"
@@ -260,7 +260,8 @@ func Test_existingVariable_Existent(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.title, func(t *testing.T) {
 			os.Setenv(key, test.value)
-			exists := existingVariable(key)
+			_, exists := os.LookupEnv(key)
+			//exists := existingVariable(key)
 			if exists != expectedBool {
 				t.Errorf("Variable existance should be : `%v` got: `%v`", expectedBool, exists)
 			}
@@ -271,9 +272,11 @@ func Test_existingVariable_Existent(t *testing.T) {
 func Test_existingVariable_nonExistent(t *testing.T) {
 	t.Run("Variable does not exist", func(t *testing.T) {
 		expectedBool := false
-		exist := existingVariable("place_holder")
-		if exist != expectedBool {
-			t.Errorf("Should be:`%v` got:`%v`", expectedBool, exist)
+		key := "place_holder"
+		_, exists := os.LookupEnv(key)
+
+		if exists != expectedBool {
+			t.Errorf("Should be:`%v` got:`%v`", expectedBool, exists)
 		}
 	})
 }
