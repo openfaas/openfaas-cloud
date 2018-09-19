@@ -46,30 +46,32 @@ func Handle(req []byte) string {
 	response, err := c.Do(httpReq)
 	filtered := []function{}
 
-	if err == nil {
-		defer response.Body.Close()
-		bodyBytes, bErr := ioutil.ReadAll(response.Body)
-		if bErr != nil {
-			log.Fatal(bErr)
-		}
+	if err != nil {
+		log.Fatal(err)
+	}
 
-		if response.StatusCode != http.StatusOK {
-			log.Fatalf("unable to query functions, status: %d, message: %s", response.StatusCode, string(bodyBytes))
-		}
+	defer response.Body.Close()
+	bodyBytes, bErr := ioutil.ReadAll(response.Body)
+	if bErr != nil {
+		log.Fatal(bErr)
+	}
 
-		functions := []function{}
-		mErr := json.Unmarshal(bodyBytes, &functions)
-		if mErr != nil {
-			log.Fatal(mErr)
-		}
+	if response.StatusCode != http.StatusOK {
+		log.Fatalf("unable to query functions, status: %d, message: %s", response.StatusCode, string(bodyBytes))
+	}
 
-		for _, fn := range functions {
-			for k, v := range fn.Labels {
-				if k == "Git-Owner" && strings.EqualFold(v, user) {
-					// Hide internal-repo details
-					fn.Image = fn.Image[strings.Index(fn.Image, "/")+1:]
-					filtered = append(filtered, fn)
-				}
+	functions := []function{}
+	mErr := json.Unmarshal(bodyBytes, &functions)
+	if mErr != nil {
+		log.Fatal(mErr)
+	}
+
+	for _, fn := range functions {
+		for k, v := range fn.Labels {
+			if k == "Git-Owner" && strings.EqualFold(v, user) {
+				// Hide internal-repo details
+				fn.Image = fn.Image[strings.Index(fn.Image, "/")+1:]
+				filtered = append(filtered, fn)
 			}
 		}
 	}

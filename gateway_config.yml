@@ -1,6 +1,6 @@
 environment:
   customers_url: "https://raw.githubusercontent.com/openfaas/openfaas-cloud/master/CUSTOMERS"
-  gateway_url:  http://gateway.openfaas:8080/
+  gateway_url:  http://gateway:8080/
   gateway_public_url: https://cloud.o6s.io/
   audit_url: http://gateway.openfaas:8080/function/audit-event
   repository_url: docker.io/ofcommunity/

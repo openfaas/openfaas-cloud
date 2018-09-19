@@ -37,7 +37,7 @@ functions:
 
   system-list-functions:
     skip_build: true
-    image: functions/list-functions:0.4.4
+    image: functions/list-functions:0.4.5
     fprocess: ./handler
     environment:
       gateway_url: http://gateway.openfaas:8080/
