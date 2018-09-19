@@ -38,3 +38,45 @@ func Test_FormatServiceName(t *testing.T) {
 		}
 	}
 }
+
+func Test_CreateServiceURL(t *testing.T) {
+	tests := []struct {
+		title       string
+		URL         string
+		suffix      string
+		expectedURL string
+	}{
+		{
+			title:       "URL formatted for Swarm with port",
+			URL:         "http://gateway:8080",
+			suffix:      "",
+			expectedURL: "http://gateway:8080",
+		},
+		{
+			title:       "URL formatted for Kubernetes",
+			URL:         "http://gateway:8080",
+			suffix:      "openfaas",
+			expectedURL: "http://gateway.openfaas:8080",
+		},
+		{
+			title:       "URL formatted for Swarm without port",
+			URL:         "http://gateway",
+			suffix:      "",
+			expectedURL: "http://gateway",
+		},
+		{
+			title:       "URL formatted for Kubernetes without port",
+			URL:         "http://gateway",
+			suffix:      "openfaas",
+			expectedURL: "http://gateway.openfaas",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.title, func(t *testing.T) {
+			URL := CreateServiceURL(test.URL, test.suffix)
+			if URL != test.expectedURL {
+				t.Errorf("Expected: `%v` got: `%v`", test.expectedURL, URL)
+			}
+		})
+	}
+}
