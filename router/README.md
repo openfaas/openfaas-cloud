@@ -36,12 +36,12 @@ TAG=0.3.0 make build ; make push
 TAG=0.3.0
 docker rm -f of-router
 docker service rm of-router
-docker run -e upstream_url=http://192.168.0.35:8080 -p 8082:8080 --network=func_functions --name of-router -d openfaas/cloud-router:$TAG
+docker run -e upstream_url=http://gateway:8080 -p 8081:8080 --network=func_functions --name of-router -d openfaas/cloud-router:$TAG
 
 # Or as a service
 
 TAG=0.3.0
 docker rm -f of-router
 docker service rm of-router
-docker service create --network=func_functions  --env upstream_url=http://192.168.0.35:8080 --publish 8082:8080 --name of-router -d openfaas/cloud-router:$TAG
+docker service create --network=func_functions  --env upstream_url=http://gateway:8080 --publish 8081:8080 --name of-router -d openfaas/cloud-router:$TAG
 ```
