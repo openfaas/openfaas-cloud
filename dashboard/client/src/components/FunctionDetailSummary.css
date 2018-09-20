@@ -33,3 +33,7 @@
     margin-left: 97px;
   }
 }
+
+.FunctionDetailsSummary__dl__dt {
+  min-width: 70px;
+}

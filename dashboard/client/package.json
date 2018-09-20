@@ -8,10 +8,12 @@
     "@fortawesome/react-fontawesome": "^0.1.2",
     "axios": "^0.18.0",
     "moment": "^2.22.2",
+    "prop-types": "^15.6.2",
     "query-string": "^5.1.1",
     "react": "^16.4.2",
     "react-ace": "^6.1.4",
     "react-dom": "^16.4.2",
+    "react-notifications": "^1.4.3",
     "react-router-dom": "^4.3.1",
     "react-scripts": "1.1.5"
   },
