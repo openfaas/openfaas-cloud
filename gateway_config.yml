@@ -3,6 +3,8 @@ environment:
   gateway_url:  http://gateway.openfaas:8080/
   gateway_public_url: https://cloud.o6s.io/
   audit_url: http://gateway.openfaas:8080/function/audit-event
+  # Remove gateway_pretty_url if not using pretty URL
+  gateway_pretty_url: https://user.o6s.io/function
 
 # Security
   customers_url: "https://raw.githubusercontent.com/openfaas/openfaas-cloud/master/CUSTOMERS"
