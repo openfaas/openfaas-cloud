@@ -36,7 +36,7 @@ function renderBody(fns, user, clickHandler) {
       const handleRowClick = () => clickHandler(fnDetailPath);
 
       const lowerReplicas = minReplicas && minReplicas.length && parseInt(minReplicas) ? minReplicas : 1
-      const upperReplicas = maxReplicas && maxReplicas.length && parseInt(maxReplicas) ? maxReplicas : 1
+      const upperReplicas = maxReplicas && maxReplicas.length && parseInt(maxReplicas) ? maxReplicas : 20
       const percentage = Math.floor((lowerReplicas / upperReplicas) * 100);
 
       let progressClassName = 'progress-bar';
