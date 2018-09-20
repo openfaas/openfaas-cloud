@@ -2,7 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-
+import { faAward } from '@fortawesome/free-solid-svg-icons';
+import { Button } from 'react-bootstrap';
 import './FunctionDetailSummary.css';
 
 const renderContainerImage = image => {
@@ -23,7 +24,7 @@ const renderContainerImage = image => {
   }
 };
 
-export const FunctionDetailSummary = ({ fn }) => {
+export const FunctionDetailSummary = ({ fn, handleShowBadgeModal }) => {
   const to = `${fn.shortName}/log?repoPath=${fn.gitOwner}/${
     fn.gitRepo
   }&commitSHA=${fn.gitSha}`;
@@ -64,6 +65,11 @@ export const FunctionDetailSummary = ({ fn }) => {
         <div className="panel panel-default fn-detail-git">
           <div className="panel-body">
             <div>
+              <div className="pull-right">
+                <Button className="btn btn-default" onClick={handleShowBadgeModal} to="#">
+                  <FontAwesomeIcon icon={faAward} /> Get Badge
+                </Button>
+              </div>
               <h4>
                 Git <FontAwesomeIcon icon="code-branch" />
               </h4>
@@ -107,5 +113,6 @@ export const FunctionDetailSummary = ({ fn }) => {
 };
 
 FunctionDetailSummary.propTypes = {
-  fn: PropTypes.object.isRequired,
+  fn: PropTypes.object.isRequired,  
+  handleShowBadgeModal: PropTypes.func.isRequired,
 };
