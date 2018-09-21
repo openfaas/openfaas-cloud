@@ -9,4 +9,6 @@ secrets.yml
 
 kubeseal-darwin-amd64
 private-key
+key
+key.pub
 

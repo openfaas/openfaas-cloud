@@ -18,9 +18,6 @@ func buildGitHubURL(config *Config, resource string, scope string) *url.URL {
 	q.Set("client_id", config.ClientID)
 
 	redirectURI := combineURL(config.ExternalRedirectDomain, "/oauth2/authorized")
-	// if len(resource) > 0 {
-	// 	redirectURI = redirectURI + "?r=" + resource
-	// }
 
 	q.Set("redirect_uri", redirectURI)
 
