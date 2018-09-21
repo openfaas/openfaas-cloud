@@ -2,6 +2,7 @@ FROM golang:1.9-alpine AS builder
 
 WORKDIR /go/src/github.com/openfaas/openfaas-cloud/auth
 
+COPY vendor     vendor
 COPY handlers   handlers
 COPY static     static
 COPY template   template

@@ -11,4 +11,6 @@ type Config struct {
 	Scope                  string
 	CookieRootDomain       string
 	CookieExpiresIn        time.Duration // time.Hour * 48
+	PublicKeyPath          string
+	PrivateKeyPath         string
 }

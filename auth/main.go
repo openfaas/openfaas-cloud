@@ -17,6 +17,9 @@ func main() {
 	var externalRedirectDomain string
 	var cookieRootDomain string
 
+	var publicKeyPath string
+	var privateKeyPath string
+
 	if val, exists := os.LookupEnv("client_id"); exists {
 		clientID = val
 	}
@@ -33,13 +36,23 @@ func main() {
 		cookieRootDomain = val
 	}
 
+	if val, exists := os.LookupEnv("public_key_path"); exists {
+		publicKeyPath = val
+	}
+
+	if val, exists := os.LookupEnv("private_key_path"); exists {
+		privateKeyPath = val
+	}
+
 	config := &handlers.Config{
 		ClientID:               clientID,
 		ClientSecret:           clientSecret,
 		CookieExpiresIn:        time.Hour * 48,
 		CookieRootDomain:       cookieRootDomain,
 		ExternalRedirectDomain: externalRedirectDomain,
-		Scope: "read:org,read:user,user:email",
+		Scope:          "read:org,read:user,user:email",
+		PublicKeyPath:  publicKeyPath,
+		PrivateKeyPath: privateKeyPath,
 	}
 
 	protected := []string{

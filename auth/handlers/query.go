@@ -1,14 +1,32 @@
 package handlers
 
 import (
+	"crypto"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
+	"time"
+
+	"github.com/dgrijalva/jwt-go"
 )
 
 // MakeQueryHandler returns whether a client can access a resource
 func MakeQueryHandler(config *Config, protected []string) func(http.ResponseWriter, *http.Request) {
+
+	keydata, err := ioutil.ReadFile(config.PublicKeyPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	publicKey, keyErr := jwt.ParseECPublicKeyFromPEM(keydata)
+	if keyErr != nil {
+		log.Fatal("Load public key", keyErr)
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query()
 
@@ -18,12 +36,19 @@ func MakeQueryHandler(config *Config, protected []string) func(http.ResponseWrit
 		if len(resource) == 0 {
 			status = http.StatusBadRequest
 		} else if isProtected(resource, protected) {
-			if !validCookie(r, cookieName) {
+			started := time.Now()
+			cookieStatus := validCookie(r, cookieName, publicKey)
+			log.Printf("Cookie verified: %fs [%d]", time.Since(started).Seconds(), cookieStatus)
+
+			if cookieStatus == http.StatusOK {
+				status = http.StatusOK
+			} else if cookieStatus == http.StatusNetworkAuthenticationRequired {
 				// status = http.StatusUnauthorized
 				status = http.StatusTemporaryRedirect
 				log.Printf("No cookie or an invalid cookie was found.\n")
 			} else {
 				log.Printf("A valid cookie was found.\n")
+				status = http.StatusUnauthorized
 			}
 		}
 
@@ -50,12 +75,43 @@ func isProtected(resource string, protected []string) bool {
 	return false
 }
 
-func validCookie(r *http.Request, cookieName string) bool {
-	fmt.Println(r.Cookies())
+func validCookie(r *http.Request, cookieName string, publicKey crypto.PublicKey) int {
+	fmt.Println("Cookies ", r.Cookies())
+
 	cookie, err := r.Cookie(cookieName)
 	if err != nil {
-		return false
+		return http.StatusNetworkAuthenticationRequired
 	}
 
-	return len(cookie.Value) > 0
+	if len(cookie.Value) > 0 {
+		decoded, decodeErr := base64.StdEncoding.DecodeString(cookie.Value)
+		if decodeErr != nil {
+			return http.StatusUnauthorized
+		}
+
+		session := OpenFaaSCloudSession{}
+		sessionErr := json.Unmarshal([]byte(decoded), &session)
+		if sessionErr != nil {
+			log.Println(sessionErr)
+
+			return http.StatusUnauthorized
+		}
+
+		log.Println("JWT ", session.JWT)
+		// claims := jwt.StandardClaims{}
+		parsed, parseErr := jwt.Parse(session.JWT, func(token *jwt.Token) (interface{}, error) {
+			return publicKey, nil
+		})
+
+		if parseErr != nil {
+			log.Println(parseErr)
+			return http.StatusUnauthorized
+		}
+
+		if parsed.Valid {
+			return http.StatusOK
+		}
+	}
+
+	return http.StatusUnauthorized
 }
