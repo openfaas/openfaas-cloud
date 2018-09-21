@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 import queryString from 'query-string';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Link } from 'react-router-dom';
+import { Modal, Form, Well } from 'react-bootstrap';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { functionsApi } from '../api/functionsApi';
 import { FunctionDetailSummary } from '../components/FunctionDetailSummary';
-import { Modal, Button, FormGroup, ControlLabel, FormControl } from 'react-bootstrap';
+
 
 export class FunctionDetailPage extends Component {
   constructor(props) {
@@ -13,6 +14,8 @@ export class FunctionDetailPage extends Component {
     const { user, functionName } = props.match.params;
     this.handleShowBadgeModal = this.handleShowBadgeModal.bind(this);
     this.handleCloseBadgeModal = this.handleCloseBadgeModal.bind(this);
+    this.hoverOn = this.hoverOn.bind(this);
+    this.hoverOff = this.hoverOff.bind(this);
     this.state = {
       isLoading: true,
       fn: null,
@@ -20,6 +23,7 @@ export class FunctionDetailPage extends Component {
       repoPath,
       functionName,
       showBadgeModal: false,
+      copiedIcon: false,
     };    
   }
   componentDidMount() {
@@ -30,11 +34,16 @@ export class FunctionDetailPage extends Component {
     });
   }
   handleCloseBadgeModal() {
-    this.setState({ showBadgeModal: false });
+    this.setState({ showBadgeModal: false, copiedIcon: false });
   }
-
   handleShowBadgeModal() {
     this.setState({ showBadgeModal: true });
+  }
+  hoverOn() {
+    document.body.style.cursor = "pointer";
+  }
+  hoverOff() { 
+    document.body.style.cursor = "default"; 
   }
   render() {
     const { isLoading, fn } = this.state;
@@ -75,17 +84,21 @@ export class FunctionDetailPage extends Component {
                   <img src={badgeImage} alt="Powered by OpenFaaS &reg; Cloud" />
                 </a>
               </p>
-              <form>
-                <FormGroup
-                  controlId="formGetBadge">
-                  <FormControl
-                    readOnly
-                    type="text"
-                    value={badgeMd} />
-                  <FormControl.Feedback />
-                </FormGroup>
-              </form>
-            </Modal.Body>
+              <Form>                
+                <CopyToClipboard text={badgeMd}
+                  onCopy={() => this.setState({copiedIcon: true})}>                  
+                  <Well 
+                    bsSize="small" 
+                    onMouseEnter={this.hoverOn} 
+                    onMouseLeave={this.hoverOff}
+                    style={{ marginBottom: "10px" }}
+                  >
+                    {badgeMd}
+                  </Well>                  
+                </CopyToClipboard>
+                {this.state.copiedIcon ? <span style={{color: 'green'}}>Copied!</span> : null}
+              </Form>              
+            </Modal.Body>            
           </Modal>
       </div>
     );
