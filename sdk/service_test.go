@@ -71,6 +71,18 @@ func Test_CreateServiceURL(t *testing.T) {
 			expectedURL: "http://gateway.openfaas:8080",
 		},
 		{
+			title:       "URL formatted for Kubernetes",
+			URL:         "http://gateway.openfaas:8080",
+			suffix:      "",
+			expectedURL: "http://gateway.openfaas:8080",
+		},
+		{
+			title:       "URL formatted for Kubernetes",
+			URL:         "http://gateway.openfaas:8080",
+			suffix:      "openfaas",
+			expectedURL: "http://gateway.openfaas:8080",
+		},
+		{
 			title:       "URL formatted for Swarm without port",
 			URL:         "http://gateway",
 			suffix:      "",

@@ -14,8 +14,10 @@ module.exports = (event, context) => {
   if (/^\/api\/(list-functions|system-metrics|pipeline-log).*/.test(path)) {
     // proxy api requests to the gateway
     const gatewayUrl = process.env.gateway_url.replace(/\/$/, '');
+    const dnsSuffix = process.env.dns_suffix;
+    const wholeURL = dnsFormatter(gatewayUrl, dnsSuffix)
     const proxyPath = path.replace(/^\/api\//, '');
-    const url = `${gatewayUrl}/function/${proxyPath}`;
+    const url = `${wholeURL}/function/${proxyPath}`;
     console.log(`proxying request to: ${url}`);
     request(
       {
@@ -74,3 +76,11 @@ module.exports = (event, context) => {
     .status(200)
     .succeed(content);
 };
+
+function dnsFormatter(gatewayURL, dnsSuffix) {
+  const urlParts = gatewayURL.split(":")
+  const baseURL = urlParts[0] + urlParts[1]
+  const port = urlParts[2]
+  const wholeURL = baseURL + "." + dnsSuffix + ":" + port
+  return wholeURL
+}

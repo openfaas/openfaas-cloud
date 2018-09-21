@@ -29,5 +29,5 @@
   unused-packages = true
 
 [[constraint]]
-  version = "0.5.9"
+  version = "0.8.6"
   name = "github.com/openfaas/openfaas-cloud"

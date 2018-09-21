@@ -109,7 +109,9 @@ func Handle(req []byte) string {
 }
 
 func postEvent(pushEvent sdk.PushEvent) (int, error) {
+	suffix := os.Getenv("dns_suffix")
 	gatewayURL := os.Getenv("gateway_url")
+	gatewayURL = sdk.CreateServiceURL(gatewayURL, suffix)
 
 	payloadSecret, err := sdk.ReadSecret("payload-secret")
 	if err != nil {
@@ -161,7 +163,9 @@ func reportGitHubStatus(status *sdk.Status) {
 		return
 	}
 
+	suffix := os.Getenv("dns_suffix")
 	gatewayURL := os.Getenv("gateway_url")
+	gatewayURL = sdk.CreateServiceURL(gatewayURL, suffix)
 
 	_, reportErr := status.Report(gatewayURL, hmacKey)
 	if reportErr != nil {

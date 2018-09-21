@@ -25,11 +25,10 @@
   branch = "master"
   name = "github.com/alexellis/hmac"
 
-
 [prune]
   go-tests = true
   unused-packages = true
 
 [[constraint]]
-  version = "0.8.1"
+  version = "0.8.6"
   name = "github.com/openfaas/openfaas-cloud"

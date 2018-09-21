@@ -57,8 +57,12 @@ func Handle(req []byte) string {
 
 	c := &http.Client{}
 
+	suffix := os.Getenv("dns_suffix")
 	builderURL := os.Getenv("builder_url")
 	gatewayURL := os.Getenv("gateway_url")
+
+	builderURL = sdk.CreateServiceURL(builderURL, suffix)
+	gatewayURL = sdk.CreateServiceURL(gatewayURL, suffix)
 
 	payloadSecret, keyErr := sdk.ReadSecret("payload-secret")
 	if keyErr != nil {
@@ -229,7 +233,9 @@ func Handle(req []byte) string {
 			ReadOnlyRootFilesystem: readOnlyRootFS,
 		}
 
+		suffix := os.Getenv("dns_suffix")
 		gatewayURL := os.Getenv("gateway_url")
+		gatewayURL = sdk.CreateServiceURL(gatewayURL, suffix)
 
 		if len(registryAuth) > 0 {
 			deploy.RegistryAuth = registryAuth
@@ -477,7 +483,9 @@ func reportGitHubStatus(status *sdk.Status) {
 		return
 	}
 
+	suffix := os.Getenv("dns_suffix")
 	gatewayURL := os.Getenv("gateway_url")
+	gatewayURL = sdk.CreateServiceURL(gatewayURL, suffix)
 
 	payloadSecret, keyErr := sdk.ReadSecret("payload-secret")
 	if keyErr != nil {

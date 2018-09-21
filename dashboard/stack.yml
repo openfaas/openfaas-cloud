@@ -15,15 +15,8 @@ functions:
       role: openfaas-system
     environment:
       write_debug: true
-      # gateway_url: http://gateway:8080/ # when using Swarm
-      gateway_url: http://gateway.openfaas:8080/
-      # base_href: `/function/system-dashboard/` # if not using router
-      base_href: '/dashboard/'
-      # public_url: http://laptop-ip:8080/ # if deploying locally
-      public_url: https://system.o6s.io
-      # Comment out if not using public pretty-URL
-      pretty_url: https://user.o6s.io/function
-      query_pretty_url: 'true'
+    environment_file:
+      - ./gateway_config.yml
 
   system-list-functions:
     skip_build: true
@@ -33,10 +26,10 @@ functions:
       openfaas-cloud: "1"
       role: openfaas-system
     environment:
-      gateway_url: http://gateway.openfaas:8080/
-      secret_mount_path: /var/openfaas/secrets
       basic_auth: true
       write_debug: true
     secrets:
       - basic-auth-user
       - basic-auth-password
+    environment_file:
+      - ./gateway_config.yml

@@ -333,7 +333,10 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, sta
 	ownerID := pushEvent.Repository.Owner.ID
 
 	c := http.Client{}
+
+	suffix := os.Getenv("dns_suffix")
 	gatewayURL := os.Getenv("gateway_url")
+	gatewayURL = sdk.CreateServiceURL(gatewayURL, suffix)
 
 	for _, tarEntry := range tars {
 		fmt.Println("Deploying service - " + tarEntry.functionName)
@@ -434,7 +437,9 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, sta
 }
 
 func importSecrets(pushEvent sdk.PushEvent, stack *stack.Services, clonePath string) error {
+	suffix := os.Getenv("dns_suffix")
 	gatewayURL := os.Getenv("gateway_url")
+	gatewayURL = sdk.CreateServiceURL(gatewayURL, suffix)
 
 	secretCount := 0
 	for _, fn := range stack.Functions {

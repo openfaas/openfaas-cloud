@@ -35,7 +35,9 @@ func Handle(req []byte) string {
 		Timeout: time.Second * 3,
 	}
 
+	suffix := os.Getenv("dns_suffix")
 	gatewayURL := os.Getenv("gateway_url")
+	gatewayURL = sdk.CreateServiceURL(gatewayURL, suffix)
 
 	httpReq, _ := http.NewRequest(http.MethodGet, gatewayURL+"system/functions", nil)
 	addAuthErr := sdk.AddBasicAuth(httpReq)

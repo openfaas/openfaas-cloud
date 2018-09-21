@@ -175,7 +175,9 @@ func Handle(req []byte) string {
 func garbageCollect(garbageRequests []GarbageRequest) error {
 	client := http.Client{}
 
+	suffix := os.Getenv("dns_suffix")
 	gatewayURL := os.Getenv("gateway_url")
+	gatewayURL = sdk.CreateServiceURL(gatewayURL, suffix)
 
 	payloadSecret, err := sdk.ReadSecret("payload-secret")
 	if err != nil {
@@ -238,8 +240,12 @@ func forward(req []byte, function string, headers map[string]string) (string, in
 
 	c := http.Client{}
 
+	suffix := os.Getenv("dns_suffix")
+	gatewayURL := os.Getenv("gateway_url")
+	gatewayURL = sdk.CreateServiceURL(gatewayURL, suffix)
+
 	bodyReader := bytes.NewBuffer(req)
-	pushReq, _ := http.NewRequest(http.MethodPost, os.Getenv("gateway_url")+"function/"+function, bodyReader)
+	pushReq, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/"+function, bodyReader)
 	digest := hmac.Sign(req, []byte(payloadSecret))
 	pushReq.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
 

@@ -32,6 +32,7 @@ const authTokenPattern = "^[A-Za-z0-9-_.]*"
 
 var validToken = regexp.MustCompile(authTokenPattern)
 
+// CommitStatus to be written to GitHub/GitLab
 type CommitStatus struct {
 	Status      string `json:"status"`
 	Description string `json:"description"`
@@ -47,16 +48,14 @@ type Status struct {
 
 // BuildStatus constructs a status object from event
 func BuildStatus(event *Event, token string) *Status {
-
-	status := Status{}
-	status.EventInfo = *event
-	status.CommitStatuses = make(map[string]CommitStatus)
-	status.AuthToken = token
-
-	return &status
+	return &Status{
+		EventInfo:      *event,
+		CommitStatuses: make(map[string]CommitStatus),
+		AuthToken:      token,
+	}
 }
 
-// UnmarshalStatus unmarshal a status object from json
+// UnmarshalStatus unmarshals a status object from json
 func UnmarshalStatus(data []byte) (*Status, error) {
 	status := Status{}
 	err := json.Unmarshal(data, &status)
@@ -66,18 +65,26 @@ func UnmarshalStatus(data []byte) (*Status, error) {
 	return &status, nil
 }
 
+// Clear removes any statuses which have been added
+func (status *Status) Clear() {
+	status.CommitStatuses = make(map[string]CommitStatus)
+}
+
 // AddStatus adds a commit status into a status object
-//           a status can contain multiple commit status
+// a status can contain multiple commit status
 func (status *Status) AddStatus(state string, desc string, context string) {
+
+	// TODO: AE - don't think these lines are required
 	if status.CommitStatuses == nil {
 		status.CommitStatuses = make(map[string]CommitStatus)
 	}
+
 	// the status.CommitStatuses is a map hashed against the context
 	// it replace the old commit status if added for same context
 	status.CommitStatuses[context] = CommitStatus{Status: state, Description: desc, Context: context}
 }
 
-// marshal marshal a status into json
+// Marshal marshals a status into json
 func (status *Status) Marshal() ([]byte, error) {
 	return json.Marshal(status)
 }
@@ -125,7 +132,7 @@ func (status *Status) Report(gateway string, payloadSecret string) (string, erro
 
 	if len(payloadSecret) > 0 {
 		digest := hmac.Sign(body, []byte(payloadSecret))
-		httpReq.Header.Add("X-Cloud-Signature", "sha1="+hex.EncodeToString(digest))
+		httpReq.Header.Add(CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
 	}
 
 	res, err := c.Do(httpReq)
@@ -133,7 +140,9 @@ func (status *Status) Report(gateway string, payloadSecret string) (string, erro
 		return "", err
 	}
 
-	defer res.Body.Close()
+	if res.Body != nil {
+		defer res.Body.Close()
+	}
 
 	resData, readErr := ioutil.ReadAll(res.Body)
 	if resData == nil || readErr != nil {

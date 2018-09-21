@@ -213,7 +213,9 @@ func Handle(req []byte) []byte {
 func collect(pushEvent sdk.PushEvent, stack *stack.Services) error {
 	var err error
 
+	suffix := os.Getenv("dns_suffix")
 	gatewayURL := os.Getenv("gateway_url")
+	gatewayURL = sdk.CreateServiceURL(gatewayURL, suffix)
 
 	garbageReq := GarbageRequest{
 		Owner: pushEvent.Repository.Owner.Login,
