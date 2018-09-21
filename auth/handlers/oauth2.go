@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"crypto"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"net/url"
 	"time"
 
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/openfaas/openfaas-cloud/auth/provider"
 )
 
@@ -17,6 +19,16 @@ import (
 func MakeOAuth2Handler(config *Config) func(http.ResponseWriter, *http.Request) {
 	c := &http.Client{
 		Timeout: time.Second * 3,
+	}
+
+	privateKeydata, err := ioutil.ReadFile(config.PrivateKeyPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	privateKey, keyErr := jwt.ParseECPrivateKeyFromPEM(privateKeydata)
+	if keyErr != nil {
+		log.Fatal("Load private key", keyErr)
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -78,7 +90,7 @@ func MakeOAuth2Handler(config *Config) func(http.ResponseWriter, *http.Request) 
 			return
 		}
 
-		session, err := createSession(c, token)
+		session, err := createSession(c, token, privateKey, config)
 
 		sessionBytes, _ := json.Marshal(session)
 		fmt.Println(string(sessionBytes))
@@ -115,9 +127,10 @@ type OpenFaaSCloudSession struct {
 	Username          string `json:"preferred_username"`
 	Name              string `json:"name"`
 	GitHubAccessToken string `json:"github_access_token"`
+	JWT               string `json:"jwt"`
 }
 
-func createSession(c *http.Client, token GitHubAccessToken) (*OpenFaaSCloudSession, error) {
+func createSession(c *http.Client, token GitHubAccessToken, privateKey crypto.PrivateKey, config *Config) (*OpenFaaSCloudSession, error) {
 	var err error
 	session := &OpenFaaSCloudSession{}
 
@@ -132,8 +145,23 @@ func createSession(c *http.Client, token GitHubAccessToken) (*OpenFaaSCloudSessi
 	session.Name = profile.Name
 	session.GitHubAccessToken = token.AccessToken
 
+	method := jwt.GetSigningMethod(jwt.SigningMethodES256.Name)
+
+	session.JWT, err = jwt.NewWithClaims(method, jwt.StandardClaims{
+		Id:        fmt.Sprintf("%d", profile.ID),
+		Issuer:    "openfaas-cloud@github",
+		ExpiresAt: time.Now().Add(48 * time.Hour).Unix(),
+		IssuedAt:  time.Now().Unix(),
+		Subject:   profile.Login,
+		Audience:  config.CookieRootDomain,
+	}).SignedString(privateKey)
+
 	return session, err
 }
+
+// type OpenFaaSCloudClaims struct {
+// 	jwt.StandardClaims
+// }
 
 func getToken(res *http.Response) (GitHubAccessToken, error) {
 	token := GitHubAccessToken{}
