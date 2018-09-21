@@ -158,7 +158,7 @@ func Handle(req []byte) string {
 				sdk.FunctionLabelPrefix + "git-owner":      event.Owner,
 				sdk.FunctionLabelPrefix + "git-repo":       event.Repository,
 				sdk.FunctionLabelPrefix + "git-deploytime": strconv.FormatInt(time.Now().Unix(), 10), //Unix Epoch string
-				sdk.FunctionLabelPrefix + "git-SHA":        event.SHA,
+				sdk.FunctionLabelPrefix + "git-sha":        event.SHA,
 				"faas_function":                            serviceValue,
 				"app":                                      serviceValue,
 				"com.openfaas.scale.min": scalingMinLimit,

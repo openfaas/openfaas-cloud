@@ -20,15 +20,20 @@ This may be simpler than deploying the builder and connecting your OpenFaaS Clou
 
 ```
 $ faas-cli store deploy figlet --name alexellis-figlet --label Git-Owner=alexellis \
- --label Git-Repo=figlet --label Git-SHA=665d9597547d8e0425630ba2dbb73c2951a61ce2 \
- --label Git-DeployTime=1533026741 --label Git-Cloud=1 --network=func_functions \
+ --label com.openfaas.cloud.git-repo=figlet \
+ --label com.openfaas.cloud.git-sha=665d9597547d8e0425630ba2dbb73c2951a61ce2 \
+ --label com.openfaas.cloud.git-deploytime=1533026741 \
+ --label com.openfaas.cloud.git-cloud=1 --network=func_functions \
  --label com.openfaas.scale.min=1 --label com.openfaas.scale.max=4
 ```
 
 ```
-$ faas-cli store deploy nodeinfo --name alexellis-nodeinfo --label Git-Owner=alexellis \
- --label Git-Repo=nodeinfo --label Git-SHA=665d9597547d8e0425630ba2dbb73c2951a61ce2 \
- --label Git-DeployTime=1533026741 --label Git-Cloud=1 \
+$ faas-cli store deploy nodeinfo --name alexellis-nodeinfo \
+ --label com.openfaas.cloud.git-owner=alexellis \
+ --label com.openfaas.cloud.git-repo=nodeinfo \
+ --label com.openfaas.cloud.git-sha=665d9597547d8e0425630ba2dbb73c2951a61ce2 \
+ --label com.openfaas.cloud.git-deploytime=1533026741 \
+ --label com.openfaas.cloud.git-cloud=1 \
  --label com.openfaas.scale.min=1 --label com.openfaas.scale.max=4 --network=func_functions
 ```
 

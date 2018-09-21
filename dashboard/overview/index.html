@@ -144,7 +144,7 @@
                     if (item.labels["com.openfaas.cloud.git-repo"] == selectedRepo) {
                         rowClass = "class='warning'";
                     }
-                    var sha = item.labels["com.openfaas.cloud.git-SHA"];
+                    var sha = item.labels["com.openfaas.cloud.git-sha"];
                     if(sha) {
                         sha = sha.substr(0,7);
                     } else {
@@ -159,7 +159,7 @@
                         logURL = baseURL + "/function/system-pipeline";
                     }
 
-                    logURL += "?repoPath="+ item.labels["com.openfaas.cloud.git-owner"]+"/"+item.labels["com.openfaas.cloud.git-repo"] + "&commitSHA="+item.labels["com.openfaas.cloud.git-SHA"]+"&function="+shortName;
+                    logURL += "?repoPath="+ item.labels["com.openfaas.cloud.git-owner"]+"/"+item.labels["com.openfaas.cloud.git-repo"] + "&commitSHA="+item.labels["com.openfaas.cloud.git-sha"]+"&function="+shortName;
 
                     $("#items").append('<tr '+rowClass+' data-url="'+url+'">' +
                      '<td>'+shortName+'</td>'+

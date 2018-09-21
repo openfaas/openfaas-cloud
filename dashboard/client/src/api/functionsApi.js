@@ -53,7 +53,7 @@ class FunctionsApi {
         endpoint = this.baseURL + '/function/' + item.name;
       }
 
-      let shortSha = item.labels['com.openfaas.cloud.git-SHA'];
+      let shortSha = item.labels['com.openfaas.cloud.git-sha'];
       if (shortSha) {
         shortSha = shortSha.substr(0, 7);
       } else {
@@ -72,7 +72,7 @@ class FunctionsApi {
         gitRepo: item.labels['com.openfaas.cloud.git-repo'],
         gitOwner: item.labels['com.openfaas.cloud.git-owner'],
         gitDeployTime: item.labels['com.openfaas.cloud.git-deploytime'],
-        gitSha: item.labels['com.openfaas.cloud.git-SHA'],
+        gitSha: item.labels['com.openfaas.cloud.git-sha'],
         minReplicas: item.labels['com.openfaas.scale.min'],
         maxReplicas: item.labels['com.openfaas.scale.max'],
       };
