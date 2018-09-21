@@ -3,10 +3,28 @@ provider:
   gateway: http://127.0.0.1:8080
 
 functions:
+  system-github-event:
+    lang: go
+    handler: ./github-event
+    image: functions/github-event:0.6.0
+    labels:
+      openfaas-cloud: "1"
+      role: openfaas-system
+    environment:
+      validate_hmac: true
+      write_debug: true
+      read_debug: true
+    environment_file:
+      - github.yml
+      - gateway_config.yml
+    secrets:
+      - github-webhook-secret
+      - payload-secret
+
   github-push:
     lang: go
     handler: ./github-push
-    image: functions/github-push:0.6.0
+    image: functions/github-push:0.6.1
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -24,28 +42,11 @@ functions:
       - github-webhook-secret
       - payload-secret
 
-  system-github-event:
-    lang: go
-    handler: ./github-event
-    image: functions/github-event:0.5.0
-    labels:
-      openfaas-cloud: "1"
-      role: openfaas-system
-    environment:
-      validate_hmac: true
-      write_debug: true
-      read_debug: true
-    environment_file:
-      - github.yml
-      - gateway_config.yml
-    secrets:
-      - github-webhook-secret
-      - payload-secret
 
   git-tar:
     lang: dockerfile
     handler: ./git-tar
-    image: functions/of-git-tar:0.8.2
+    image: functions/of-git-tar:0.8.3
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -65,7 +66,7 @@ functions:
   buildshiprun:
     lang: go
     handler: ./buildshiprun
-    image: functions/of-buildshiprun:0.8.1
+    image: functions/of-buildshiprun:0.8.2
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -87,7 +88,7 @@ functions:
   garbage-collect:
     lang: go
     handler: ./garbage-collect
-    image: functions/garbage-collect:0.4.0
+    image: functions/garbage-collect:0.4.1
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -106,7 +107,7 @@ functions:
   github-status:
     lang: go
     handler: ./github-status
-    image: functions/github-status:0.2.1
+    image: functions/github-status:0.2.2
     labels:
       role: openfaas-system
     environment:
@@ -125,7 +126,7 @@ functions:
   import-secrets:
     lang: go
     handler: ./import-secrets
-    image: functions/import-secrets:0.3.0
+    image: functions/import-secrets:0.3.1
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -142,7 +143,7 @@ functions:
   pipeline-log:
     lang: go
     handler: ./pipeline-log
-    image: functions/pipeline-log:0.3.1
+    image: functions/pipeline-log:0.3.2
     labels:
       role: openfaas-system
     environment:
@@ -159,7 +160,7 @@ functions:
   list-functions:
     lang: go
     handler: ./list-functions
-    image: functions/list-functions:0.4.5
+    image: functions/list-functions:0.4.6
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -197,3 +198,4 @@ functions:
       - gateway_config.yml
     environment:
       content_type: "application/json"
+
