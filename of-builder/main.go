@@ -167,7 +167,7 @@ func build(w http.ResponseWriter, r *http.Request) ([]byte, error) {
 			for _, v := range s.Vertexes {
 				var msg string
 				if v.Completed != nil {
-					msg = fmt.Sprintf("v: %s %s %.2fs", v.Started, v.Name, v.Completed.Sub(*v.Started).Seconds())
+					msg = fmt.Sprintf("v: %s %s %.2fs", v.Started.Format(time.RFC3339), v.Name, v.Completed.Sub(*v.Started).Seconds())
 				} else {
 					var startedTime time.Time
 					if v.Started != nil {
@@ -183,14 +183,14 @@ func build(w http.ResponseWriter, r *http.Request) ([]byte, error) {
 
 			}
 			for _, s := range s.Statuses {
-				msg := fmt.Sprintf("s: %s %s %d", s.Timestamp, s.ID, s.Current)
+				msg := fmt.Sprintf("s: %s %s %d", s.Timestamp.Format(time.RFC3339), s.ID, s.Current)
 				build.Append(msg)
 
 				fmt.Printf("status: %s %s %d\n", s.Vertex, s.ID, s.Current)
 			}
 			for _, l := range s.Logs {
 
-				msg := fmt.Sprintf("l: %s %s", l.Timestamp, l.Data)
+				msg := fmt.Sprintf("l: %s %s", l.Timestamp.Format(time.RFC3339), l.Data)
 				build.Append(msg)
 
 				fmt.Printf("log: %s\n%s\n", l.Vertex, l.Data)
