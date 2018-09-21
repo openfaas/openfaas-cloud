@@ -14,7 +14,7 @@ const baseFunctionLabels = {
   'com.openfaas.cloud.git-deploytime': '1536401680',
   'com.openfaas.cloud.git-owner': user,
   'com.openfaas.cloud.git-repo': 'some-function-repo',
-  'com.openfaas.cloud.git-SHA': 'abcdefghijklmnopqrstuvwxyz0123456789ABCD',
+  'com.openfaas.cloud.git-sha': 'abcdefghijklmnopqrstuvwxyz0123456789ABCD',
   app: `${user}-some-function`,
   faas_function: `${user}-some-function`,
   uid: '111111111',
