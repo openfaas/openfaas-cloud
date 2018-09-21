@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 
+import { NotificationContainer } from 'react-notifications';
+
 import './App.css';
+import './notifications.css'
 
 import { NavBar } from './components/NavBar';
 import { FunctionsOverviewPage } from './pages/FunctionsOverviewPage';
@@ -21,6 +24,7 @@ export class App extends Component {
           <NavBar />
           <Breadcrumbs />
           <div>
+            <NotificationContainer />
             <Switch>
               <Route exact path="/:user" component={FunctionsOverviewPage} />
               <Route

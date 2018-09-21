@@ -2,6 +2,9 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons'
+
+import CopyText from './CopyText';
 
 import './FunctionDetailSummary.css';
 
@@ -28,6 +31,7 @@ export const FunctionDetailSummary = ({ fn }) => {
     fn.gitRepo
   }&commitSHA=${fn.gitSha}`;
   const repo = `${fn.gitOwner}/${fn.gitRepo}`;
+
   return (
     <div className="fn-detail-summary row">
       <div className="col-md-5">
@@ -43,18 +47,25 @@ export const FunctionDetailSummary = ({ fn }) => {
                 Deployment <FontAwesomeIcon icon="info-circle" />
               </h4>
             </div>
-            <dl className="dl-horizontal">
-              <dt>Name:</dt>
+            <dl className="FunctionDetailsSummary__dl dl-horizontal">
+              <dt className="FunctionDetailsSummary__dl__dt">Name:</dt>
               <dd>{fn.shortName}</dd>
-              <dt>Image:</dt>
+              <dt className="FunctionDetailsSummary__dl__dt">Image:</dt>
               <dd>{renderContainerImage(fn.image)}</dd>
-              <dt>Endpoint:</dt>
+              <dt className="FunctionDetailsSummary__dl__dt">
+                  Endpoint:
+              </dt>
               <dd>
-                <a href={fn.endpoint} target="_blank">
-                  {fn.endpoint}
+                <CopyText copyValue={fn.endpoint}>
+                    <a className="pointer" style={{ marginRight: 5 }}>
+                        {fn.endpoint}
+                    </a>
+                </CopyText>
+                <a href={fn.endpoint} target="__blank">
+                  <FontAwesomeIcon icon={faExternalLinkAlt} size="xs" />
                 </a>
               </dd>
-              <dt>Replicas:</dt>
+              <dt className="FunctionDetailsSummary__dl__dt">Replicas:</dt>
               <dd>{fn.replicas}</dd>
             </dl>
           </div>
@@ -93,7 +104,7 @@ export const FunctionDetailSummary = ({ fn }) => {
           <div className="panel-body">
             <div>
               <h4>
-                Invocations <FontAwesomeIcon icon="bolt" />
+                Invocations <span className="visible-lg-inline">&nbsp;<FontAwesomeIcon icon="bolt" /></span>
               </h4>
             </div>
             <div>
