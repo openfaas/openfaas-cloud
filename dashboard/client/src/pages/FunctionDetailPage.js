@@ -68,18 +68,20 @@ export class FunctionDetailPage extends Component {
             </Modal.Header>
             <Modal.Body>
               <p>
-                <Link to={badgeLink}>
-                  <img src={badgeImage} alt="OpenFaaS" />
-                </Link>
+                Add the following markdown snippet to your README.md in your Git repo to show you are using OpenFaaS &reg; Cloud.
+              </p>
+              <p>
+                <a href={badgeLink}>
+                  <img src={badgeImage} alt="Powered by OpenFaaS &reg; Cloud" />
+                </a>
               </p>
               <form>
                 <FormGroup
-                  controlId="formGetBadge"
-                >
+                  controlId="formGetBadge">
                   <FormControl
+                    readOnly
                     type="text"
-                    value={badgeMd}
-                  />
+                    value={badgeMd} />
                   <FormControl.Feedback />
                 </FormGroup>
               </form>
