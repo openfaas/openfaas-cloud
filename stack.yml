@@ -6,7 +6,7 @@ functions:
   system-github-event:
     lang: go
     handler: ./github-event
-    image: functions/github-event:0.6.0
+    image: functions/github-event:0.6.1
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -88,7 +88,7 @@ functions:
   garbage-collect:
     lang: go
     handler: ./garbage-collect
-    image: functions/garbage-collect:0.4.1
+    image: functions/garbage-collect:0.4.2
     labels:
       openfaas-cloud: "1"
       role: openfaas-system

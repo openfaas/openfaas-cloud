@@ -119,6 +119,22 @@ func Handle(req []byte) string {
 			}
 			garbageCollect(garbageRequests)
 			break
+		case "deleted":
+			garbageRequests := []GarbageRequest{}
+			owner := event.Installation.Account.Login
+			fmt.Printf("Need to remove all repos for owner: %s.\n", owner)
+
+			garbageRequests = append(garbageRequests,
+				GarbageRequest{
+					Owner:     owner,
+					Repo:      "*",
+					Functions: []string{},
+				},
+			)
+
+			garbageCollect(garbageRequests)
+
+			break
 		}
 
 	}

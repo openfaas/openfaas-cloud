@@ -30,25 +30,30 @@ func Handle(req []byte) string {
 		log.Fatal(err)
 	}
 
+	owner := garbageReq.Owner
+	if garbageReq.Repo == "*" {
+		log.Printf("Removing all functions for %s", owner)
+	}
+
 	gatewayURL := os.Getenv("gateway_url")
-	deployedFunctions, err := listFunctions(garbageReq.Owner, gatewayURL)
+	deployedFunctions, err := listFunctions(owner, gatewayURL)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Functions owned by %s:\n %s", garbageReq.Owner, deployedFunctions)
+	fmt.Printf("Functions owned by %s:\n %s", owner, deployedFunctions)
 
 	deleted := 0
 	for _, fn := range deployedFunctions {
-		if fn.GetRepo() == garbageReq.Repo {
-			if !included(&fn, garbageReq.Owner, garbageReq.Functions) {
-				err = deleteFunction(fn.Name, gatewayURL)
-				deleted = deleted + 1
-				if err != nil {
-					log.Println(err)
-				}
+		if garbageReq.Repo == "*" ||
+			(fn.GetRepo() == garbageReq.Repo && !included(&fn, owner, garbageReq.Functions)) {
+
+			err = deleteFunction(fn.Name, gatewayURL)
+			if err != nil {
+				log.Println(err)
 			}
+			deleted = deleted + 1
 		}
 	}
 
