@@ -159,7 +159,7 @@ func garbageCollect(garbageRequests []GarbageRequest) error {
 		req, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/garbage-collect", bodyReader)
 
 		digest := hmac.Sign(body, []byte(payloadSecret))
-		req.Header.Add("X-Cloud-Signature", "sha1="+hex.EncodeToString(digest))
+		req.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
 
 		res, err := client.Do(req)
 		if err != nil {
@@ -210,7 +210,7 @@ func forward(req []byte, function string, headers map[string]string) (string, in
 	bodyReader := bytes.NewBuffer(req)
 	pushReq, _ := http.NewRequest(http.MethodPost, os.Getenv("gateway_url")+"function/"+function, bodyReader)
 	digest := hmac.Sign(req, []byte(payloadSecret))
-	pushReq.Header.Add("X-Cloud-Signature", "sha1="+hex.EncodeToString(digest))
+	pushReq.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
 
 	for k, v := range headers {
 		pushReq.Header.Add(k, v)

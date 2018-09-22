@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"encoding/hex"
+
 	"github.com/alexellis/hmac"
 	"github.com/openfaas/faas-cli/stack"
 	"github.com/openfaas/openfaas-cloud/sdk"
@@ -131,7 +132,7 @@ func collect(pushEvent sdk.PushEvent, stack *stack.Services) error {
 
 	digest := hmac.Sign(bytesReq, []byte(payloadSecret))
 
-	request.Header.Add("X-Cloud-Signature", "sha1="+hex.EncodeToString(digest))
+	request.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
 
 	response, err := c.Do(request)
 

@@ -225,7 +225,7 @@ func createPipelineLog(result sdk.BuildResult, event *sdk.Event, gatewayURL stri
 	req, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/pipeline-log", reader)
 
 	digest := hmac.Sign(bytesOut, []byte(payloadSecret))
-	req.Header.Add("X-Cloud-Signature", "sha1="+hex.EncodeToString(digest))
+	req.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
 
 	res, err := c.Do(req)
 	if err != nil {

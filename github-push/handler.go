@@ -178,7 +178,7 @@ func postEvent(pushEvent sdk.PushEvent) (int, error) {
 	httpReq, _ := http.NewRequest(http.MethodPost, gatewayURL+"async-function/git-tar", bodyReader)
 
 	digest := hmac.Sign(body, []byte(payloadSecret))
-	httpReq.Header.Add("X-Cloud-Signature", "sha1="+hex.EncodeToString(digest))
+	httpReq.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
 
 	res, reqErr := c.Do(httpReq)
 

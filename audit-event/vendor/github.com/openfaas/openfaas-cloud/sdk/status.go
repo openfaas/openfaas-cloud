@@ -5,11 +5,12 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	hmac "github.com/alexellis/hmac"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"regexp"
+
+	hmac "github.com/alexellis/hmac"
 )
 
 // github status constant
@@ -115,21 +116,16 @@ make sure combine_output is disabled for github-status`, token)
 }
 
 // Report send a status update to github-status function
-func (status *Status) Report(gateway string, hmacKey string) (string, error) {
+func (status *Status) Report(gateway string, payloadSecret string) (string, error) {
 	body, _ := status.Marshal()
-
-	var hash []byte
-	// sign with hmac key if set
-	if len(hmacKey) > 0 {
-		hash = hmac.Sign(body, []byte(hmacKey))
-	}
 
 	c := http.Client{}
 	bodyReader := bytes.NewBuffer(body)
 	httpReq, _ := http.NewRequest(http.MethodPost, gateway+"function/github-status", bodyReader)
 
-	if len(hmacKey) > 0 {
-		httpReq.Header.Add("X-Hub-Signature", "sha1="+hex.EncodeToString(hash))
+	if len(payloadSecret) > 0 {
+		digest := hmac.Sign(body, []byte(payloadSecret))
+		httpReq.Header.Add("X-Cloud-Signature", "sha1="+hex.EncodeToString(digest))
 	}
 
 	res, err := c.Do(httpReq)
