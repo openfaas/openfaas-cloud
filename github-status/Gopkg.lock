@@ -49,8 +49,8 @@
 [[projects]]
   name = "github.com/openfaas/openfaas-cloud"
   packages = ["sdk"]
-  revision = "ce4622958b63a168c04393f6cd2e875fa5be0efe"
-  version = "0.5.7"
+  revision = "1b8f104e563dc86ab4f0f92f02e44f02b0d54a13"
+  version = "0.5.9"
 
 [[projects]]
   branch = "master"
@@ -87,6 +87,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e43cb9bafefdaa5d889830c660af9d5f5d1f2118d71b933feb862e1c4b8f5b5b"
+  inputs-digest = "252e66969429238f6811dc29df6337bc454bf1ff9f3efc588ad830e7f2616e14"
   solver-name = "gps-cdcl"
   solver-version = 1

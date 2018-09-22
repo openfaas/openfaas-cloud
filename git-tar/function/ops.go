@@ -403,7 +403,7 @@ func importSecrets(pushEvent sdk.PushEvent, stack *stack.Services, clonePath str
 	httpReq.Header.Add("Owner", owner)
 
 	digest := hmac.Sign(bytesOut, []byte(payloadSecret))
-	httpReq.Header.Add("X-Cloud-Signature", "sha1="+hex.EncodeToString(digest))
+	httpReq.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
 
 	res, reqErr := c.Do(httpReq)
 
