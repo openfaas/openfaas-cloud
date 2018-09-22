@@ -1,23 +1,31 @@
 ## Router for wildcard domain-name
 
-This is a Golang reverse proxy which applies some mapping rules to let a user's wildcard domain name map back to a function route on the API gateway.
+This is the single point of entry for all HTTP requests for OpenFaaS Cloud. When deployed it sits in front of the gateway to translate DNS entries to function paths.
 
-### Example:
+### Roadmap
 
-Repo: alexellis
+- [x] sub-domain mapping
+- [ ] [authz via OAuth 2.0 for protected URL routes via #145](https://github.com/openfaas/openfaas-cloud/issues/145)
+
+### Example of host-to-URL translations:
+
+The convention is that a `username` becomes a sub-domain and the first part of the HTTP path becomes the function the user sees in a URL. At the gateway both parts are combined in the function name: `username-function`
+
+Username: alexellis (Git user)
 Function: kubecon-tester
 
 Deployed function: alexellis-kubecon-tester
 
-Gateway address: http://gateway:8080/function/alexellis-kubecon-tester
-
 User-facing proxy address: https://alexellis.domain.io/kubecon-tester
 
+Gateway address: http://gateway:8080/function/alexellis-kubecon-tester
 
 ### Usage:
 
+The value `upstream_url` should point to an OpenFaaS API Gateway
+
 ```
-upstream_url=http://gateway:8080 port=8081 go run main.go
+upstream_url=http://127.0.0.1:8080 port=8081 go run main.go
 ```
 
 Test it:
@@ -31,6 +39,8 @@ curl -H "Host: alexellis.domain.io" localhost:8081/kubecon-tester
 ```
 TAG=0.3.0 make build ; make push
 ```
+
+> Note: on Kubernetes change `gateway:8080` to `gateway.openfaas:8080`.
 
 ```
 TAG=0.3.0
