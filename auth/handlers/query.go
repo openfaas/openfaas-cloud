@@ -2,8 +2,6 @@ package handlers
 
 import (
 	"crypto"
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -16,7 +14,6 @@ import (
 
 // MakeQueryHandler returns whether a client can access a resource
 func MakeQueryHandler(config *Config, protected []string) func(http.ResponseWriter, *http.Request) {
-
 	keydata, err := ioutil.ReadFile(config.PublicKeyPath)
 	if err != nil {
 		log.Fatal(err)
@@ -84,22 +81,9 @@ func validCookie(r *http.Request, cookieName string, publicKey crypto.PublicKey)
 	}
 
 	if len(cookie.Value) > 0 {
-		decoded, decodeErr := base64.StdEncoding.DecodeString(cookie.Value)
-		if decodeErr != nil {
-			return http.StatusUnauthorized
-		}
+		log.Println("JWT ", cookie.Value)
 
-		session := OpenFaaSCloudSession{}
-		sessionErr := json.Unmarshal([]byte(decoded), &session)
-		if sessionErr != nil {
-			log.Println(sessionErr)
-
-			return http.StatusUnauthorized
-		}
-
-		log.Println("JWT ", session.JWT)
-		// claims := jwt.StandardClaims{}
-		parsed, parseErr := jwt.Parse(session.JWT, func(token *jwt.Token) (interface{}, error) {
+		parsed, parseErr := jwt.Parse(cookie.Value, func(token *jwt.Token) (interface{}, error) {
 			return publicKey, nil
 		})
 
