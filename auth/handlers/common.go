@@ -5,7 +5,26 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	jwt "github.com/dgrijalva/jwt-go"
 )
+
+// OpenFaaSCloudClaims extends standard claims
+type OpenFaaSCloudClaims struct {
+	// Name is the full name of the user for OIDC
+	Name string `json:"name"`
+
+	// AccessToken for use with the GitHub Profile API
+	AccessToken string `json:"access_token"`
+
+	// Inherit from standard claims
+	jwt.StandardClaims
+}
+
+// GitHubAccessToken as issued by GitHub
+type GitHubAccessToken struct {
+	AccessToken string `json:"access_token"`
+}
 
 func buildGitHubURL(config *Config, resource string, scope string) *url.URL {
 	authURL := "https://github.com/login/oauth/authorize"
