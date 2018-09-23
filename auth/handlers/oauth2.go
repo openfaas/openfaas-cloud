@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"crypto"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -91,26 +90,28 @@ func MakeOAuth2Handler(config *Config) func(http.ResponseWriter, *http.Request) 
 		}
 
 		session, err := createSession(c, token, privateKey, config)
-
-		sessionBytes, _ := json.Marshal(session)
-		fmt.Println(string(sessionBytes))
-		encodedCookie := base64.StdEncoding.EncodeToString(sessionBytes)
+		if err != nil {
+			log.Printf("Error creating session: %s", err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Internal server error creating JWT"))
+			return
+		}
 
 		http.SetCookie(w, &http.Cookie{
 			HttpOnly: true,
 			Name:     cookieName,
-			Value:    encodedCookie,
+			Value:    session,
 			Path:     "/",
 			Expires:  time.Now().Add(config.CookieExpiresIn),
 			Domain:   config.CookieRootDomain,
 		})
 
-		fmt.Println("Redirect", reqQuery)
+		log.Printf("SetCookie done, redirect to: %s", reqQuery)
 
 		// Redirect to original requested resource (if specified in r=)
 		redirect := reqQuery.Get("r")
 		if len(redirect) > 0 {
-			log.Printf(`Found redirect value "r"=%s, instructing client to redirect.`, redirect)
+			log.Printf(`Found redirect value "r"=%s, instructing client to redirect`, redirect)
 			// http.Redirect(w, r, reqQuery.Get("r"), http.StatusTemporaryRedirect)
 
 			w.Write([]byte(`<html><head></head>Redirecting.. <a href="redirect">to original resource</a>. <script>window.location.replace("` + redirect + `");</script></html>`))
@@ -121,18 +122,9 @@ func MakeOAuth2Handler(config *Config) func(http.ResponseWriter, *http.Request) 
 	}
 }
 
-// OpenFaaSCloudSession is serialized in a cookie for the user
-type OpenFaaSCloudSession struct {
-	Sub               int    `json:"sub"`
-	Username          string `json:"preferred_username"`
-	Name              string `json:"name"`
-	GitHubAccessToken string `json:"github_access_token"`
-	JWT               string `json:"jwt"`
-}
-
-func createSession(c *http.Client, token GitHubAccessToken, privateKey crypto.PrivateKey, config *Config) (*OpenFaaSCloudSession, error) {
+func createSession(c *http.Client, token GitHubAccessToken, privateKey crypto.PrivateKey, config *Config) (string, error) {
 	var err error
-	session := &OpenFaaSCloudSession{}
+	var session string
 
 	client := provider.NewGitHub(c)
 	profile, profileErr := client.GetProfile(token.AccessToken)
@@ -140,28 +132,24 @@ func createSession(c *http.Client, token GitHubAccessToken, privateKey crypto.Pr
 		return session, profileErr
 	}
 
-	session.Sub = profile.ID
-	session.Username = profile.Login
-	session.Name = profile.Name
-	session.GitHubAccessToken = token.AccessToken
-
 	method := jwt.GetSigningMethod(jwt.SigningMethodES256.Name)
+	claims := OpenFaaSCloudClaims{
+		StandardClaims: jwt.StandardClaims{
+			Id:        fmt.Sprintf("%d", profile.ID),
+			Issuer:    "openfaas-cloud@github",
+			ExpiresAt: time.Now().Add(48 * time.Hour).Unix(),
+			IssuedAt:  time.Now().Unix(),
+			Subject:   profile.Login,
+			Audience:  config.CookieRootDomain,
+		},
+		Name:        profile.Name,
+		AccessToken: token.AccessToken,
+	}
 
-	session.JWT, err = jwt.NewWithClaims(method, jwt.StandardClaims{
-		Id:        fmt.Sprintf("%d", profile.ID),
-		Issuer:    "openfaas-cloud@github",
-		ExpiresAt: time.Now().Add(48 * time.Hour).Unix(),
-		IssuedAt:  time.Now().Unix(),
-		Subject:   profile.Login,
-		Audience:  config.CookieRootDomain,
-	}).SignedString(privateKey)
+	session, err = jwt.NewWithClaims(method, claims).SignedString(privateKey)
 
 	return session, err
 }
-
-// type OpenFaaSCloudClaims struct {
-// 	jwt.StandardClaims
-// }
 
 func getToken(res *http.Response) (GitHubAccessToken, error) {
 	token := GitHubAccessToken{}
@@ -178,9 +166,4 @@ func getToken(res *http.Response) (GitHubAccessToken, error) {
 	}
 
 	return token, fmt.Errorf("no body received from server")
-}
-
-// GitHubAccessToken as issued by GitHub
-type GitHubAccessToken struct {
-	AccessToken string `json:"access_token"`
 }

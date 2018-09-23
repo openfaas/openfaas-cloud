@@ -60,20 +60,23 @@ type authProxy struct {
 	Client *http.Client
 }
 
-func (a *authProxy) Validate(upstreamURL string, cookies []*http.Cookie) (int, string) {
+func (a *authProxy) Validate(upstreamURL string, r *http.Request) (int, string) {
 	validateURL := a.URL + "q/?r=" + upstreamURL
 
 	req, _ := http.NewRequest(http.MethodGet, validateURL, nil)
 
-	if cookies == nil {
-		log.Println("No cookies to send.")
+	for _, cookie := range r.Cookies() {
+		req.AddCookie(cookie)
 	}
-	if cookies != nil {
-		for _, cookie := range cookies {
-			req.AddCookie(cookie)
-		}
+
+	if len(r.Cookies()) == 0 {
+		log.Println("No cookies to send.")
+	} else {
 		log.Printf("Cookies sent upstream: %d", len(req.Cookies()))
 	}
+
+	// Add all headers including referrer used for validation.
+	copyHeaders(req.Header, &r.Header)
 
 	res, err := a.Client.Do(req)
 
@@ -149,8 +152,7 @@ func makeHandler(c *http.Client, timeout time.Duration, upstreamURL string, auth
 		}
 
 		if auth != nil && !isAuthHost {
-
-			authStatus, location := auth.Validate(upstreamFullURL.Path, r.Cookies())
+			authStatus, location := auth.Validate(upstreamFullURL.Path, r)
 			fmt.Println(authStatus, location)
 
 			responseWritten := false
