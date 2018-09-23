@@ -63,8 +63,11 @@ func makeHandler(c *http.Client, timeout time.Duration, upstreamURL string) func
 		host = r.Host[0:strings.Index(r.Host, tldSep)]
 
 		requestURI := r.RequestURI
-		if strings.HasPrefix(requestURI, "/") {
-			requestURI = requestURI[1:]
+		requestURI = strings.TrimLeft(requestURI, "/")
+
+		if len(requestURI) == 0 {
+			w.WriteHeader(http.StatusNotFound)
+			return
 		}
 
 		upstreamFullURL := fmt.Sprintf("%sfunction/%s-%s", upstreamURL, host, requestURI)
