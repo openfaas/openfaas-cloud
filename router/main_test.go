@@ -50,6 +50,18 @@ func Test_makeHandler(t *testing.T) {
 			UpstreamURL:        "",
 			ExpectedStatusCode: http.StatusBadRequest,
 		},
+		{
+			Scenario:           "multiple function slash prefixes",
+			RequestURL:         "http://system.example.xyz/////dashboard",
+			UpstreamURL:        "/function/system-dashboard",
+			ExpectedStatusCode: http.StatusOK,
+		},
+		{
+			Scenario:           "missing function name",
+			RequestURL:         "http://system.example.xyz/",
+			UpstreamURL:        "",
+			ExpectedStatusCode: http.StatusNotFound,
+		},
 	}
 
 	router := httptest.NewServer(passHandler{
