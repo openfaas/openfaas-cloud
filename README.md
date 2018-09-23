@@ -60,12 +60,14 @@ Read my [introducing OpenFaaS Cloud](https://blog.alexellis.io/introducing-openf
 
 * Stretch goals
 
+- [x] Move Dashboard UI to React.js
+- [ ] Re-write React.js Dashboard to use native Bootstrap library
 - [ ] CI/CD integration with on-prem GitLab (in-progress)
+- [ ] UI: OAuth 2 login via GitLab (help wanted)
 - [ ] Unprivileged builds with BuildKit or similar (under investigation)
+- [ ] Log into OpenFaaS Cloud via CLI (faas-cli cloud login)
 - [ ] Enable untrusted container builds via docker-machine?
 - [ ] Integration with on-prem BitBucket (help wanted)
-- [ ] Log into OpenFaaS Cloud via CLI (faas-cli cloud login)
-- [ ] UI: OAuth 2 login via GitLab (help wanted)
 
 ## Functions
 
