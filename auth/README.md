@@ -80,14 +80,14 @@ export TAG=0.1.0
 docker run -e client_secret=x \
  -e client_id=y \
  -e PORT=8080 \
- -p 8080:8080 \
+ -p 8880:8080 \
  -e external_redirect_domain="http://auth.system.gw.io:8081" \
  -e cookie_root_domain=".system.gw.io" \
  -e public_key_path=/tmp/key.pub \
  -e private_key_path=/tmp/key \
- -v `pwd`/key:/tmp/key \
- -v `pwd`/key.pub:/tmp/key.pub \
- --name cloud-auth  -ti openfaas/cloud-auth:$TAG
+ -v "`pwd`/key:/tmp/key" \
+ -v "`pwd`/key.pub:/tmp/key.pub" \
+ --name cloud-auth  -ti openfaas/cloud-auth:${TAG}
 ```
 
 ### On Kubernetes
