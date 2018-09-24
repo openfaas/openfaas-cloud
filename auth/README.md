@@ -33,6 +33,22 @@ Contents:
 | login      | login in GitHub                 | true     |
 | full_name  | user's full-name as per profile | false    |
 
+## Generate a key/pair
+
+```
+# Private key
+openssl ecparam -genkey -name prime256v1 -noout -out key
+
+# Public key
+openssl ec -in key -pubout -out key.pub
+```
+
+For Kubernetes store these are secrets:
+
+```sh
+kubectl -n openfaas create secret generic jwt-private-key --from-file=./key
+kubectl -n openfaas create secret generic jwt-public-key --from-file=./key.pub
+```
 
 ## Building
 
@@ -43,17 +59,19 @@ make
 
 ## Running 
 
-```
+```sh
+docker rm -f cloud-auth
 export TAG=0.1.0
 
-docker rm -f cloud-auth ; \
-docker run \
+docker run -e client_secret=x \
+ -e client_id=y \
  -e PORT=8080 \
  -p 8080:8080 \
- -e client_secret=$CLIENT_SECRET \
- -e client_id=$CLIENT_ID \
  -e external_redirect_domain="http://auth.system.gw.io:8081" \
- -e cookie_root_domain=".system.gw.io"
- --name cloud-auth \
- -ti openfaas/cloud-auth:$TAG
+ -e cookie_root_domain=".system.gw.io" \
+ -e public_key_path=/tmp/key.pub \
+ -e private_key_path=/tmp/key \
+ -v `pwd`/key:/tmp/key \
+ -v `pwd`/key.pub:/tmp/key.pub \
+ --name cloud-auth  -ti openfaas/cloud-auth:$TAG
 ```

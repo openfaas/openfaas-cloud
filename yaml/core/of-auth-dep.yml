@@ -1,0 +1,52 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: of-auth
+  namespace: openfaas
+spec:
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        prometheus.io.scrape: "false"
+      labels:
+        app: of-auth
+    spec:
+      volumes:
+        - name: jwt-private-key
+          secret:
+            secretName: jwt-private-key
+        - name: jwt-public-key
+          secret:
+            secretName: jwt-public-key
+      containers:
+      - name: of-auth
+        image: openfaas/cloud-auth:0.1.0
+        imagePullPolicy: Always
+        env:
+          - name: port
+            value: "8080"
+# Update for your configuration:
+          - name: client_secret
+            value: ""
+          - name: client_id
+            value: ""
+          - name: external_redirect_domain
+            value: "http://auth.system.gw.io:8081"
+          - name: cookie_root_domain
+            value: ".system.gw.io"
+          - name: public_key_path
+            value: "/var/secrets/public/key.pub"
+          - name: private_key_path
+            value: "/var/secrets/private/key"
+
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        volumeMounts:
+        - name: jwt-private-key
+          readOnly: true
+          mountPath: "/var/secrets/private/"
+        - name: jwt-public-key
+          readOnly: true
+          mountPath: "/var/secrets/public"
