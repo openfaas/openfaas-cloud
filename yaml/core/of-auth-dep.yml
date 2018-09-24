@@ -48,6 +48,10 @@ spec:
           - name: private_key_path
             value: "/var/secrets/private/key"
 
+# This is a default and can be overriden
+          - name: customers_url
+            value: "https://raw.githubusercontent.com/openfaas/openfaas-cloud/master/CUSTOMERS"
+
         ports:
         - containerPort: 8080
           protocol: TCP

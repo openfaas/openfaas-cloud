@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-const customerCacheExpiry = time.Minute * 2
+const customerCacheExpiry = time.Minute * 5
 
 // Customers checks whether users are customers of OpenFaaS Cloud
 type Customers struct {
