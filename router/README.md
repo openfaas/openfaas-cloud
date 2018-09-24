@@ -29,13 +29,13 @@ curl -H "Host: alexellis.domain.io" localhost:8081/kubecon-tester
 ### Development
 
 ```sh
-TAG=0.4.0 make build ; make push
+TAG=0.5.0 make build ; make push
 ```
 
 If you wish to bypass authentication you can run the router auth an auth_url of the `echo` function deployed via the `stack.yml`.
 
 ``` sh
-TAG=0.4.0
+TAG=0.5.0
 
 # As a container
 

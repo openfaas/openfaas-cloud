@@ -35,7 +35,7 @@ No secret information from your GitHub profile is stored in OpenFaaS Cloud and m
 
 When the feature is live OpenFaaS Cloud will require a login to access the UI dashboard. Access to this dashboard will be via single sign-on (SSO) with your GitHub account through use of a GitHub OAuth 2.0 App. Once authenticated a JWT token will be issued to you containing claims about your user account - the JWT is stored in a Cookie in your browser, but is not stored on  OpenFaaS Cloud. If you wish to remove your cookie, just remove it from your browser or clear your browsing history.
 
-You may retract access to the GitHub OAuth 2.0 App by removing this at any time.
+You may retract access to the GitHub OAuth 2.0 App through your GitHub profile.
 
 ### Uninstalling
 
