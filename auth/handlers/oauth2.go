@@ -56,7 +56,7 @@ func MakeOAuth2Handler(config *Config) func(http.ResponseWriter, *http.Request) 
 			return
 		}
 
-		fmt.Printf("Exchange: %s, for an access_token\n", code)
+		log.Printf("Exchange: %s, for an access_token", code)
 		tokenURL := "https://github.com/login/oauth/access_token"
 
 		u, _ := url.Parse(tokenURL)
@@ -68,7 +68,8 @@ func MakeOAuth2Handler(config *Config) func(http.ResponseWriter, *http.Request) 
 		q.Set("state", state)
 
 		u.RawQuery = q.Encode()
-		fmt.Println("Posting to", u.String())
+
+		log.Println("Posting to", u.String())
 
 		req, _ := http.NewRequest(http.MethodPost, u.String(), nil)
 
@@ -85,7 +86,10 @@ func MakeOAuth2Handler(config *Config) func(http.ResponseWriter, *http.Request) 
 
 		token, tokenErr := getToken(res)
 		if tokenErr != nil {
-			fmt.Println(tokenErr)
+			log.Printf("Unable to contact identity provider: GitHub, error: %s", tokenErr)
+
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Unable to contact identity provider: GitHub"))
 			return
 		}
 
