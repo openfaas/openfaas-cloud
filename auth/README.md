@@ -33,7 +33,21 @@ Contents:
 | login      | login in GitHub                 | true     |
 | full_name  | user's full-name as per profile | false    |
 
-## Generate a key/pair
+## Building
+
+```
+export TAG=0.1.0
+make
+```
+
+## Running
+
+All environmental variables must be set and configured for the service whether running locally as a container, via Swarm or on Kubernetes.
+
+
+### Generate a key/pair
+
+This key/pair is used to sign the JWT and then verify it later.
 
 ```
 # Private key
@@ -56,17 +70,6 @@ For Swarm you can create these secrets:
 docker secret create jwt-private-key ./key
 docker secret create jwt-public-key ./key.pub
 ```
-
-## Building
-
-```
-export TAG=0.1.0
-make
-```
-
-## Running
-
-All environmental variables must be set and configured for the service whether running locally as a container, via Swarm or on Kubernetes.
 
 ### As a local container:
 

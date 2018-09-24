@@ -22,12 +22,12 @@ func MakeOAuth2Handler(config *Config) func(http.ResponseWriter, *http.Request) 
 
 	privateKeydata, err := ioutil.ReadFile(config.PrivateKeyPath)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("unable to read path: %s, error: %s", config.PrivateKeyPath, err.Error())
 	}
 
 	privateKey, keyErr := jwt.ParseECPrivateKeyFromPEM(privateKeydata)
 	if keyErr != nil {
-		log.Fatal("Load private key", keyErr)
+		log.Fatalf("unable to parse private key: %s", keyErr.Error())
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
