@@ -23,8 +23,12 @@ spec:
             value: "8080"
           - name: timeout
             value: "60s"
+# For OAuth 2.0
           - name: auth_url
             value: "http://auth.openfaas:8080"
+# For no OAuth 2.0
+          # - name: auth_url
+          #   value: "http://echo.openfaas:8080"
         ports:
         - containerPort: 8080
           protocol: TCP

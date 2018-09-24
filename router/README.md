@@ -16,32 +16,47 @@ User-facing proxy address: https://alexellis.domain.io/kubecon-tester
 
 ### Usage:
 
-```
+```sh
 upstream_url=http://gateway:8080 port=8081 go run main.go
 ```
 
 Test it:
 
-```
+```sh
 curl -H "Host: alexellis.domain.io" localhost:8081/kubecon-tester
 ```
 
 ### Development
 
-```
-TAG=0.3.0 make build ; make push
+```sh
+TAG=0.4.0 make build ; make push
 ```
 
-```
-TAG=0.3.0
+If you wish to bypass authentication you can run the router auth an auth_url of the `echo` function deployed via the `stack.yml`.
+
+``` sh
+TAG=0.4.0
+
+# As a container
+
 docker rm -f of-router
 docker service rm of-router
-docker run -e upstream_url=http://192.168.0.35:8080 -p 8082:8080 --network=func_functions --name of-router -d openfaas/cloud-router:$TAG
+docker run \
+ -e upstream_url=http://127.0.0.1:8080 \
+ -e auth_url=http://echo:8080 \
+ -p 8081:8080 \
+ --network=func_functions \
+ --name of-router \
+ -d openfaas/cloud-router:$TAG
 
 # Or as a service
 
-TAG=0.3.0
 docker rm -f of-router
 docker service rm of-router
-docker service create --network=func_functions  --env upstream_url=http://192.168.0.35:8080 --publish 8082:8080 --name of-router -d openfaas/cloud-router:$TAG
+docker service create --network=func_functions \
+ --env upstream_url=http://127.0.0.1:8080 \
+ --env auth_url=http://echo:8080 \
+ --publish 8081:8080 \
+ --name of-router \
+ -d openfaas/cloud-router:$TAG
 ```
