@@ -40,7 +40,6 @@ TAG=0.5.0
 # As a container
 
 docker rm -f of-router
-docker service rm of-router
 docker run \
  -e upstream_url=http://127.0.0.1:8080 \
  -e auth_url=http://echo:8080 \
@@ -51,7 +50,6 @@ docker run \
 
 # Or as a service
 
-docker rm -f of-router
 docker service rm of-router
 docker service create --network=func_functions \
  --env upstream_url=http://127.0.0.1:8080 \
