@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -10,7 +10,7 @@ import (
 // MakeLoginHandler creates a handler for logging in
 func MakeLoginHandler(config *Config) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Path", r.URL.Path)
+		log.Println("Login to path", r.URL.Path)
 
 		resource := "/"
 
@@ -21,7 +21,7 @@ func MakeLoginHandler(config *Config) func(http.ResponseWriter, *http.Request) {
 		if strings.EqualFold(r.URL.Path, "/login/github") {
 
 			u := buildGitHubURL(config, resource, config.Scope)
-			fmt.Println(u.String())
+
 			http.Redirect(w, r, u.String(), http.StatusTemporaryRedirect)
 			return
 		}

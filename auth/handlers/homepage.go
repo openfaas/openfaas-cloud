@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"bytes"
-	"fmt"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -29,11 +28,10 @@ func MakeHomepageHandler(config *Config) func(http.ResponseWriter, *http.Request
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println(r.URL.Path)
 
 		cookie, err := r.Cookie(cookieName)
 		if err != nil {
-			fmt.Println("No cookie found.")
+			log.Println("No cookie found.")
 			http.Redirect(w, r, "/login/?r="+r.URL.Path, http.StatusTemporaryRedirect)
 			return
 		}
@@ -43,7 +41,7 @@ func MakeHomepageHandler(config *Config) func(http.ResponseWriter, *http.Request
 		})
 
 		if parseErr != nil {
-			fmt.Println(parseErr, cookie.Value)
+			log.Println(parseErr, cookie.Value)
 			w.Write([]byte("Unable to decode cookie, please clear your cookies and sign-in again"))
 			return
 		}
