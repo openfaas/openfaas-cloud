@@ -23,15 +23,20 @@ Cookies:
 
 This cookie is issued as part of the social sign-in flow using GitHub.
 
-Contents:
+Contents (encoded JWT):
 
-(JSON payload)
-
-| Field      | Description                     | Required |
-|------------|---------------------------------|----------|
-| sub        | unique ID for user              | true     |
-| login      | login in GitHub                 | true     |
-| full_name  | user's full-name as per profile | false    |
+```json
+{
+  "name": "Alex Ellis",
+  "access_token": "token-value",
+  "aud": ".system.gw.io",
+  "exp": 1537957152,
+  "jti": "integer-value-here",
+  "iat": 1537784352,
+  "iss": "openfaas-cloud@github",
+  "sub": "alexellis"
+}
+```
 
 ## Building
 
