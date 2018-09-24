@@ -19,12 +19,12 @@ type HomepageTokens struct {
 func MakeHomepageHandler(config *Config) func(http.ResponseWriter, *http.Request) {
 	keydata, err := ioutil.ReadFile(config.PublicKeyPath)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("unable to read path: %s, error: %s", config.PublicKeyPath, err.Error())
 	}
 
 	publicKey, keyErr := jwt.ParseECPublicKeyFromPEM(keydata)
 	if keyErr != nil {
-		log.Fatal("Load public key", keyErr)
+		log.Fatalf("unable to parse public key: %s", keyErr.Error())
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
