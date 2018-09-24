@@ -41,7 +41,7 @@ Contents (encoded JWT):
 ## Building
 
 ```
-export TAG=0.1.0
+export TAG=0.2.0
 make
 ```
 
@@ -80,7 +80,7 @@ docker secret create jwt-public-key ./key.pub
 
 ```sh
 docker rm -f cloud-auth
-export TAG=0.1.0
+export TAG=0.2.0
 
 docker run -e client_secret=x \
  -e client_id=y \
@@ -102,7 +102,7 @@ Edit `yaml/core/of-auth-dep.yml` as needed and apply that file.
 ### On Swarm:
 
 ```sh
-export TAG=0.1.0
+export TAG=0.2.0
 docker service rm auth
 docker service create --name auth -e client_secret=x \
  -e client_id=y \
