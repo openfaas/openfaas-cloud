@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"crypto"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -37,15 +36,18 @@ func MakeQueryHandler(config *Config, protected []string) func(http.ResponseWrit
 			cookieStatus := validCookie(r, cookieName, publicKey)
 			log.Printf("Cookie verified: %fs [%d]", time.Since(started).Seconds(), cookieStatus)
 
-			if cookieStatus == http.StatusOK {
+			switch cookieStatus {
+			case http.StatusOK:
 				status = http.StatusOK
-			} else if cookieStatus == http.StatusNetworkAuthenticationRequired {
-				// status = http.StatusUnauthorized
+				break
+			case http.StatusNetworkAuthenticationRequired:
 				status = http.StatusTemporaryRedirect
 				log.Printf("No cookie or an invalid cookie was found.\n")
-			} else {
-				log.Printf("A valid cookie was found.\n")
+				break
+			default:
+				log.Printf("A valid cookie was not found.\n")
 				status = http.StatusUnauthorized
+				break
 			}
 		}
 
@@ -73,17 +75,17 @@ func isProtected(resource string, protected []string) bool {
 }
 
 func validCookie(r *http.Request, cookieName string, publicKey crypto.PublicKey) int {
-	fmt.Println("Cookies ", r.Cookies())
 
 	cookie, err := r.Cookie(cookieName)
 	if err != nil {
 		return http.StatusNetworkAuthenticationRequired
 	}
 
+	claims := OpenFaaSCloudClaims{}
 	if len(cookie.Value) > 0 {
-		log.Println("JWT ", cookie.Value)
+		log.Println("Cookie value: ", cookie.Value)
 
-		parsed, parseErr := jwt.Parse(cookie.Value, func(token *jwt.Token) (interface{}, error) {
+		parsed, parseErr := jwt.ParseWithClaims(cookie.Value, &claims, func(token *jwt.Token) (interface{}, error) {
 			return publicKey, nil
 		})
 
@@ -93,8 +95,12 @@ func validCookie(r *http.Request, cookieName string, publicKey crypto.PublicKey)
 		}
 
 		if parsed.Valid {
+			log.Println("Claims", claims)
+			log.Printf("Validated JWT for (%s) %s", claims.Subject, claims.Name)
+
 			return http.StatusOK
 		}
+
 	}
 
 	return http.StatusUnauthorized
