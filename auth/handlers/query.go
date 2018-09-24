@@ -23,6 +23,9 @@ func MakeQueryHandler(config *Config, protected []string) func(http.ResponseWrit
 		log.Fatalf("unable to parse public key: %s", keyErr.Error())
 	}
 
+	customers := NewCustomers()
+	customers.Fetch()
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query()
 
@@ -33,7 +36,7 @@ func MakeQueryHandler(config *Config, protected []string) func(http.ResponseWrit
 			status = http.StatusBadRequest
 		} else if isProtected(resource, protected) {
 			started := time.Now()
-			cookieStatus := validCookie(r, cookieName, publicKey)
+			cookieStatus := validCookie(r, cookieName, publicKey, customers)
 			log.Printf("Cookie verified: %fs [%d]", time.Since(started).Seconds(), cookieStatus)
 
 			switch cookieStatus {
@@ -74,7 +77,7 @@ func isProtected(resource string, protected []string) bool {
 	return false
 }
 
-func validCookie(r *http.Request, cookieName string, publicKey crypto.PublicKey) int {
+func validCookie(r *http.Request, cookieName string, publicKey crypto.PublicKey, customers *Customers) int {
 
 	cookie, err := r.Cookie(cookieName)
 	if err != nil {
@@ -97,6 +100,13 @@ func validCookie(r *http.Request, cookieName string, publicKey crypto.PublicKey)
 		if parsed.Valid {
 			log.Println("Claims", claims)
 			log.Printf("Validated JWT for (%s) %s", claims.Subject, claims.Name)
+
+			if found, _ := customers.Get(claims.Subject); found == false {
+				log.Printf("user [%s] was not a valid customer", claims.Subject)
+				return http.StatusUnauthorized
+			}
+
+			log.Printf("valid customer [%s]", claims.Subject)
 
 			return http.StatusOK
 		}

@@ -21,7 +21,7 @@ spec:
             secretName: jwt-public-key
       containers:
       - name: of-auth
-        image: openfaas/cloud-auth:0.1.0
+        image: openfaas/cloud-auth:0.2.0
         imagePullPolicy: Always
         env:
           - name: port
