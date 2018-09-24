@@ -20,6 +20,7 @@ func main() {
 	if len(cfg.UpstreamURL) == 0 {
 		log.Panicln("give an upstream_url as an env-var")
 	}
+
 	if len(cfg.AuthURL) == 0 {
 		log.Panicln("give an auth_url as an env-var")
 	}

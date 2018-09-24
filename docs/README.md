@@ -24,6 +24,12 @@ You will create/deploy:
 * Setup a container image builder
 * (K8s only) [Network Policies](https://kubernetes.io/docs/concepts/services-networking/network-policies/) for openfaas and openfaas-fn namespaces
 
+Optionally to enable Login to the dashboard
+
+* Create a GitHub OAuth 2.0 App
+* Create secrets for the "auth" service and enable login to the dashboard with GitHub
+* Add a number of `/etc/host` file entries or live DNS entries
+
 ### Before you begin
 
 * You must enable basic auth to prevent user-functions from accessing the admin API of the gateway
@@ -474,6 +480,68 @@ docker service logs git-tar --tail 50
 ```
 docker service logs buildshiprun --tail 50
 ```
+
+### Auth
+
+Auth is optional and protects the dashboard from users accessing the page.
+
+To enable OAuth 2.0 we will need to set up a number of DNS entries or host file entries for local development.
+
+#### Disable auth for local development
+
+If you wish to disable Auth then you can change the router's URL from `http://auth:8080` (on Swarm) or `http://auth.openfaas:8080` (on Kubernetes) to `http://echo:8080` or `http://echo.openfaas:8080` which will by-pass any need for a Cookie or JWT to be established by allowing the "echo" service to act as the authorziation. This works because the echo service will always return "200 OK" to requests.
+
+#### Set host file entries for the router (Option A)
+
+Now edit `/etc/hosts` and add:
+
+```
+127.0.0.1       alexellis.gw.io
+127.0.0.1       auth.system.gw.io
+127.0.0.1       system.gw.io
+```
+
+Add an additional line for your own GitHub username such as `alexellis.gw.io`. The IP Address 127.0.0.1 can be replaced for the IP address of where you are running Docker or the OpenFaaS Cloud services.
+
+#### Add DNS entries (Option B)
+
+Alternatively add DNS entries for the above:
+
+```
+IP  user.domain
+IP  auth.system.domain
+IP  system.domain
+```
+
+#### Create a GitHub OAuth 2.0 App
+
+From your GitHub profile click *Developer settings*, *OAuth Apps* and *New OAuth App*.
+
+* Application name
+
+OpenFaaS Cloud Testing
+
+* Homepage URL
+
+https://github.com/openfaas/openfaas-cloud/
+
+* Application Description
+
+Log into OpenFaaS Cloud
+
+* Authorization callback URL
+
+For local testing use the following:
+
+http://auth.system.gw.io:8081/
+
+Port 8081 corresponds to the port where you are running the router component. 
+
+> Note: in a production-grade deployment the router is running on port 443 (HTTPS) so the URL may be `https://auth.o6s.io/`.
+
+#### Collect client_id / client_secret
+
+You will now be presented with your `client_id` and `client_secret` values for the GitHub OAuth 2.0 App. You need these to configure the auth service, which you can deploy in a container or run locally following the instructions in [the auth README](../auth/).
 
 ## Appendix
 
