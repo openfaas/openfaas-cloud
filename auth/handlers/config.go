@@ -10,7 +10,7 @@ type Config struct {
 	ExternalRedirectDomain string
 	Scope                  string
 	CookieRootDomain       string
-	CookieExpiresIn        time.Duration // time.Hour * 48
+	CookieExpiresIn        time.Duration
 	PublicKeyPath          string
 	PrivateKeyPath         string
 }
