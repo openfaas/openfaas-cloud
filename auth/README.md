@@ -43,11 +43,18 @@ openssl ecparam -genkey -name prime256v1 -noout -out key
 openssl ec -in key -pubout -out key.pub
 ```
 
-For Kubernetes store these are secrets:
+For Kubernetes store these secrets:
 
 ```sh
 kubectl -n openfaas create secret generic jwt-private-key --from-file=./key
 kubectl -n openfaas create secret generic jwt-public-key --from-file=./key.pub
+```
+
+For Swarm you can create these secrets:
+
+```sh
+docker secret create jwt-private-key ./key
+docker secret create jwt-public-key ./key.pub
 ```
 
 ## Building
@@ -57,7 +64,11 @@ export TAG=0.1.0
 make
 ```
 
-## Running 
+## Running
+
+All environmental variables must be set and configured for the service whether running locally as a container, via Swarm or on Kubernetes.
+
+### As a local container:
 
 ```sh
 docker rm -f cloud-auth
@@ -74,4 +85,26 @@ docker run -e client_secret=x \
  -v `pwd`/key:/tmp/key \
  -v `pwd`/key.pub:/tmp/key.pub \
  --name cloud-auth  -ti openfaas/cloud-auth:$TAG
+```
+
+### On Kubernetes
+
+Edit `yaml/core/of-auth-dep.yml` as needed and apply that file.
+
+### On Swarm:
+
+```sh
+export TAG=0.1.0
+docker service rm auth
+docker service create --name auth -e client_secret=x \
+ -e client_id=y \
+ -e PORT=8080 \
+ -p 8085:8080 \
+ -e external_redirect_domain="http://auth.system.gw.io:8081" \
+ -e cookie_root_domain=".system.gw.io" \
+ -e public_key_path=/run/secrets/jwt-public-key \
+ -e private_key_path=/run/secrets/jwt-private-key \
+ --secret jwt-private-key \
+ --secret jwt-public-key \
+ openfaas/cloud-auth:$TAG
 ```
