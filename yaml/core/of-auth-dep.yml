@@ -31,10 +31,18 @@ spec:
             value: ""
           - name: client_id
             value: ""
+# Local test config
+          # - name: external_redirect_domain
+          #   value: "http://auth.system.gw.io:8081"
+          # - name: cookie_root_domain
+          #   value: ".system.gw.io"
+
+# Community cluster config:
           - name: external_redirect_domain
-            value: "http://auth.system.gw.io:8081"
+            value: "https://auth.system.o6s.io"
           - name: cookie_root_domain
-            value: ".system.gw.io"
+            value: ".system.o6s.io"
+
           - name: public_key_path
             value: "/var/secrets/public/key.pub"
           - name: private_key_path
