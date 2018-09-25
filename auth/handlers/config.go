@@ -7,6 +7,7 @@ import (
 type Config struct {
 	ClientID               string
 	ClientSecret           string
+	OAuthClientSecretPath  string // OAuthClientSecretPath when given overrides the ClientSecret env-var
 	ExternalRedirectDomain string
 	Scope                  string
 	CookieRootDomain       string
