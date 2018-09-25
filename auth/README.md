@@ -41,7 +41,7 @@ Contents (encoded JWT):
 ## Building
 
 ```
-export TAG=0.2.0
+export TAG=0.3.0
 make
 ```
 
@@ -76,14 +76,35 @@ docker secret create jwt-private-key ./key
 docker secret create jwt-public-key ./key.pub
 ```
 
+### Store your `client_secret` in a secret
+
+
+```sh
+export CLIENT_SECRET=""
+```
+
+For Kubernetes store these secrets:
+
+
+```sh
+kubectl -n openfaas create secret generic of-client-secret --from-literal="of-client-secret=$CLIENT_SECRET"
+```
+
+For Swarm you can create these secrets:
+
+```sh
+echo -n "$CLIENT_SECRET" | docker secret create of-client-secret -
+```
+
 ### As a local container:
 
 ```sh
 docker rm -f cloud-auth
-export TAG=0.2.0
+export TAG=0.3.0
 
-docker run -e client_secret=x \
- -e client_id=y \
+docker run \
+ -e oauth_client_secret_path="/run/secrets/of-client-secret" \
+ -e client_id="$CLIENT_ID" \
  -e PORT=8080 \
  -p 8880:8080 \
  -e external_redirect_domain="http://auth.system.gw.io:8081" \
@@ -102,10 +123,11 @@ Edit `yaml/core/of-auth-dep.yml` as needed and apply that file.
 ### On Swarm:
 
 ```sh
-export TAG=0.2.0
+export TAG=0.3.0
 docker service rm auth
-docker service create --name auth -e client_secret=x \
- -e client_id=y \
+docker service create --name auth \
+ -e oauth_client_secret_path="/run/secrets/of-client-secret" \
+ -e client_id="$CLIENT_ID" \
  -e PORT=8080 \
  -p 8085:8080 \
  -e external_redirect_domain="http://auth.system.gw.io:8081" \

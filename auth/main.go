@@ -20,6 +20,8 @@ func main() {
 	var publicKeyPath string
 	var privateKeyPath string
 
+	var oauthClientSecretPath string
+
 	if val, exists := os.LookupEnv("client_id"); exists {
 		clientID = val
 	}
@@ -44,15 +46,20 @@ func main() {
 		privateKeyPath = val
 	}
 
+	if val, exists := os.LookupEnv("oauth_client_secret_path"); exists {
+		oauthClientSecretPath = val
+	}
+
 	config := &handlers.Config{
 		ClientID:               clientID,
 		ClientSecret:           clientSecret,
 		CookieExpiresIn:        time.Hour * 48,
 		CookieRootDomain:       cookieRootDomain,
 		ExternalRedirectDomain: externalRedirectDomain,
-		Scope:          "read:org,read:user,user:email",
-		PublicKeyPath:  publicKeyPath,
-		PrivateKeyPath: privateKeyPath,
+		Scope:                 "read:org,read:user,user:email",
+		PublicKeyPath:         publicKeyPath,
+		PrivateKeyPath:        privateKeyPath,
+		OAuthClientSecretPath: oauthClientSecretPath,
 	}
 
 	protected := []string{

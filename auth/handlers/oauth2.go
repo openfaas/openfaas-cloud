@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -22,12 +23,22 @@ func MakeOAuth2Handler(config *Config) func(http.ResponseWriter, *http.Request) 
 
 	privateKeydata, err := ioutil.ReadFile(config.PrivateKeyPath)
 	if err != nil {
-		log.Fatalf("unable to read path: %s, error: %s", config.PrivateKeyPath, err.Error())
+		log.Fatalf("private key, unable to read path: %s, error: %s", config.PrivateKeyPath, err.Error())
 	}
 
 	privateKey, keyErr := jwt.ParseECPrivateKeyFromPEM(privateKeydata)
 	if keyErr != nil {
 		log.Fatalf("unable to parse private key: %s", keyErr.Error())
+	}
+
+	clientSecret := config.ClientSecret
+
+	if len(config.OAuthClientSecretPath) > 0 {
+		clientSecretBytes, err := ioutil.ReadFile(config.OAuthClientSecretPath)
+		if err != nil {
+			log.Fatalf("OAuthClientSecretPath, unable to read path: %s, error: %s", config.OAuthClientSecretPath, err.Error())
+		}
+		clientSecret = strings.TrimSpace(string(clientSecretBytes))
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -62,7 +73,7 @@ func MakeOAuth2Handler(config *Config) func(http.ResponseWriter, *http.Request) 
 		u, _ := url.Parse(tokenURL)
 		q := u.Query()
 		q.Set("client_id", config.ClientID)
-		q.Set("client_secret", config.ClientSecret)
+		q.Set("client_secret", clientSecret)
 
 		q.Set("code", code)
 		q.Set("state", state)
@@ -116,6 +127,8 @@ func MakeOAuth2Handler(config *Config) func(http.ResponseWriter, *http.Request) 
 		redirect := reqQuery.Get("r")
 		if len(redirect) > 0 {
 			log.Printf(`Found redirect value "r"=%s, instructing client to redirect`, redirect)
+
+			// Note: unable to redirect after setting Cookie, so landing on a redirect page instead.
 			// http.Redirect(w, r, reqQuery.Get("r"), http.StatusTemporaryRedirect)
 
 			w.Write([]byte(`<html><head></head>Redirecting.. <a href="redirect">to original resource</a>. <script>window.location.replace("` + redirect + `");</script></html>`))

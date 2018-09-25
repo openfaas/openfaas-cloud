@@ -19,9 +19,12 @@ spec:
         - name: jwt-public-key
           secret:
             secretName: jwt-public-key
+        - name: of-client-secret
+          secret:
+            secretName: of-client-secret
       containers:
       - name: of-auth
-        image: openfaas/cloud-auth:0.2.0
+        image: openfaas/cloud-auth:0.3.0
         imagePullPolicy: Always
         env:
           - name: port
@@ -47,6 +50,8 @@ spec:
             value: "/var/secrets/public/key.pub"
           - name: private_key_path
             value: "/var/secrets/private/key"
+          - name: of-client-secret
+            value: "/var/secrets/of-client-secret/of-client-secret"
 
 # This is a default and can be overriden
           - name: customers_url
@@ -62,3 +67,7 @@ spec:
         - name: jwt-public-key
           readOnly: true
           mountPath: "/var/secrets/public"
+        - name: of-client-secret
+          readOnly: true
+          mountPath: "/var/secrets/of-client-secret"
+
