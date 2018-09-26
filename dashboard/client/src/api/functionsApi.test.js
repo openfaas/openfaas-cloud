@@ -15,6 +15,7 @@ const baseFunctionLabels = {
   'com.openfaas.cloud.git-owner': user,
   'com.openfaas.cloud.git-repo': 'some-function-repo',
   'com.openfaas.cloud.git-sha': 'abcdefghijklmnopqrstuvwxyz0123456789ABCD',
+  'com.openfaas.cloud.git-private-repo': 'true',
   app: `${user}-some-function`,
   faas_function: `${user}-some-function`,
   uid: '111111111',
