@@ -24,6 +24,8 @@ func main() {
 
 	var oauthClientSecretPath string
 
+	var writeDebug bool
+
 	if val, exists := os.LookupEnv("client_id"); exists {
 		clientID = val
 	}
@@ -52,6 +54,10 @@ func main() {
 		oauthClientSecretPath = val
 	}
 
+	if val, exists := os.LookupEnv("write_debug"); exists && (val == "true" || val == "1") {
+		writeDebug = true
+	}
+
 	config := &handlers.Config{
 		ClientID:               clientID,
 		ClientSecret:           clientSecret,
@@ -62,6 +68,7 @@ func main() {
 		PublicKeyPath:         publicKeyPath,
 		PrivateKeyPath:        privateKeyPath,
 		OAuthClientSecretPath: oauthClientSecretPath,
+		Debug: writeDebug,
 	}
 
 	protected := []string{

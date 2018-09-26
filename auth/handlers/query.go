@@ -36,7 +36,8 @@ func MakeQueryHandler(config *Config, protected []string) func(http.ResponseWrit
 			status = http.StatusBadRequest
 		} else if isProtected(resource, protected) {
 			started := time.Now()
-			cookieStatus := validCookie(r, cookieName, publicKey, customers)
+			cookieStatus := validCookie(r, cookieName, publicKey, customers, config.Debug)
+
 			log.Printf("Cookie verified: %fs [%d]", time.Since(started).Seconds(), cookieStatus)
 
 			switch cookieStatus {
@@ -77,7 +78,7 @@ func isProtected(resource string, protected []string) bool {
 	return false
 }
 
-func validCookie(r *http.Request, cookieName string, publicKey crypto.PublicKey, customers *Customers) int {
+func validCookie(r *http.Request, cookieName string, publicKey crypto.PublicKey, customers *Customers, debug bool) int {
 
 	cookie, err := r.Cookie(cookieName)
 	if err != nil {
@@ -86,7 +87,9 @@ func validCookie(r *http.Request, cookieName string, publicKey crypto.PublicKey,
 
 	claims := OpenFaaSCloudClaims{}
 	if len(cookie.Value) > 0 {
-		log.Println("Cookie value: ", cookie.Value)
+		if debug {
+			log.Println("Cookie value: ", cookie.Value)
+		}
 
 		parsed, parseErr := jwt.ParseWithClaims(cookie.Value, &claims, func(token *jwt.Token) (interface{}, error) {
 			return publicKey, nil
@@ -98,15 +101,18 @@ func validCookie(r *http.Request, cookieName string, publicKey crypto.PublicKey,
 		}
 
 		if parsed.Valid {
-			log.Println("Claims", claims)
-			log.Printf("Validated JWT for (%s) %s", claims.Subject, claims.Name)
-
+			if debug {
+				log.Println("Claims", claims)
+				log.Printf("Validated JWT for (%s) %s", claims.Subject, claims.Name)
+			}
 			if found, _ := customers.Get(claims.Subject); found == false {
 				log.Printf("user [%s] was not a valid customer", claims.Subject)
 				return http.StatusUnauthorized
 			}
 
-			log.Printf("valid customer [%s]", claims.Subject)
+			if debug {
+				log.Printf("valid customer [%s]", claims.Subject)
+			}
 
 			return http.StatusOK
 		}

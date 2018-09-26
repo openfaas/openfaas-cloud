@@ -14,4 +14,5 @@ type Config struct {
 	CookieExpiresIn        time.Duration
 	PublicKeyPath          string
 	PrivateKeyPath         string
+	Debug                  bool // Debug enables verbose logging of claims / cookies
 }
