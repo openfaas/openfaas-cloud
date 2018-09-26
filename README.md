@@ -38,8 +38,9 @@ Read my [introducing OpenFaaS Cloud](https://blog.alexellis.io/introducing-openf
 - [x] Container builder using BuildKit
 - [x] Free to use SaaS edition for community members and contributors
 - [x] Log storage on Minio (S3-compatible)
-- [ ] Log storage on AWS S3 (help wanted)
+- [x] Log storage on AWS S3
 - [ ] Kubernetes helm chart (plain YAML supported already)
+- [ ] Automation for the day-0 installation via Ansible or similar
 
 * Developer story
 
@@ -48,22 +49,23 @@ Read my [introducing OpenFaaS Cloud](https://blog.alexellis.io/introducing-openf
 - [x] Support secrets in public repos through Bitnami SealedSecrets
 - [x] Make detailed logs available to show build or unit test failures (dashboard)
 - [x] Make build logs available publicly (dashboard finished, Checks API in progress)
-- [ ] Mixed-case user-names (in progress)
+- [x] Mixed-case user-names
 - [ ] Use a git "tag" or "GitHub release" to promote a function to live
-- [ ] UI: OAuth 2 login via GitHub
+- [ ] UI: Dashboard - detailed metrics of success/failure per function in
 
 * Operationalize
 
 - [x] Support for shared Docker Hub accounts instead of private registry
 - [x] Support for private GitHub repos
-- [ ] Isolation between functions (NetworkPolicy on Kubernetes)
+- [x] Dashboard: OAuth 2 login via GitHub
+- [x] Isolation between functions (through the provided NetworkPolicy on Kubernetes)
 
 * Stretch goals
 
 - [x] Move Dashboard UI to React.js
 - [ ] Re-write React.js Dashboard to use native Bootstrap library
 - [ ] CI/CD integration with on-prem GitLab (in-progress)
-- [ ] UI: OAuth 2 login via GitLab (help wanted)
+- [ ] UI: OAuth 2 login via GitLab (planned, help wanted)
 - [ ] Unprivileged builds with BuildKit or similar (under investigation)
 - [ ] Log into OpenFaaS Cloud via CLI (faas-cli cloud login)
 - [ ] Enable untrusted container builds via docker-machine?
