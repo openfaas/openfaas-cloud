@@ -33,11 +33,7 @@ func Handle(req []byte) string {
 	}
 
 	metricsQuery := metrics.NewPrometheusQuery(host, port, &http.Client{})
-	metricsWindow := os.Getenv("metrics_window")
-
-	if metricsWindow == "" {
-		metricsWindow = "60m"
-	}
+	metricsWindow := parseMetricsWindow()
 
 	fnMetrics, err := getMetrics(fnName, metricsQuery, metricsWindow)
 	if err != nil {
@@ -49,6 +45,26 @@ func Handle(req []byte) string {
 		log.Fatalf("Couldn't marshal json %t", err)
 	}
 	return string(res)
+}
+
+func parseMetricsWindow() string {
+	if query, exists := os.LookupEnv("Http_Query"); exists {
+		vals, _ := url.ParseQuery(query)
+
+		metricsWindow := vals.Get("metrics_window")
+
+		if len(metricsWindow) > 0 {
+			return metricsWindow
+		}
+	}
+
+	metricsWindow := os.Getenv("metrics_window")
+
+	if metricsWindow == "" {
+		metricsWindow = "60m"
+	}
+
+	return metricsWindow
 }
 
 func parseFunctionName() (functionName string, error error) {
