@@ -11,6 +11,7 @@ import (
 	"time"
 )
 
+// customerCacheExpiry matches the CDN value of GitHub for "RAW" files
 const customerCacheExpiry = time.Minute * 5
 
 // Customers checks whether users are customers of OpenFaaS Cloud
@@ -38,16 +39,19 @@ func (c *Customers) Get(login string) (bool, error) {
 	}
 
 	c.Sync.Lock()
+	defer c.Sync.Unlock()
+
 	lookup := *c.Usernames
 
 	if _, ok := lookup[strings.ToLower(login)]; ok {
 		found = true
 	}
-	c.Sync.Unlock()
 
 	return found, nil
 }
 
+// Fetch refreshes cache of customers which is valid for
+// `customerCacheExpiry` duration.
 func (c *Customers) Fetch() error {
 
 	customersURL := os.Getenv("customers_url")
@@ -68,11 +72,10 @@ func (c *Customers) Fetch() error {
 	}
 
 	c.Sync.Lock()
+	defer c.Sync.Unlock()
 
 	c.Usernames = &usernames
 	c.Expires = time.Now().Add(customerCacheExpiry)
-
-	c.Sync.Unlock()
 
 	return nil
 }
@@ -109,16 +112,3 @@ func getCustomers(customerURL string) ([]string, error) {
 
 	return customers, nil
 }
-
-// func validCustomer(customers []string, owner string) bool {
-// 	found := false
-// 	for _, customer := range customers {
-// 		if len(customer) > 0 &&
-// 			strings.EqualFold(customer, owner) {
-// 			found = true
-// 			break
-// 		}
-// 	}
-
-// 	return found
-// }

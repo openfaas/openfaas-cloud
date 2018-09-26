@@ -15,10 +15,12 @@ import (
 	"github.com/openfaas/openfaas-cloud/auth/provider"
 )
 
+const profileFetchTimeout = time.Second * 5
+
 // MakeOAuth2Handler makes a hanmdler for OAuth 2.0 redirects
 func MakeOAuth2Handler(config *Config) func(http.ResponseWriter, *http.Request) {
 	c := &http.Client{
-		Timeout: time.Second * 3,
+		Timeout: profileFetchTimeout,
 	}
 
 	privateKeydata, err := ioutil.ReadFile(config.PrivateKeyPath)

@@ -11,6 +11,8 @@ import (
 	"github.com/openfaas/openfaas-cloud/auth/handlers"
 )
 
+const cookieExpiry = time.Hour * 48
+
 func main() {
 	var clientID string
 	var clientSecret string
@@ -53,7 +55,7 @@ func main() {
 	config := &handlers.Config{
 		ClientID:               clientID,
 		ClientSecret:           clientSecret,
-		CookieExpiresIn:        time.Hour * 48,
+		CookieExpiresIn:        cookieExpiry,
 		CookieRootDomain:       cookieRootDomain,
 		ExternalRedirectDomain: externalRedirectDomain,
 		Scope:                 "read:org,read:user,user:email",
