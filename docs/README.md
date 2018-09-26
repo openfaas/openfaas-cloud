@@ -151,10 +151,6 @@ By default all settings are prepared for Kubernetes, so if you're using Swarm do
 
 In `gateway_config.yml` and `./dashboard/stack.yml` remove the suffix `.openfaas` where you see it.
 
-#### Set limits
-
-You will need to edit `stack.yml` and make sure `buildshiprun_limits_swarm.yml` is listed instead of `buildshiprun_limits_k8s.yml`.
-
 ### Deploy your container builder
 
 You need to generate the ```~/.docker/config.json``` using the ```docker login``` command. 
@@ -191,7 +187,7 @@ Log into your registry or the Docker hub
 ```
 docker login
 ```
-Expect to see ```WARNING! Your password will be stored unencrypted in /Users/kvuchkov/.docker/config.json``` in the output.
+Expect to see ```WARNING! Your password will be stored unencrypted in ~/.docker/config.json``` in the output.
 
 This populates `~/.docker/config.json` which is used in the builder:
 ```json
@@ -253,7 +249,7 @@ Create of-builder and of-buildkit:
 
 ### Configure push repository and gateway URL
 
-In gateway.yml
+In gateway_config.yml
 
 ```yaml
 environment:
