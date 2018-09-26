@@ -60,6 +60,15 @@ class FunctionsApi {
         shortSha = 'unknown';
       }
 
+      let isPrivate = false;
+
+      if (
+        item.labels['com.openfaas.cloud.git-private-repo'] &&
+        item.labels['com.openfaas.cloud.git-private-repo'] === 'true'
+      ) {
+        isPrivate = true;
+      }
+
       return {
         name: item.name,
         image: item.image,
@@ -72,6 +81,7 @@ class FunctionsApi {
         gitRepo: item.labels['com.openfaas.cloud.git-repo'],
         gitOwner: item.labels['com.openfaas.cloud.git-owner'],
         gitDeployTime: item.labels['com.openfaas.cloud.git-deploytime'],
+        gitPrivate: isPrivate,
         gitSha: item.labels['com.openfaas.cloud.git-sha'],
         minReplicas: item.labels['com.openfaas.scale.min'],
         maxReplicas: item.labels['com.openfaas.scale.max'],

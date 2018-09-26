@@ -2,16 +2,24 @@ import React, { Component } from 'react';
 import queryString from 'query-string';
 import AceEditor from 'react-ace';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Card, CardHeader, CardBody } from 'reactstrap';
 
 import 'brace/mode/sh';
 import 'brace/theme/monokai';
 
 import { functionsApi } from '../api/functionsApi';
+
+const onEditorLoad = (editor) => {
+  editor.scrollToLine(editor.getSession().getLength());
+  editor.navigateLineEnd();
+};
+
 export class FunctionLogPage extends Component {
   constructor(props) {
     super(props);
     const { commitSHA, repoPath } = queryString.parse(props.location.search);
-    const { functionName } = props.match.params;    
+    const { functionName } = props.match.params;
+
     this.state = {
       isLoading: true,
       log: '',
@@ -20,19 +28,25 @@ export class FunctionLogPage extends Component {
       functionName,
     };
   }
+
   componentDidMount() {
     const { commitSHA, repoPath, functionName } = this.state;
+
     this.setState({ isLoading: true });
+
     functionsApi.fetchFunctionLog({ commitSHA, repoPath, functionName }).then(res => {
       this.setState({ isLoading: false, log: res });
     });
   }
-  onEditorLoad(editor) {
-    editor.scrollToLine(editor.getSession().getLength());
-    editor.navigateLineEnd();
-  } 
+
   render() {
-    const { commitSHA, repoPath, functionName } = this.state;
+    const {
+      commitSHA,
+      repoPath,
+      functionName,
+      log,
+      isLoading,
+    } = this.state;
 
     const editorOptions = {
       width: '100%',
@@ -40,7 +54,7 @@ export class FunctionLogPage extends Component {
       mode: 'sh',
       theme: 'monokai',
       readOnly: true,
-      onLoad: this.onEditorLoad,
+      onLoad: onEditorLoad,
       wrapEnabled: true,
       showPrintMargin: false,
       editorProps: {
@@ -48,20 +62,25 @@ export class FunctionLogPage extends Component {
       },
     };
 
-    const panelBody = this.state.isLoading ? (
-      <div style={{ textAlign: 'center' }}>
-        <FontAwesomeIcon icon="spinner" spin />{' '}
-      </div>
-    ) : (
-      <AceEditor {...editorOptions} value={this.state.log} />
-    );
-    return (
-      <div className="panel panel-success">
-        <div className="panel-heading">
-          Build logs from {functionName} @ {commitSHA} - ({repoPath})
+    let panelBody = <AceEditor {...editorOptions} value={log} />;
+
+    if (isLoading === true) {
+      panelBody = (
+        <div style={{ textAlign: 'center' }}>
+          <FontAwesomeIcon icon="spinner" spin />{' '}
         </div>
-        <div className="panel-body">{panelBody}</div>
-      </div>
+      );
+    }
+
+    return (
+      <Card outline color="success">
+        <CardHeader className="bg-success color-success">
+          Build logs from {functionName} @ {commitSHA} - ({repoPath})
+        </CardHeader>
+        <CardBody>
+          { panelBody }
+        </CardBody>
+      </Card>
     );
   }
 }

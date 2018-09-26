@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { FunctionTable } from '../components/FunctionTable';
 import { functionsApi } from '../api/functionsApi';
+import { Card, CardHeader, CardBody, CardText } from 'reactstrap';
 
 export class FunctionsOverviewPage extends Component {
   constructor(props) {
@@ -13,28 +14,30 @@ export class FunctionsOverviewPage extends Component {
       user,
     };
   }
+
   componentDidMount() {
     this.setState({ isLoading: true });
+
     functionsApi.fetchFunctions(this.state.user).then(res => {
       this.setState({ isLoading: false, fns: res });
     });
   }
+
   render() {
-    const { user } = this.state;
+    const { user, isLoading, fns } = this.state;
+
     return (
-      <div className="panel panel-success">
-        <div className="panel-heading">Functions for <span id="username">{user}</span></div>
-        <div className="panel-body">
-          <p>
+      <Card outline color="success">
+        <CardHeader className="bg-success color-success">
+          Functions for <span id="username">{user}</span>
+        </CardHeader>
+        <CardBody>
+          <CardText>
             Welcome to the OpenFaaS Cloud Dashboard! Click on a function for more details.
-          </p>
-          <FunctionTable
-            isLoading={this.state.isLoading}
-            fns={this.state.fns}
-            user={this.state.user}
-          />
-        </div>
-      </div>
+          </CardText>
+          <FunctionTable isLoading={isLoading} fns={fns} user={user} />
+        </CardBody>
+      </Card>
     );
   }
 }
