@@ -2,6 +2,8 @@ package function
 
 import (
 	"encoding/json"
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/openfaas/faas/gateway/metrics"
@@ -84,5 +86,31 @@ func Test_getMetrics(t *testing.T) {
 		expectedJSON, _ := json.Marshal(expected)
 
 		t.Errorf("Expected %s, but got %v", expectedJSON, gotJSON)
+	}
+}
+
+func Test_parseMetricsWindow_whenMetricsWindowIsNotSetInQuery(t *testing.T) {
+	expected := "60m"
+
+	got := parseMetricsWindow()
+
+	if expected != got {
+		t.Errorf("Expected: %s, got: %s", expected, got)
+	}
+}
+
+func Test_parseMetricsWindow_whenMetricsWindowIsSetInQuery(t *testing.T) {
+	expected := "61h"
+
+	err := os.Setenv("Http_Query", fmt.Sprintf("metrics_window=%s", expected))
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	got := parseMetricsWindow()
+
+	if expected != got {
+		t.Errorf("Expected: %s, got: %s", expected, got)
 	}
 }
