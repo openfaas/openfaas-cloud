@@ -17,10 +17,27 @@ import (
 	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
+// Source of this event for auditing
 const Source = "git-tar"
 
 // Handle a serverless request
 func Handle(req []byte) []byte {
+
+	shouldValidate := os.Getenv("validate_hmac")
+
+	if len(shouldValidate) > 0 && (shouldValidate == "1" || shouldValidate == "true") {
+		payloadSecret, secretErr := sdk.ReadSecret("payload-secret")
+		if secretErr != nil {
+			return []byte(secretErr.Error())
+		}
+
+		cloudHeader := os.Getenv(sdk.CloudSignatureHeader)
+
+		validateErr := hmac.Validate(req, cloudHeader, payloadSecret)
+		if validateErr != nil {
+			log.Fatal(validateErr)
+		}
+	}
 
 	pushEvent := sdk.PushEvent{}
 	err := json.Unmarshal(req, &pushEvent)

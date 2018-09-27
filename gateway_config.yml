@@ -1,4 +1,5 @@
 environment:
+  validate_hmac: "1"
 # URLs
   gateway_url:  http://gateway.openfaas:8080/
   gateway_public_url: https://cloud.o6s.io/

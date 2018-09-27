@@ -304,7 +304,7 @@ func getCheckRunTitle(status *sdk.CommitStatus) *string {
 	title := status.Description
 	switch status.Context {
 	case sdk.StackContext:
-		title = "Deploy to OpenFaas"
+		title = "Deploy to OpenFaaS"
 	default: // Assuming status is either a function name (building) or stack deploy
 		title = fmt.Sprintf("Build %s", status.Context)
 	}
