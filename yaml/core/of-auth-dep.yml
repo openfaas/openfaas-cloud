@@ -57,6 +57,9 @@ spec:
           - name: customers_url
             value: "https://raw.githubusercontent.com/openfaas/openfaas-cloud/master/CUSTOMERS"
 
+          - name: write_debug
+            value: "false"
+
         ports:
         - containerPort: 8080
           protocol: TCP
