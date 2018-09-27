@@ -25,13 +25,11 @@ import (
 
 var (
 	lchownEnabled bool
+	buildkitURL   string
 )
 
 func main() {
 	flag.Parse()
-
-	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/build", buildHandler)
 
 	lchownEnabled = true
 	if val, exists := os.LookupEnv("enable_lchown"); exists {
@@ -40,6 +38,13 @@ func main() {
 		}
 	}
 
+	buildkitURL = "tcp://of-buildkit:1234"
+	if val, ok := os.LookupEnv("buildkit_url"); ok && len(val) > 0 {
+		buildkitURL = val
+	}
+
+	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/build", buildHandler)
 	server := &http.Server{
 		Addr:    "0.0.0.0:8080",
 		Handler: router,
@@ -84,6 +89,7 @@ func buildHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func build(w http.ResponseWriter, r *http.Request) ([]byte, error) {
+
 	tmpdir, err := ioutil.TempDir("", "buildctx")
 	if err != nil {
 		return nil, err
@@ -147,10 +153,11 @@ func build(w http.ResponseWriter, r *http.Request) ([]byte, error) {
 		solveOpt.ExporterAttrs["registry.insecure"] = insecure
 	}
 
-	c, err := client.New("tcp://of-buildkit:1234", client.WithBlock())
+	c, err := client.New(buildkitURL, client.WithBlock())
 	if err != nil {
 		return nil, err
 	}
+
 	ch := make(chan *client.SolveStatus)
 	eg, ctx := errgroup.WithContext(context.Background())
 	eg.Go(func() error {
@@ -238,6 +245,8 @@ type buildLog struct {
 
 func (b *buildLog) Append(msg string) {
 	b.Sync.Lock()
+	defer b.Sync.Unlock()
+
 	b.Line = append(b.Line, msg)
-	b.Sync.Unlock()
+
 }
