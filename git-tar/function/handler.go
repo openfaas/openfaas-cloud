@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"encoding/hex"
@@ -31,7 +32,7 @@ func Handle(req []byte) []byte {
 			return []byte(secretErr.Error())
 		}
 
-		cloudHeader := os.Getenv(sdk.CloudSignatureHeader)
+		cloudHeader := os.Getenv("Http_" + strings.Replace(sdk.CloudSignatureHeader, "-", "_", -1))
 
 		validateErr := hmac.Validate(req, cloudHeader, payloadSecret)
 		if validateErr != nil {
