@@ -41,7 +41,7 @@ Contents (encoded JWT):
 ## Building
 
 ```
-export TAG=0.3.0
+export TAG=0.3.1
 make
 ```
 
@@ -100,7 +100,7 @@ echo -n "$CLIENT_SECRET" | docker secret create of-client-secret -
 
 ```sh
 docker rm -f cloud-auth
-export TAG=0.3.0
+export TAG=0.3.1
 
 docker run \
  -e oauth_client_secret_path="/run/secrets/of-client-secret" \
@@ -123,7 +123,7 @@ Edit `yaml/core/of-auth-dep.yml` as needed and apply that file.
 ### On Swarm:
 
 ```sh
-export TAG=0.3.0
+export TAG=0.3.1
 docker service rm auth
 docker service create --name auth \
  -e oauth_client_secret_path="/run/secrets/of-client-secret" \

@@ -74,6 +74,7 @@ func main() {
 	protected := []string{
 		"/function/system-dashboard",
 		"/function/system-list-functions",
+		"/function/system-metrics",
 	}
 
 	fs := http.FileServer(http.Dir("static"))
