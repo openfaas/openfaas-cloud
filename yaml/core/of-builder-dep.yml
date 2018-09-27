@@ -25,6 +25,9 @@ spec:
             value: "true"
           - name: insecure
             value: "false"
+# For Swarm, use tcp://of-buildkit:1234
+          - name: buildkit_url  
+            value: "tcp://127.0.0.1:1234"
         ports:
         - containerPort: 8080
           protocol: TCP
@@ -32,3 +35,14 @@ spec:
         - name: registry-secret
           readOnly: true
           mountPath: "/home/app/.docker/"
+      - name: of-buildkit
+        args: ["--addr", "tcp://0.0.0.0:1234"]
+#        image: alexellis2/buildkit:2018-04-17
+        image: alexellis/buildkit:cda0a64eca0b5404a2a0233ba863606da8d4b7be
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 1234
+          protocol: TCP
+        securityContext:
+          privileged: true
+
