@@ -312,7 +312,11 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, sta
 	url := pushEvent.Repository.CloneURL
 	afterCommitID := pushEvent.AfterCommitID
 	installationID := pushEvent.Installation.ID
+<<<<<<< HEAD
 	sourceManagement := pushEvent.SCM
+=======
+	privateRepo := pushEvent.Repository.Private
+>>>>>>> Handle private repo in git-tar and buildshiprun
 
 	c := http.Client{}
 	gatewayURL := os.Getenv("gateway_url")
@@ -369,7 +373,11 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, sta
 		httpReq.Header.Add("Service", tarEntry.functionName)
 		httpReq.Header.Add("Image", tarEntry.imageName)
 		httpReq.Header.Add("Sha", afterCommitID)
+<<<<<<< HEAD
 		httpReq.Header.Add("Scm", sourceManagement)
+=======
+		httpReq.Header.Add("Private", strconv.FormatBool(privateRepo))
+>>>>>>> Handle private repo in git-tar and buildshiprun
 
 		envJSON, marshalErr := json.Marshal(stack.Functions[tarEntry.functionName].Environment)
 		if marshalErr != nil {
