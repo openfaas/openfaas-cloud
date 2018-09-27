@@ -21,7 +21,7 @@ spec:
             secretName: payload-secret
       containers:
       - name: of-builder
-        image: openfaas/of-builder:0.5.3
+        image: openfaas/of-builder:0.6.0
         imagePullPolicy: Always
         env:
           - name: enable_lchown
