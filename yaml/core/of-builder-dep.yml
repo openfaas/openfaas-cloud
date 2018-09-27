@@ -16,6 +16,9 @@ spec:
         - name: registry-secret
           secret:
             secretName: registry-secret
+        - name: payload-secret
+          secret:
+            secretName: payload-secret
       containers:
       - name: of-builder
         image: openfaas/of-builder:0.5.3
@@ -35,6 +38,10 @@ spec:
         - name: registry-secret
           readOnly: true
           mountPath: "/home/app/.docker/"
+        - name: payload-secret
+          readOnly: true
+          mountPath: "/var/openfaas/secrets/"
+
       - name: of-buildkit
         args: ["--addr", "tcp://0.0.0.0:1234"]
 #        image: alexellis2/buildkit:2018-04-17
