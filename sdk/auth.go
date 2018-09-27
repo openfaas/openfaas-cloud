@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/openfaas/faas/gateway/types"
+	"github.com/openfaas/faas-provider/auth"
 )
 
 const (
@@ -18,7 +18,7 @@ const (
 func AddBasicAuth(req *http.Request) error {
 	if len(os.Getenv("basic_auth")) > 0 && os.Getenv("basic_auth") == "true" {
 
-		reader := types.ReadBasicAuthFromDisk{}
+		reader := auth.ReadBasicAuthFromDisk{}
 
 		if len(os.Getenv("secret_mount_path")) > 0 {
 			reader.SecretMountPath = os.Getenv("secret_mount_path")
