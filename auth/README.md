@@ -103,7 +103,7 @@ docker rm -f cloud-auth
 export TAG=0.3.1
 
 docker run \
- -e oauth_client_secret_path="/run/secrets/of-client-secret" \
+ -e client_secret="$CLIENT_SECRET" \
  -e client_id="$CLIENT_ID" \
  -e PORT=8080 \
  -p 8880:8080 \
@@ -136,5 +136,6 @@ docker service create --name auth \
  -e private_key_path=/run/secrets/jwt-private-key \
  --secret jwt-private-key \
  --secret jwt-public-key \
+ --secret of-client-secret \
  openfaas/cloud-auth:$TAG
 ```
