@@ -10,6 +10,9 @@ functions:
     lang: node8-express
     handler: ./of-cloud-dashboard
     image: functions/of-cloud-dashboard:0.1.6
+    labels:
+      openfaas-cloud: "1"
+      role: openfaas-system
     environment:
       write_debug: true
       # gateway_url: http://gateway:8080/ # when using Swarm
@@ -27,6 +30,9 @@ functions:
     lang: go
     handler: ./overview
     image: functions/overview:0.4.4
+    labels:
+      openfaas-cloud: "1"
+      role: openfaas-system
     environment:
       content_type: "text/html"
       combine_output: "false"
@@ -39,6 +45,9 @@ functions:
     skip_build: true
     image: functions/list-functions:0.4.6
     fprocess: ./handler
+    labels:
+      openfaas-cloud: "1"
+      role: openfaas-system
     environment:
       gateway_url: http://gateway.openfaas:8080/
       secret_mount_path: /var/openfaas/secrets
@@ -52,6 +61,9 @@ functions:
     lang: go
     handler: ./pipeline
     image: functions/pipeline:0.1.0
+    labels:
+      openfaas-cloud: "1"
+      role: openfaas-system
     environment:
       content_type: "text/html"
       combine_output: "false"
