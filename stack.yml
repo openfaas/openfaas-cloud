@@ -66,7 +66,7 @@ functions:
   buildshiprun:
     lang: go
     handler: ./buildshiprun
-    image: functions/of-buildshiprun:0.8.2
+    image: functions/of-buildshiprun:0.8.3
     labels:
       openfaas-cloud: "1"
       role: openfaas-system

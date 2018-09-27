@@ -149,19 +149,27 @@ func Handle(req []byte) string {
 
 		registryAuth := getRegistryAuthSecret()
 
+		private := 0
+		if event.Private {
+			private = 1
+		}
+
+		scm := "github" // TODO: read other scm values such as GitLab
+
 		deploy := deployment{
 			Service: serviceValue,
 			Image:   imageName,
 			Network: "func_functions",
 			Labels: map[string]string{
-				sdk.FunctionLabelPrefix + "git-cloud":        "1",
-				sdk.FunctionLabelPrefix + "git-owner":        event.Owner,
-				sdk.FunctionLabelPrefix + "git-repo":         event.Repository,
-				sdk.FunctionLabelPrefix + "git-deploytime":   strconv.FormatInt(time.Now().Unix(), 10), //Unix Epoch string
-				sdk.FunctionLabelPrefix + "git-sha":          event.SHA,
-				sdk.FunctionLabelPrefix + "git-private-repo": strconv.FormatBool(event.Private),
-				"faas_function":                              serviceValue,
-				"app":                                        serviceValue,
+				sdk.FunctionLabelPrefix + "git-cloud":      "1",
+				sdk.FunctionLabelPrefix + "git-owner":      event.Owner,
+				sdk.FunctionLabelPrefix + "git-repo":       event.Repository,
+				sdk.FunctionLabelPrefix + "git-deploytime": strconv.FormatInt(time.Now().Unix(), 10), //Unix Epoch string
+				sdk.FunctionLabelPrefix + "git-sha":        event.SHA,
+				sdk.FunctionLabelPrefix + "git-private":    fmt.Sprintf("%d", private),
+				sdk.FunctionLabelPrefix + "git-scm":        scm,
+				"faas_function":                            serviceValue,
+				"app":                                      serviceValue,
 				"com.openfaas.scale.min": scalingMinLimit,
 				"com.openfaas.scale.max": scalingMaxLimit,
 			},
