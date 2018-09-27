@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"strings"
 	"time"
 
@@ -55,6 +56,13 @@ func Handle(req []byte) []byte {
 	if err != nil {
 		log.Println("Clone ", err.Error())
 		status.AddStatus(sdk.StatusFailure, "clone error : "+err.Error(), sdk.StackContext)
+		reportStatus(status)
+		os.Exit(-1)
+	}
+
+	if _, err := os.Stat(path.Join(clonePath, "template")); err == nil {
+		log.Println("Post clone check found a user-generated template folder")
+		status.AddStatus(sdk.StatusFailure, "remove custom 'templates' folder", sdk.StackContext)
 		reportStatus(status)
 		os.Exit(-1)
 	}

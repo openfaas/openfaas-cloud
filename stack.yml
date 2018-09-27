@@ -42,11 +42,10 @@ functions:
       - github-webhook-secret
       - payload-secret
 
-
   git-tar:
     lang: dockerfile
     handler: ./git-tar
-    image: functions/of-git-tar:0.8.5
+    image: functions/of-git-tar:0.8.6
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
