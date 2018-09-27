@@ -21,5 +21,6 @@ docker service create --constraint="node.role==manager" \
  --name of-builder \
  --env insecure=false --detach=true --network func_functions \
  --secret src=registry-secret,target="/home/app/.docker/config.json" \
+ --secret src=payload-secret,target="/var/openfaas/secrets/payload-secret" \
  --env enable_lchown=false \
 openfaas/of-builder:$OF_BUILDER_TAG

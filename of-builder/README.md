@@ -33,6 +33,7 @@ docker service create --constraint="node.role==manager" \
  --name of-builder \
  --env insecure=false --detach=true --network func_functions \
  --secret src=registry-secret,target="/home/app/.docker/config.json" \
+ --secret src=payload-secret,target="/var/openfaas/secrets/payload-secret" \
  --env enable_lchown=false \
 openfaas/of-builder:$OF_BUILDER_TAG
 ```
@@ -99,7 +100,11 @@ make build push
 
 ```
 export OF_BUILDER_TAG=0.5.3
-docker service create --network func_functions --name of-builder openfaas/of-builder:$OF_BUILDER_TAG
+docker service create \
+ --network func_functions \
+ --name of-builder \
+ --secret src=payload-secret,target="/var/openfaas/secrets/payload-secret" \
+ openfaas/of-builder:$OF_BUILDER_TAG
 ```
 
 ## Do a test build (optional)
@@ -155,7 +160,7 @@ docker build -t alexellis2/of-builder .
 
 docker network create builder --driver overlay --attachable=true ; \
  docker service rm registry; \
- docker service create --network builder --name registry --detach=true -p 5000:5000  registry:latest ; \
+ docker service create --network builder --secret payload-secret --name registry --detach=true -p 5000:5000  registry:latest ; \
  docker rm -f of-builder ; \
 docker run -p 8080:8080 -d --net builder --name of-builder --privileged alexellis2/of-builder
 ```

@@ -41,3 +41,9 @@ You may retract access to the GitHub OAuth 2.0 App through your GitHub profile.
 
 If you want to remove your endpoints from OpenFaaS Cloud please remove the GitHub App integration and GitHub OAuth 2.0 App via your GitHub profile page. This action will cause the deployed functions to be deleted, but the Docker images may still remain in the registry for a period of time after this step depending on whether a public Docker Hub account is being used or a private registry. To have all information removed contact alex@openfaas.com.
 
+### Misc
+
+#### Report a vulnerability
+
+Do not report a vulnerability via Slack or GitHub. Please contact alex@openfaas.com directly. Give 5-10 working days for an initial response.
+
