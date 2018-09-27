@@ -22,8 +22,31 @@ var (
 	imageValidator = regexp.MustCompile("(?:[a-zA-Z0-9./]*(?:[._-][a-z0-9]?)*(?::[0-9]+)?[a-zA-Z0-9./]+(?:[._-][a-z0-9]+)*/)*[a-zA-Z0-9]+(?:[._-][a-z0-9]+)+(?::[a-zA-Z0-9._-]+)?")
 )
 
+func validateRequest(req *[]byte) (err error) {
+	payloadSecret, err := sdk.ReadSecret("payload-secret")
+
+	if err != nil {
+		return fmt.Errorf("couldn't get payload-secret: %t", err)
+	}
+
+	xCloudSignature := os.Getenv("Http_X_Cloud_Signature")
+
+	err = hmac.Validate(*req, xCloudSignature, payloadSecret)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Handle a build / deploy request - returns empty string for an error
 func Handle(req []byte) string {
+
+	hmacErr := validateRequest(&req)
+	if hmacErr != nil {
+		return fmt.Sprintf("invalid HMAC digest for tar: %s", hmacErr.Error())
+	}
 
 	c := &http.Client{}
 

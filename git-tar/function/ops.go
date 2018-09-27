@@ -296,7 +296,7 @@ func clone(pushEvent sdk.PushEvent) (string, error) {
 	return destPath, err
 }
 
-func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, status *sdk.Status) error {
+func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, status *sdk.Status, payloadSecret string) error {
 
 	failedFunctions := []string{}
 	owner := pushEvent.Repository.Owner.Login
@@ -317,12 +317,24 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, sta
 		log.Printf(status.AuthToken)
 
 		fileOpen, err := os.Open(tarEntry.fileName)
+
 		if err != nil {
 			return err
 		}
+		defer fileOpen.Close()
 
-		httpReq, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/buildshiprun", fileOpen)
+		tarFileBytes, tarReadErr := ioutil.ReadAll(fileOpen)
+		if tarReadErr != nil {
+			return tarReadErr
+		}
 
+		digest := hmac.Sign(tarFileBytes, []byte(payloadSecret))
+
+		postBodyReader := bytes.NewReader(tarFileBytes)
+
+		httpReq, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/buildshiprun", postBodyReader)
+
+		httpReq.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
 		httpReq.Header.Add("Repo", repoName)
 		httpReq.Header.Add("Owner", owner)
 		httpReq.Header.Add("Url", url)

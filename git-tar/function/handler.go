@@ -26,11 +26,12 @@ func Handle(req []byte) []byte {
 
 	shouldValidate := os.Getenv("validate_hmac")
 
+	payloadSecret, secretErr := sdk.ReadSecret("payload-secret")
+	if secretErr != nil {
+		return []byte(secretErr.Error())
+	}
+
 	if len(shouldValidate) > 0 && (shouldValidate == "1" || shouldValidate == "true") {
-		payloadSecret, secretErr := sdk.ReadSecret("payload-secret")
-		if secretErr != nil {
-			return []byte(secretErr.Error())
-		}
 
 		cloudHeader := os.Getenv("Http_" + strings.Replace(sdk.CloudSignatureHeader, "-", "_", -1))
 
@@ -100,7 +101,7 @@ func Handle(req []byte) []byte {
 		os.Exit(-1)
 	}
 
-	err = deploy(tars, pushEvent, stack, status)
+	err = deploy(tars, pushEvent, stack, status, payloadSecret)
 	if err != nil {
 		status.AddStatus(sdk.StatusFailure, "deploy failed, error : "+err.Error(), sdk.StackContext)
 		reportStatus(status)

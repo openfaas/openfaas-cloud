@@ -46,7 +46,7 @@ functions:
   git-tar:
     lang: dockerfile
     handler: ./git-tar
-    image: functions/of-git-tar:0.8.4
+    image: functions/of-git-tar:0.8.5
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -65,7 +65,7 @@ functions:
   buildshiprun:
     lang: go
     handler: ./buildshiprun
-    image: functions/of-buildshiprun:0.8.3
+    image: functions/of-buildshiprun:0.8.4
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
