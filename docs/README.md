@@ -20,7 +20,7 @@ You will create/deploy:
 * A GitHub App
 * A number of secrets
 * A stack of OpenFaaS functions via stack.yml
-* Customise limits for Swarm or K8s
+* Customise limits for your functions
 * Setup a container image builder
 * (K8s only) [Network Policies](https://kubernetes.io/docs/concepts/services-networking/network-policies/) for openfaas and openfaas-fn namespaces
 
@@ -150,6 +150,10 @@ By default all settings are prepared for Kubernetes, so if you're using Swarm do
 #### Edit hostnames
 
 In `gateway_config.yml` and `./dashboard/stack.yml` remove the suffix `.openfaas` where you see it.
+
+#### Set limits
+
+You can edit `buildshiprun_limits.yml` to set the memory limit for your functions.
 
 ### Deploy your container builder
 
@@ -593,6 +597,11 @@ Set `public_url` to be the URL for the IP / DNS of the OpenFaaS Cloud.
 $ cd dashboard
 
 $ faas-cli template pull https://github.com/openfaas-incubator/node8-express-template
+```
+
+> Note: if using dockerhub change the `function` prefix in `stack.yml` with your username
+
+```
 $ faas-cli up
 ```
 
