@@ -76,8 +76,11 @@ PAYLOAD_SECRET=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
 
 Kubernetes:
 
+> Note: The secret is needed in both namespaces due to the of-builder service using this to validate requests.
+
 ```bash
 kubectl create secret generic -n openfaas-fn payload-secret --from-literal payload-secret="$PAYLOAD_SECRET"
+kubectl create secret generic -n openfaas payload-secret --from-literal payload-secret="$PAYLOAD_SECRET"
 ```
 
 Swarm:

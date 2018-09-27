@@ -78,7 +78,11 @@ func Handle(req []byte) string {
 
 	reader := bytes.NewBuffer(req)
 
+	xCloudSignature := os.Getenv("Http_X_Cloud_Signature")
+
 	r, _ := http.NewRequest(http.MethodPost, builderURL+"build", reader)
+
+	r.Header.Set(sdk.CloudSignatureHeader, xCloudSignature)
 	r.Header.Set("Content-Type", "application/octet-stream")
 
 	res, err := c.Do(r)
