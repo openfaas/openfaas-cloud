@@ -123,6 +123,12 @@ A private, local registry is deployed inside the cluster.
 
 This conceptual diagram shows how OpenFaaS Cloud integrates with GitHub through the use of an event-driven architecture.
 
+Main flows:
+
+1. User pushes code - GitHub push event is sent to github-event function triggering a CI/CD workflow
+2. User removes GitHub app from one or more repos - garbage collection is invoked removing 1-many functions
+3. User accesses function via router using "pretty URL" format and request is routed to function via API Gateway
+
 ![](./docs/conceptual-overview-28-sept-2018.png)
 
 ## Try it out
