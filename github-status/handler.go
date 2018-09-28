@@ -253,7 +253,7 @@ func reportCheck(commitStatus *sdk.CommitStatus, event *sdk.Event) error {
 			Name:       *checks.CheckRuns[0].Name,
 			DetailsURL: &url,
 			Output: &github.CheckRunOutput{
-				Text:    &logs,
+				Text:    &logValue,
 				Title:   getCheckRunTitle(commitStatus),
 				Summary: summary,
 			},
@@ -336,6 +336,8 @@ func formatLog(logs string, maxCheckMessageLength int) string {
 
 	frame := "\n```shell\n%s\n```\n"
 	// Remove 2 for the %s
+
+	log.Printf("formatLog: %d bytes", len(logs))
 
 	var logValue string
 
