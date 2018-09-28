@@ -105,7 +105,7 @@ functions:
   github-status:
     lang: go
     handler: ./github-status
-    image: functions/github-status:0.3.1
+    image: functions/github-status:0.3.2
     labels:
       openfaas-cloud: "1"
       role: openfaas-system

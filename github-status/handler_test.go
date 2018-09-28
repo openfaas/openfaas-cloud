@@ -395,52 +395,69 @@ func TestGetCheckRunStatus(t *testing.T) {
 	}
 }
 
-func TestFormatLogs(t *testing.T) {
-	logs := "  		"
-	formatted := formatLogs(&logs)
-	if formatted != nil {
-		t.Fatalf("Empty logs shoud produce null formatted text")
+// Test_formatLog tests formatting for the GitHub Checks API
+func Test_formatLog(t *testing.T) {
+	tests := []struct {
+		title     string
+		maxLength int
+		rawLog    string
+		wantLog   string
+	}{
+		{
+			title:     "Log length is valid",
+			maxLength: 500,
+			rawLog:    "apk add --no-cache curl the container builder exported the image in 10s",
+			wantLog:   "\n```shell\napk add --no-cache curl the container builder exported the image in 10s\n```\n",
+		},
+		{
+			title:     "Log length is too short for warning, but needs truncating",
+			maxLength: 20,
+			rawLog:    "the container builder exported the image in 10s",
+			wantLog:   "\n```shell\nted the image in 10s\n```\n",
+		},
 	}
+	for _, test := range tests {
+		t.Run(test.title, func(t *testing.T) {
+			got := formatLog(test.rawLog, test.maxLength)
+			if got != test.wantLog {
+				t.Errorf("want:\n`%q`\ngot:\n`%q`\n", test.wantLog, got)
+			}
+		})
+	}
+
 }
 
-func Test_truncated(t *testing.T) {
+func Test_truncate(t *testing.T) {
 	tests := []struct {
 		title           string
 		length          int
 		message         string
 		expectedMessage string
-		expectedBool    bool
 	}{
 		{
 			title:           "Exceeding 5 characters",
 			length:          7,
 			message:         "Some random string",
 			expectedMessage: " string",
-			expectedBool:    true,
 		},
 		{
 			title:           "Not exceeding 5 characters",
 			length:          5,
 			message:         "Some",
 			expectedMessage: "Some",
-			expectedBool:    false,
 		},
 		{
 			title:           "Right at 5 characters",
 			length:          5,
 			message:         "Some ",
 			expectedMessage: "Some ",
-			expectedBool:    false,
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.title, func(t *testing.T) {
-			message, truncated := truncate(test.length, test.message)
-			if truncated != test.expectedBool {
-				t.Errorf("Expected truncated to be: `%v`, got: `%v`", test.expectedBool, truncated)
-			}
+			message := truncate(test.length, test.message)
 			if message != test.expectedMessage {
-				t.Errorf("Expected message to be: `%v`, got: `%v`", test.expectedBool, truncated)
+				t.Errorf("Expected message to be: `%s`, got: `%s`", message, test.expectedMessage)
 			}
 		})
 	}

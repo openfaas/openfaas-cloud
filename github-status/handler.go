@@ -214,6 +214,13 @@ func reportCheck(commitStatus *sdk.CommitStatus, event *sdk.Event) error {
 		return err
 	}
 
+	var logValue string
+
+	if len(logs) > 0 {
+		const maxCheckMessageLength = 65535
+		logValue = formatLog(logs, maxCheckMessageLength)
+	}
+
 	checks, _, _ := client.Checks.ListCheckRunsForRef(ctx, event.Owner, event.Repository, event.SHA, &github.ListCheckRunsOptions{CheckName: &commitStatus.Context})
 
 	checkRunStatus := getCheckRunStatus(&status)
@@ -229,7 +236,7 @@ func reportCheck(commitStatus *sdk.CommitStatus, event *sdk.Event) error {
 			HeadSHA:   event.SHA,
 			Status:    &checkRunStatus,
 			Output: &github.CheckRunOutput{
-				Text:    formatLogs(&logs),
+				Text:    &logValue,
 				Title:   getCheckRunTitle(commitStatus),
 				Summary: summary,
 			},
@@ -246,7 +253,7 @@ func reportCheck(commitStatus *sdk.CommitStatus, event *sdk.Event) error {
 			Name:       *checks.CheckRuns[0].Name,
 			DetailsURL: &url,
 			Output: &github.CheckRunOutput{
-				Text:    formatLogs(&logs),
+				Text:    &logs,
 				Title:   getCheckRunTitle(commitStatus),
 				Summary: summary,
 			},
@@ -262,19 +269,6 @@ func reportCheck(commitStatus *sdk.CommitStatus, event *sdk.Event) error {
 		return fmt.Errorf("Failed to report status %s, error: %s", status, apiErr.Error())
 	}
 	return nil
-}
-
-// formatLogs return logs formatted as markdown
-func formatLogs(logs *string) *string {
-	if logs == nil {
-		return nil
-	}
-	if len(strings.TrimSpace(*logs)) > 0 {
-		markdown := fmt.Sprintf("\n```shell\n%s\n```\n", *logs)
-		return &markdown
-	} else {
-		return nil
-	}
 }
 
 // getCheckRunStatus returns the check run status matching the sdk status
@@ -329,11 +323,38 @@ func buildStatus(status string, desc string, context string, url string) *github
 	return &github.RepoStatus{State: &status, TargetURL: &url, Description: &desc, Context: &context}
 }
 
-func truncate(maxLength int, message string) (string, bool) {
-	truncated := false
+func truncate(maxLength int, message string) string {
 	if len(message) > maxLength {
 		message = message[len(message)-maxLength:]
-		truncated = true
 	}
-	return message, truncated
+	return message
+}
+
+// formatLog formats the logs for the GitHub Checks API including truncating
+// to maxCheckMessageLength using the tail of the message.
+func formatLog(logs string, maxCheckMessageLength int) string {
+
+	frame := "\n```shell\n%s\n```\n"
+	// Remove 2 for the %s
+
+	var logValue string
+
+	if len(logs)+len(frame)-2 > maxCheckMessageLength {
+		warning := fmt.Sprintf("Warning: log size (%d) bytes exceeded (%d) bytes so was truncated. See dashboard for full logs.\n\n", len(logs), maxCheckMessageLength)
+		newLength := maxCheckMessageLength - len(warning) - len(frame) - 2
+
+		if newLength <= 0 {
+			tailVal := truncate(maxCheckMessageLength, logs)
+			logValue = tailVal
+		} else {
+			tailVal := truncate(newLength, logs)
+			logValue = warning + tailVal
+		}
+	} else {
+		logValue = logs
+	}
+
+	logValue = fmt.Sprintf(frame, logValue)
+
+	return logValue
 }
