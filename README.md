@@ -119,11 +119,13 @@ The buildkit GRPC daemon which builds the image and pushes it to the internal re
 
 A private, local registry is deployed inside the cluster.
 
+## Conceptual architecture diagram
+
+This conceptual diagram shows how OpenFaaS Cloud integrates with GitHub through the use of an event-driven architecture.
+
+![](./docs/conceptual-overview-28-sept-2018.png)
+
 ## Try it out
-
-![](https://pbs.twimg.com/media/DZ7SX6gX4AA5dS7.jpg:large)
-
-*Conceptual diagram of how OpenFaaS Cloud integrates with GitHub*
 
 You can set up and host your own *OpenFaaS Cloud* or contact alex@openfaas.com for instructions on how to participate in a public trial of a fully-hosted service. Read the privacy statement and terms and conditions for the hosted version of [OpenFaaS Cloud](./PRIVACY.md).
 
