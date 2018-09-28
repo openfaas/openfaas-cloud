@@ -1,7 +1,7 @@
 OpenFaaS Cloud
 ==============
 
-OpenFaaS Cloud - GitOps for your functions with native GitHub integrations
+OpenFaaS Cloud - portable, multi-user Serverless Functions powered by GitOps
 
 ![https://pbs.twimg.com/media/DacWCtZVMAAJQ-u.jpg](https://pbs.twimg.com/media/DacWCtZVMAAJQ-u.jpg)
 
@@ -9,17 +9,19 @@ OpenFaaS Cloud - GitOps for your functions with native GitHub integrations
 
 ## Description
 
-OpenFaaS Cloud uses serverless functions to provide a closed-loop CI/CD system for functions built and hosted on your public GitHub repositories. Just push your OpenFaaS functions to your public repo and within seconds you'll get a notificaiton with your HTTPS endpoint direcly on GitHub.
-
-OpenFaaS Cloud packages, builds and deploys functions using OpenFaaS. Moby's BuildKit is used to build images and push to a local Docker registry instance.
+OpenFaaS Cloud is a portable, multi-user Serverless Functions platform powered by GitOps. OpenFaaS Cloud introduces a build-system for your functions and native integrations into GitHub meaning that you just run `git push` to deploy your code. As soon as OpenFaaS Cloud receives the `push event` it will clone your Git repo, build, push and then deploy your function with a rolling update to your own sub-domain with HTTPS.
 
 Features:
 
-* Applies GitOps principles - GitHub is the single source of truth
-* To build and deploy a new version of a function - just push to your GitHub repo
-* Subscription to OpenFaaS Cloud is done via a single click using a GitHub App
+* Portable - run anywhere or use the hosted Community Cluster
+* Multi-user - use your GitHub identity to log into your personal dashboard
+* Applies GitOps principles - your `git` repo is the source of truth
+* Integrate repos with a single click  through the *GitHub App*
+* Immediate feedback - live build notifications for your commits
+* HTTPS endpoints per user
 * Secured through HMAC - the public facing function "github-event" uses HMAC to verify the origin of events
-* HTTPS endpoint and build notifications for your commits
+
+> OpenFaaS Cloud packages, builds and deploys functions using OpenFaaS. Moby's BuildKit is used to build images and push to a local Docker registry instance.
 
 ## Blog post
 
@@ -73,7 +75,7 @@ Read my [introducing OpenFaaS Cloud](https://blog.alexellis.io/introducing-openf
 
 ## Functions
 
-OpenFaaS Cloud is built using OpenFaaS Golang functions to interact with GitHub and build/deploy your functions just seconds after your `git push`.
+OpenFaaS Cloud is built using OpenFaaS Golang functions to interact with GitHub and build your functions from source and deploy them - live within seconds of typing: `git push`.
 
 * Function: github-event
 
