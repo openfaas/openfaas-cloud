@@ -328,3 +328,12 @@ func hmacEnabled() bool {
 func buildStatus(status string, desc string, context string, url string) *github.RepoStatus {
 	return &github.RepoStatus{State: &status, TargetURL: &url, Description: &desc, Context: &context}
 }
+
+func truncate(maxLength int, message string) (string, bool) {
+	truncated := false
+	if len(message) > maxLength {
+		message = message[len(message)-maxLength:]
+		truncated = true
+	}
+	return message, truncated
+}

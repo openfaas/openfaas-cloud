@@ -402,3 +402,46 @@ func TestFormatLogs(t *testing.T) {
 		t.Fatalf("Empty logs shoud produce null formatted text")
 	}
 }
+
+func Test_truncated(t *testing.T) {
+	tests := []struct {
+		title           string
+		length          int
+		message         string
+		expectedMessage string
+		expectedBool    bool
+	}{
+		{
+			title:           "Exceeding 5 characters",
+			length:          7,
+			message:         "Some random string",
+			expectedMessage: " string",
+			expectedBool:    true,
+		},
+		{
+			title:           "Not exceeding 5 characters",
+			length:          5,
+			message:         "Some",
+			expectedMessage: "Some",
+			expectedBool:    false,
+		},
+		{
+			title:           "Right at 5 characters",
+			length:          5,
+			message:         "Some ",
+			expectedMessage: "Some ",
+			expectedBool:    false,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.title, func(t *testing.T) {
+			message, truncated := truncate(test.length, test.message)
+			if truncated != test.expectedBool {
+				t.Errorf("Expected truncated to be: `%v`, got: `%v`", test.expectedBool, truncated)
+			}
+			if message != test.expectedMessage {
+				t.Errorf("Expected message to be: `%v`, got: `%v`", test.expectedBool, truncated)
+			}
+		})
+	}
+}
