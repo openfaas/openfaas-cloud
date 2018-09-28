@@ -34,9 +34,25 @@
   version = "v3.2.0"
 
 [[projects]]
-  digest = "1:61f0f4f4b5fc0b5c12a6bbfae27db69dfbebb1cefd905033ddb913b6f21852f3"
+  digest = "1:906eb1ca3c8455e447b99a45237b2b9615b665608fd07ad12cce847dd9a1ec43"
+  name = "github.com/morikuni/aec"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "39771216ff4c63d11f5e604076f9c45e8be1067b"
+
+[[projects]]
+  digest = "1:cb12bf73c4bbdf76b5ea487a551a6fc6f1c61dd7629c96d6f956f32f24832701"
+  name = "github.com/openfaas/faas"
+  packages = ["gateway/types"]
+  pruneopts = "UT"
+  revision = "9c2f6dd2a4e2aac0b253b29cc031865b76802ed5"
+  version = "0.9.0"
+
+[[projects]]
+  digest = "1:4b1badf2728bbbd4898da86526ce49062f77d934d229a62e60d8e979ef3a9bf2"
   name = "github.com/openfaas/faas-cli"
   packages = [
+    "builder",
     "schema",
     "stack",
   ]
@@ -68,6 +84,22 @@
   revision = "256dc444b735e061061cf46c809487313d5b0065"
 
 [[projects]]
+  branch = "master"
+  digest = "1:76ee51c3f468493aff39dbacc401e8831fbb765104cbf613b89bef01cf4bad70"
+  name = "golang.org/x/net"
+  packages = ["context"]
+  pruneopts = "UT"
+  revision = "4dfa2610cdf3b287375bbba5b8f2a14d3b01d8de"
+
+[[projects]]
+  branch = "master"
+  digest = "1:39ebcc2b11457b703ae9ee2e8cca0f68df21969c6102cb3b705f76cca0ea0239"
+  name = "golang.org/x/sync"
+  packages = ["errgroup"]
+  pruneopts = "UT"
+  revision = "1d60e4601c6fd243af51cc01ddf169918a5407ca"
+
+[[projects]]
   digest = "1:35c04c23c8aef680782e117c67e29750453c92d11448da616d2e399887e5fc86"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
@@ -81,9 +113,11 @@
     "code.cloudfoundry.org/bytefmt",
     "github.com/alexellis/derek/auth",
     "github.com/alexellis/hmac",
+    "github.com/openfaas/faas-cli/builder",
     "github.com/openfaas/faas-cli/schema",
     "github.com/openfaas/faas-cli/stack",
     "github.com/openfaas/openfaas-cloud/sdk",
+    "golang.org/x/sync/errgroup",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

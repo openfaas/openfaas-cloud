@@ -25,6 +25,7 @@ import (
 	"github.com/alexellis/hmac"
 	"github.com/openfaas/faas-cli/stack"
 	"github.com/openfaas/openfaas-cloud/sdk"
+	"golang.org/x/sync/errgroup"
 )
 
 type tarEntry struct {
@@ -44,18 +45,28 @@ func parseYAML(pushEvent sdk.PushEvent, filePath string) (*stack.Services, error
 }
 
 func fetchTemplates(filePath string) error {
-	templateRepos := formatTemplateRepos()
+	if _, err := os.Stat(filePath + "/template"); os.IsNotExist(err) {
+		var eg errgroup.Group
+		templateRepos := formatTemplateRepos()
 
-	for _, repo := range templateRepos {
-		pullCmd := exec.Command("faas-cli", "template", "pull", repo)
-		pullCmd.Dir = filePath
-		err := pullCmd.Start()
-		if err != nil {
-			return fmt.Errorf("Failed to start faas-cli template pull: %t", err)
+		for _, repo := range templateRepos {
+
+			eg.Go(func() error {
+				pullCmd := exec.Command("faas-cli", "template", "pull", repo)
+				pullCmd.Dir = filePath
+				err := pullCmd.Start()
+				if err != nil {
+					return fmt.Errorf("Failed to start faas-cli template pull: %t", err)
+				}
+				err = pullCmd.Wait()
+				if err != nil {
+					return fmt.Errorf("Failed to wait faas-cli template pull: %t", err)
+				}
+				return err
+			})
 		}
-		err = pullCmd.Wait()
-		if err != nil {
-			return fmt.Errorf("Failed to wait faas-cli template pull: %t", err)
+		if err := eg.Wait(); err != nil {
+			fmt.Printf("Unexpected error: `%s`\n", err.Error())
 		}
 	}
 
@@ -636,4 +647,9 @@ func GitHubCloneURL(pushEvent sdk.PushEvent) (string, error) {
 	}
 
 	return cloneURL, nil
+}
+
+func formatTemplatePath(clonePath string) string {
+	folders := strings.Split(clonePath, "/")
+	return fmt.Sprintf("/%s", folders[1])
 }

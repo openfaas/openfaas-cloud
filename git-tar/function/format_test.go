@@ -90,3 +90,12 @@ func Test_FormatImageShaTag_SharedRepo_NoTag(t *testing.T) {
 		t.Errorf("Want \"%s\", got \"%s\"", want, name)
 	}
 }
+
+func Test_FormatTemplatePath(t *testing.T) {
+	examplePath := "/tmp/username/function"
+	templatePath := formatTemplatePath(examplePath)
+	expectedPath := "/tmp"
+	if templatePath != expectedPath {
+		t.Errorf("Expected path: `%s` got: `%s`.", expectedPath, templatePath)
+	}
+}

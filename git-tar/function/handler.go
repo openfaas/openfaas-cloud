@@ -15,6 +15,7 @@ import (
 	"encoding/hex"
 
 	"github.com/alexellis/hmac"
+	"github.com/openfaas/faas-cli/builder"
 	"github.com/openfaas/faas-cli/stack"
 	"github.com/openfaas/openfaas-cloud/sdk"
 )
@@ -124,7 +125,8 @@ func Handle(req []byte) []byte {
 		os.Exit(-1)
 	}
 
-	err = fetchTemplates(clonePath)
+	templatePath := formatTemplatePath(clonePath)
+	err = fetchTemplates(templatePath)
 	if err != nil {
 		log.Println("Error fetching templates ", err.Error())
 		status.AddStatus(sdk.StatusFailure, "fetchTemplates error : "+err.Error(), sdk.StackContext)
@@ -132,6 +134,14 @@ func Handle(req []byte) []byte {
 		if statusErr != nil {
 			log.Printf(statusErr.Error())
 		}
+		os.Exit(-1)
+	}
+
+	err = builder.CopyFiles(templatePath+"/template", clonePath)
+	if err != nil {
+		log.Println("Error cloning templates ", err.Error())
+		status.AddStatus(sdk.StatusFailure, "cloneTemplates error : "+err.Error(), sdk.StackContext)
+		reportStatus(status, pushEvent.SCM)
 		os.Exit(-1)
 	}
 
