@@ -156,7 +156,7 @@ func garbageCollect(garbageRequests []GarbageRequest) error {
 
 		body, _ := json.Marshal(garbageRequest)
 		bodyReader := bytes.NewReader(body)
-		req, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/garbage-collect", bodyReader)
+		req, _ := http.NewRequest(http.MethodPost, gatewayURL+"async-function/garbage-collect", bodyReader)
 
 		digest := hmac.Sign(body, []byte(payloadSecret))
 		req.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
@@ -168,7 +168,11 @@ func garbageCollect(garbageRequests []GarbageRequest) error {
 		if res.Body != nil {
 			defer res.Body.Close()
 		}
-		if res.StatusCode != http.StatusOK {
+
+		fmt.Printf("Status code returned by garbageCollect for function: `%s` by `%s` - %d\n",
+			garbageRequest.Owner, garbageRequest.Repo, res.StatusCode)
+
+		if res.StatusCode != http.StatusAccepted {
 			resBody, _ := ioutil.ReadAll(res.Body)
 			fmt.Printf("Error in garbageCollect: %s\n", resBody)
 		}
