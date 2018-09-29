@@ -25,6 +25,8 @@ const Source = "git-tar"
 // Handle a serverless request
 func Handle(req []byte) []byte {
 
+	start := time.Now()
+
 	shouldValidate := os.Getenv("validate_hmac")
 
 	payloadSecret, secretErr := sdk.ReadSecret("payload-secret")
@@ -125,7 +127,24 @@ func Handle(req []byte) []byte {
 		log.Printf("collect error: %s", err)
 	}
 
-	return []byte(fmt.Sprintf("Deployed tar from: %s", tars))
+	completed := time.Since(start)
+
+	tarMsg := ""
+	for _, tar := range tars {
+		tarMsg += fmt.Sprintf("%s @ %s, ", tar.functionName, tar.imageName)
+	}
+
+	deploymentMessage := fmt.Sprintf("Deployed: %s. Took %s", strings.TrimRight(tarMsg, ", "), completed.String())
+
+	auditEvent := sdk.AuditEvent{
+		Message: deploymentMessage,
+		Owner:   pushEvent.Repository.Owner.Login,
+		Repo:    pushEvent.Repository.Name,
+		Source:  Source,
+	}
+	sdk.PostAudit(auditEvent)
+
+	return []byte(deploymentMessage)
 }
 
 func collect(pushEvent sdk.PushEvent, stack *stack.Services) error {

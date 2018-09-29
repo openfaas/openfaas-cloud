@@ -43,7 +43,9 @@ func parseYAML(pushEvent sdk.PushEvent, filePath string) (*stack.Services, error
 }
 
 func fetchTemplates(filePath string) error {
-	templateRepos := []string{"https://github.com/openfaas/templates", "https://github.com/openfaas-incubator/node8-express-template.git", "https://github.com/openfaas-incubator/golang-http-template.git"}
+	templateRepos := []string{"https://github.com/openfaas/templates",
+		"https://github.com/openfaas-incubator/node8-express-template.git",
+		"https://github.com/openfaas-incubator/golang-http-template.git"}
 
 	for _, repo := range templateRepos {
 		pullCmd := exec.Command("faas-cli", "template", "pull", repo)
@@ -158,7 +160,12 @@ func makeTar(pushEvent sdk.PushEvent, filePath string, services *stack.Services)
 		if err != nil {
 			return []tarEntry{}, err
 		}
-		tars = append(tars, tarEntry{fileName: tarPath, functionName: strings.TrimSpace(k), imageName: imageName})
+
+		tars = append(tars,
+			tarEntry{fileName: tarPath,
+				functionName: strings.TrimSpace(k),
+				imageName:    imageName,
+			})
 	}
 
 	return tars, nil
@@ -311,17 +318,32 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, sta
 	for _, tarEntry := range tars {
 		fmt.Println("Deploying service - " + tarEntry.functionName)
 
-		status.AddStatus(sdk.StatusPending, fmt.Sprintf("%s function deploy is in progress", tarEntry.functionName),
+		status.AddStatus(sdk.StatusPending, fmt.Sprintf("%s function build started", tarEntry.functionName),
 			sdk.BuildFunctionContext(tarEntry.functionName))
 		reportStatus(status)
-		log.Printf(status.AuthToken)
+		// log.Printf(status.AuthToken)
 
 		fileOpen, err := os.Open(tarEntry.fileName)
 
 		if err != nil {
 			return err
 		}
+
 		defer fileOpen.Close()
+
+		fileInfo, statErr := fileOpen.Stat()
+		if statErr == nil {
+			msg := fmt.Sprintf("Building %s - tar size %d", tarEntry.functionName, fileInfo.Size())
+			log.Printf("%s\n", msg)
+
+			auditEvent := sdk.AuditEvent{
+				Message: msg,
+				Owner:   pushEvent.Repository.Owner.Login,
+				Repo:    pushEvent.Repository.Name,
+				Source:  Source,
+			}
+			sdk.PostAudit(auditEvent)
+		}
 
 		tarFileBytes, tarReadErr := ioutil.ReadAll(fileOpen)
 		if tarReadErr != nil {
