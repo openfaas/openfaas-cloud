@@ -18,6 +18,7 @@ import (
 	"strconv"
 	"strings"
 
+	"code.cloudfoundry.org/bytefmt"
 	"github.com/openfaas/faas-cli/schema"
 
 	"github.com/alexellis/derek/auth"
@@ -333,7 +334,10 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, sta
 
 		fileInfo, statErr := fileOpen.Stat()
 		if statErr == nil {
-			msg := fmt.Sprintf("Building %s - tar size %d", tarEntry.functionName, fileInfo.Size())
+			msg := fmt.Sprintf("Building %s. Tar: %s",
+				tarEntry.functionName,
+				bytefmt.ByteSize(uint64(fileInfo.Size())))
+
 			log.Printf("%s\n", msg)
 
 			auditEvent := sdk.AuditEvent{
