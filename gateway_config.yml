@@ -6,6 +6,8 @@ environment:
   audit_url: http://gateway.openfaas:8080/function/audit-event
   # Remove gateway_pretty_url if not using pretty URL
   gateway_pretty_url: https://user.o6s.io/function
+  # Comment out for custom templates and separate URLs using unicode.IsSpace
+  # custom_templates: "https://github.com/custom/template.git, https://github.com/custom/template2.git"
 
 # Security
   customers_url: "https://raw.githubusercontent.com/openfaas/openfaas-cloud/master/CUSTOMERS"
