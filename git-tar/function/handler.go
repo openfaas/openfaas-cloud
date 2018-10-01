@@ -54,6 +54,28 @@ func Handle(req []byte) []byte {
 	statusEvent := sdk.BuildEventFromPushEvent(pushEvent)
 	status := sdk.BuildStatus(statusEvent, sdk.EmptyAuthToken)
 
+	hasStackFile, getStackFileErr := findStackFile(&pushEvent.Repository)
+
+	if getStackFileErr != nil {
+		log.Printf("cannot fetch stack file %s", getStackFileErr.Error())
+		os.Exit(-1)
+	}
+
+	if !hasStackFile {
+		status.AddStatus(sdk.StatusFailure, "unable to find stack.yml", sdk.StackContext)
+		reportStatus(status)
+
+		auditEvent := sdk.AuditEvent{
+			Message: "no stack.yml file found",
+			Owner:   pushEvent.Repository.Owner.Login,
+			Repo:    pushEvent.Repository.Name,
+			Source:  Source,
+		}
+		sdk.PostAudit(auditEvent)
+
+		os.Exit(-1)
+	}
+
 	clonePath, err := clone(pushEvent)
 	if err != nil {
 		log.Println("Clone ", err.Error())
@@ -237,4 +259,40 @@ func reportStatus(status *sdk.Status) {
 	if reportErr != nil {
 		log.Printf("failed to report status, error: %s", reportErr.Error())
 	}
+}
+
+// findStackFile returns true if the repo has a stack.yml file in its git-raw CDN. When
+// using a private repo the value will return true always since private repos are not
+// available via the CDN. Note: given that the CDN has a 5-minute timeout - this optimization
+// may have the undesired effect of preventing a user from deploying within a 5 minute window
+// of renaming an incorrect "function.yml" to "stack.yml"
+func findStackFile(repo *sdk.PushEventRepository) (bool, error) {
+
+	// If using a private repo the file will not be available via the git-raw CDN
+	if repo.Private {
+		return true, nil
+	}
+
+	addr := fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/master/stack.yml", repo.Owner.Login, repo.Name)
+	req, _ := http.NewRequest(http.MethodHead, addr, nil)
+	log.Printf("Stack file request: %s", addr)
+
+	res, err := http.DefaultClient.Do(req)
+
+	if err != nil {
+		log.Printf("error finding stack %s", err.Error())
+
+		return false, err
+	}
+
+	if res.Body != nil {
+		defer res.Body.Close()
+	}
+	log.Printf("Stack file status: %d", res.StatusCode)
+
+	if res.StatusCode == http.StatusOK {
+		return true, nil
+	}
+
+	return false, nil
 }
