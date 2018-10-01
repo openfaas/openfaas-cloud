@@ -2,6 +2,8 @@ package function
 
 import (
 	"fmt"
+	"os"
+	"strings"
 	"testing"
 
 	// internal dependencies
@@ -98,5 +100,108 @@ func Test_getRepositoryURL_whenGetTokenReturnsError_WhenRepositoryIsPrivate(t *t
 
 	if gotURL != expectedURL {
 		t.Errorf("Expected URL: %s, Got: %s", expectedURL, gotURL)
+	}
+}
+
+func Test_formatTemplateReposValid(t *testing.T) {
+	formalRepos := []string{
+		"https://github.com/openfaas/templates",
+		"https://github.com/openfaas-incubator/node8-express-template.git",
+		"https://github.com/openfaas-incubator/golang-http-template.git",
+	}
+
+	tests := []struct {
+		title         string
+		envRepos      string
+		expectedRepos []string
+	}{
+		{
+			title:         "Templates with no added custom repositories",
+			envRepos:      "",
+			expectedRepos: formalRepos,
+		},
+		{
+			title:         "Templates with single added custom repository",
+			envRepos:      "https://github.com/my-custom/repo.git",
+			expectedRepos: append(formalRepos, "https://github.com/my-custom/repo.git"),
+		},
+		{
+			title:         "Templates with two added custom repositories without spaces",
+			envRepos:      "https://github.com/my-custom/repo.git,https://github.com/another/repo.git",
+			expectedRepos: append(formalRepos, ([]string{"https://github.com/my-custom/repo.git", "https://github.com/another/repo.git"})...),
+		},
+	}
+	for _, test := range tests {
+		os.Setenv("custom_templates", test.envRepos)
+		t.Run(test.title, func(t *testing.T) {
+			templateRepos := formatTemplateRepos()
+			for _, templateRepo := range templateRepos {
+				for final, expectedRepo := range test.expectedRepos {
+					if expectedRepo == templateRepo {
+						continue
+					}
+					if final == len(test.expectedRepos) {
+						t.Errorf("Expecting repositories: \n`%s` \ngot: \n`%s`",
+							strings.Join(test.expectedRepos, " "),
+							strings.Join(templateRepos, " "))
+					}
+
+				}
+			}
+		})
+	}
+}
+
+func Test_formatTemplateReposUnvalid(t *testing.T) {
+	formalRepos := []string{
+		"https://github.com/openfaas/templates",
+		"https://github.com/openfaas-incubator/node8-express-template.git",
+		"https://github.com/openfaas-incubator/golang-http-template.git",
+	}
+
+	tests := []struct {
+		title         string
+		envRepos      string
+		expectedRepos []string
+	}{
+		{
+			title:         "Variable set invalid",
+			envRepos:      " ",
+			expectedRepos: formalRepos,
+		},
+		{
+			title:         "Variable set with random symbols",
+			envRepos:      "123randomzxc",
+			expectedRepos: formalRepos,
+		},
+		{
+			title:         "Invalid github URLs (Missing `https://`)",
+			envRepos:      "www.github.com/my-custom/repo.git",
+			expectedRepos: formalRepos,
+		},
+		{
+			title:         "Setting values with spaces between commas",
+			envRepos:      " , https://github.com/my-custom/repo.git, https://github.com/another/repo.git, ",
+			expectedRepos: append(formalRepos, ([]string{"https://github.com/my-custom/repo.git", "https://github.com/another/repo.git"})...),
+		},
+	}
+	for _, test := range tests {
+		os.Setenv("custom_templates", test.envRepos)
+		t.Run(test.title, func(t *testing.T) {
+			templateRepos := formatTemplateRepos()
+			for _, templateRepo := range templateRepos {
+				for final, expectedRepo := range test.expectedRepos {
+					if expectedRepo == templateRepo {
+						continue
+					}
+					if final == len(test.expectedRepos) {
+						t.Errorf("Expecting repositories: \n`%s` \ngot: \n`%s`",
+							strings.Join(test.expectedRepos, " "),
+							strings.Join(templateRepos, " "))
+					}
+
+				}
+			}
+		})
 	}
 }

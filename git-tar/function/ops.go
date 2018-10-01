@@ -44,9 +44,7 @@ func parseYAML(pushEvent sdk.PushEvent, filePath string) (*stack.Services, error
 }
 
 func fetchTemplates(filePath string) error {
-	templateRepos := []string{"https://github.com/openfaas/templates",
-		"https://github.com/openfaas-incubator/node8-express-template.git",
-		"https://github.com/openfaas-incubator/golang-http-template.git"}
+	templateRepos := formatTemplateRepos()
 
 	for _, repo := range templateRepos {
 		pullCmd := exec.Command("faas-cli", "template", "pull", repo)
@@ -488,4 +486,27 @@ func importSecrets(pushEvent sdk.PushEvent, stack *stack.Services, clonePath str
 	fmt.Println("Parsed sealed secrets", res.Status, owner)
 
 	return nil
+}
+
+// getShortSHA returns shorter version of git commit SHA
+func getShortSHA(sha string) string {
+	if len(sha) <= 7 {
+		return sha
+	}
+	return sha[:7]
+}
+
+func formatTemplateRepos() []string {
+	templateRepos := []string{"https://github.com/openfaas/templates",
+		"https://github.com/openfaas-incubator/node8-express-template.git",
+		"https://github.com/openfaas-incubator/golang-http-template.git"}
+
+	if envTemplates := os.Getenv("custom_templates"); len(envTemplates) > 0 && strings.Contains(envTemplates, "https://") {
+		customTemplates := strings.Split(envTemplates, ",")
+		for _, repo := range customTemplates {
+			repo = strings.Trim(repo, " ")
+			templateRepos = append(templateRepos, repo)
+		}
+	}
+	return templateRepos
 }
