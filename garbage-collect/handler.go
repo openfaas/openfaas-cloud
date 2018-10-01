@@ -15,6 +15,8 @@ import (
 	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
+const Source = "garbage-collect"
+
 // Handle a serverless request
 func Handle(req []byte) string {
 	validateErr := validateRequest(req)
@@ -51,11 +53,23 @@ func Handle(req []byte) string {
 
 			err = deleteFunction(fn.Name, gatewayURL)
 			if err != nil {
+				auditEvent := sdk.AuditEvent{
+					Message: fmt.Sprintf("Unable to delete function: `%s`", fn.Name),
+					Source:  Source,
+				}
+				sdk.PostAudit(auditEvent)
+
 				log.Println(err)
 			}
 			deleted = deleted + 1
 		}
 	}
+
+	auditEvent := sdk.AuditEvent{
+		Message: fmt.Sprintf("Garbage collection ran for %s/%s - %d functions deleted.", garbageReq.Owner, garbageReq.Repo, deleted),
+		Source:  Source,
+	}
+	sdk.PostAudit(auditEvent)
 
 	return fmt.Sprintf("Garbage collection ran for %s/%s - %d functions deleted.", garbageReq.Owner, garbageReq.Repo, deleted)
 }
