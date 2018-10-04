@@ -22,7 +22,7 @@ import (
 // Source of this event for auditing
 const Source = "git-tar"
 
-// Handle a serverless request
+// Handle clones the git repo and checks out the SHA then uses the OpenFaaS CLI to shrinkwrap a tarball to be build with Docker
 func Handle(req []byte) []byte {
 
 	start := time.Now()

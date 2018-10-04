@@ -15,7 +15,7 @@ import (
 	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
-// Handle a serverless request
+// Handle function cleans up functions which were removed or renamed within the repo for the given user.
 func Handle(req []byte) string {
 	validateErr := validateRequest(req)
 

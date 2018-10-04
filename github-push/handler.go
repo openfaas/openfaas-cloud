@@ -20,7 +20,7 @@ const Source = "github-push"
 
 var audit sdk.Audit
 
-// Handle a serverless request
+// Handle handles push events from the "github-event" function
 func Handle(req []byte) string {
 
 	if audit == nil {
