@@ -40,8 +40,9 @@ func validateRequest(req *[]byte) (err error) {
 	return nil
 }
 
-// Handle submits the tar to the of-builder then configures an OpenFaaS deployment based upon stack.yml found in the Git repo.
-// Finally starts a rolling deployment of the function.
+// Handle submits the tar to the of-builder then configures an OpenFaaS
+// deployment based upon stack.yml found in the Git repo. Finally starts
+// a rolling deployment of the function.
 func Handle(req []byte) string {
 
 	hmacErr := validateRequest(&req)
