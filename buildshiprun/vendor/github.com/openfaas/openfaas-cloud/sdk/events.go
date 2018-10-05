@@ -11,7 +11,8 @@ type PushEventRepository struct {
 	CloneURL string `json:"clone_url"`
 	Private  bool   `json:"private"`
 
-	Owner Owner `json:"owner"`
+	Owner         Owner  `json:"owner"`
+	RepositoryURL string `json:"url"`
 }
 
 type PushEvent struct {
@@ -40,6 +41,7 @@ type Event struct {
 	Secrets        []string          `json:"secrets"`
 	Private        bool              `json:"private"`
 	SCM            string            `json:"scm"`
+	RepoURL        string            `json:"repourl"`
 }
 
 // BuildEventFromPushEvent function to build Event from PushEvent
