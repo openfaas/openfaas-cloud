@@ -193,6 +193,7 @@ func Handle(req []byte) string {
 				sdk.FunctionLabelPrefix + "git-sha":        event.SHA,
 				sdk.FunctionLabelPrefix + "git-private":    fmt.Sprintf("%d", private),
 				sdk.FunctionLabelPrefix + "git-scm":        event.SCM,
+				sdk.FunctionLabelPrefix + "git-repo-url":   event.RepoURL,
 				"faas_function":                            serviceValue,
 				"app":                                      serviceValue,
 				"com.openfaas.scale.min": scalingMinLimit,
@@ -298,6 +299,7 @@ func getEvent() (*sdk.Event, error) {
 	info.Image = os.Getenv("Http_Image")
 	info.SCM = os.Getenv("Http_Scm")
 	info.Private, _ = strconv.ParseBool(os.Getenv("Http_Private"))
+	info.RepoURL = os.Getenv("Http_Repo_Url")
 
 	if len(os.Getenv("Http_Installation_id")) > 0 {
 		info.InstallationID, err = strconv.Atoi(os.Getenv("Http_Installation_id"))
