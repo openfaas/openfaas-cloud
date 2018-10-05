@@ -19,6 +19,7 @@ type PushEvent struct {
 	Repository    PushEventRepository
 	AfterCommitID string `json:"after"`
 	Installation  PushEventInstallation
+	RepositoryURL string `json:"url"`
 }
 
 // Owner is the owner of a GitHub repo
