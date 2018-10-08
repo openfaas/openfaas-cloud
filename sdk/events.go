@@ -41,6 +41,14 @@ type Event struct {
 	Private        bool              `json:"private"`
 }
 
+type Customer struct {
+	Sender Sender `json:"sender"`
+}
+
+type Sender struct {
+	Login string `json:"login"`
+}
+
 // BuildEventFromPushEvent function to build Event from PushEvent
 func BuildEventFromPushEvent(pushEvent PushEvent) *Event {
 	info := Event{}
