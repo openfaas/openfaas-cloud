@@ -89,6 +89,9 @@ func Handle(req []byte) string {
 		}
 	}
 
+	eventInfo := sdk.BuildEventFromPushEvent(pushEvent)
+	status := sdk.BuildStatus(eventInfo, sdk.EmptyAuthToken)
+
 	if len(pushEvent.Ref) == 0 ||
 		pushEvent.Ref != "refs/heads/master" {
 		msg := "refusing to build non-master branch: " + pushEvent.Ref
@@ -100,13 +103,13 @@ func Handle(req []byte) string {
 		}
 
 		audit.Post(auditEvent)
+
+		status.AddStatus(sdk.StatusFailure, msg, sdk.StackContext)
+		reportStatus(status)
 		return msg
 	}
 
 	serviceValue := sdk.FormatServiceName(pushEvent.Repository.Owner.Login, pushEvent.Repository.Name)
-
-	eventInfo := sdk.BuildEventFromPushEvent(pushEvent)
-	status := sdk.BuildStatus(eventInfo, sdk.EmptyAuthToken)
 
 	status.AddStatus(sdk.StatusPending, fmt.Sprintf("%s stack deploy is in progress", serviceValue), sdk.StackContext)
 	reportStatus(status)
