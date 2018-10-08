@@ -1,0 +1,24 @@
+provider:
+  name: faas
+  gateway: http://127.0.0.1:8080
+
+functions:
+  system-gitlab-event:
+    lang: go
+    handler: ./gitlab-event
+    image: martindekov/gitlab-event:0.0.1
+    labels:
+      openfaas-cloud: "1"
+      role: openfaas-system
+    environment:
+      content_type: text/plain
+      validate_customers: true
+      validate_token: false
+      write_debug: true
+      read_debug: true
+      gitlab_instance: "https://gitlab.dedal.io/"
+    environment_file:
+      - gateway_config.yml
+    secrets:
+      - gitlab-webhook-secret
+      - payload-secret

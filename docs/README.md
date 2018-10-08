@@ -650,3 +650,96 @@ You will need to distribute or share pub-cert.pem so that people can use this wi
 ### Wildcard domains with of-router
 
 Coming soon
+
+# GitLab on-prem
+
+## Intro
+
+GitLab will work with the steps done above and some additional requirements:
+
+* GitLab instance
+
+* Configured system hook
+
+* Additional secret for the Secret Token
+
+* `Install` tag applied to projects which are intended for the instance
+
+### Configure the base URL to your GitLab instance
+
+In `gitlab.yml` add the base URL of your GitLab instance in field `gitlab_instance`. 
+
+Example:
+
+```
+...
+      gitlab_instance: "https://gitlab.example.com/"
+...
+```
+
+### Configure your System Hook
+
+In your GitLab instance enter the admin area then System Hooks.
+
+In the URL field add the URL of your entrypoint to `gitlab-event` function. Example would be:
+
+* `https://system.domain.xyz/gitlab-event` in case you have of-router running
+
+* `https://www.domain.xyz/function/system-gitlab-event` in case you have of-router turned off
+
+Set up Secret Token along with the URL.
+
+Create `gitlab-webhook-secret` secret that contains the token mentioned above on your OpenFaaS instance the following way:
+
+Kubernetes:
+
+```
+kubectl create secret generic -n openfaas-fn gitlab-webhook-secret --from-literal gitlab-webhook-secret="<your_token_here>"
+```
+
+Swarm:
+
+```
+echo -n "<your_token_here>" | docker secret create payload-secret -
+```
+
+This is equivalent to the `payload-secret` that GitHub provides.
+
+The supported events are currently `push` and `project_update`/`project_destroy` so for our System Hook press the `Push events` event only and then `Add system hook`
+
+### Apply Install tag
+
+To apply the tag in the proper place follow these steps:
+
+* Navigate to the project you want to build on the cloud
+
+* Go to the `Settings` tab and chose `General project`
+
+* In the `Tags` field apply `Install` tag and press `Save changes` button.
+
+* Push a change
+
+You should be able to see your function deployed on the cloud.
+
+### Remove the function from the Cloud
+
+Currently there are two ways of removing the function.
+
+#### Remove the tag:
+
+* Navigate to the project
+
+* Like above navigate to `Settings/General`
+
+* Remove `Install` tag from `Tags` field
+
+Your function is now deleted.
+
+#### Delete the project
+
+If you delete your project your function will be automatically deleted from the cloud.
+
+### GitLab private repositories
+
+Coming soon
+
