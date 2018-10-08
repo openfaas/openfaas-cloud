@@ -5,11 +5,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/alexellis/hmac"
 	"github.com/openfaas/openfaas-cloud/sdk"
@@ -63,34 +61,6 @@ func Handle(req []byte) string {
 
 	pushEvent.SCM = Source
 
-	var found bool
-
-	if readBool("validate_customers") {
-
-		customersURL := os.Getenv("customers_url")
-
-		customers, getErr := getCustomers(customersURL)
-		if getErr != nil {
-			return getErr.Error()
-		}
-
-		found = validCustomer(customers, pushEvent.Repository.Owner.Login)
-
-		if !found {
-
-			auditEvent := sdk.AuditEvent{
-				Message: "Customer not found",
-				Owner:   pushEvent.Repository.Owner.Login,
-				Repo:    pushEvent.Repository.Name,
-				Source:  Source,
-			}
-
-			audit.Post(auditEvent)
-
-			return fmt.Sprintf("Customer: %s not found in CUSTOMERS file via %s", pushEvent.Repository.Owner.Login, customersURL)
-		}
-	}
-
 	eventInfo := sdk.BuildEventFromPushEvent(pushEvent)
 	status := sdk.BuildStatus(eventInfo, sdk.EmptyAuthToken)
 
@@ -133,39 +103,6 @@ func Handle(req []byte) string {
 	sdk.PostAudit(auditEvent)
 
 	return fmt.Sprintf("Push - %v, git-tar status: %d\n", pushEvent, statusCode)
-}
-
-// getCustomers reads a list of customers separated by new lines
-// who are valid users of OpenFaaS cloud
-func getCustomers(customerURL string) ([]string, error) {
-	customers := []string{}
-
-	if len(customerURL) == 0 {
-		return nil, fmt.Errorf("customerURL was nil")
-	}
-
-	c := http.Client{}
-
-	httpReq, _ := http.NewRequest(http.MethodGet, customerURL, nil)
-	res, reqErr := c.Do(httpReq)
-
-	if reqErr != nil {
-		return customers, reqErr
-	}
-
-	if res.Body != nil {
-		defer res.Body.Close()
-
-		pageBody, _ := ioutil.ReadAll(res.Body)
-		customers = strings.Split(string(pageBody), "\n")
-
-		for i, c := range customers {
-			customers[i] = strings.ToLower(c)
-		}
-
-	}
-
-	return customers, nil
 }
 
 func postEvent(pushEvent sdk.PushEvent) (int, error) {
@@ -231,17 +168,4 @@ func reportStatus(status *sdk.Status) {
 
 func init() {
 
-}
-
-func validCustomer(customers []string, owner string) bool {
-	found := false
-	for _, customer := range customers {
-		if len(customer) > 0 &&
-			strings.EqualFold(customer, owner) {
-			found = true
-			break
-		}
-	}
-
-	return found
 }
