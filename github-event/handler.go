@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/alexellis/hmac"
 	"github.com/openfaas/openfaas-cloud/sdk"
@@ -36,6 +37,34 @@ func Handle(req []byte) string {
 		sdk.PostAudit(auditEvent)
 
 		return fmt.Sprintf("%s cannot handle event: %s", Source, eventHeader)
+	}
+
+	if readBool("validate_customers") {
+		customersURL := os.Getenv("customers_url")
+
+		customers, getErr := getCustomers(customersURL)
+		if getErr != nil {
+			return getErr.Error()
+		}
+
+		customer := sdk.Customer{}
+		unmarshalErr := json.Unmarshal(req, &customer)
+		if unmarshalErr != nil {
+			return fmt.Sprintf("Error while un-marshaling customers: %s", unmarshalErr.Error())
+		}
+
+		if !validCustomer(customers, customer.Sender.Login) {
+
+			auditEvent := sdk.AuditEvent{
+				Message: "Customer not found",
+				Owner:   customer.Sender.Login,
+				Source:  Source,
+			}
+
+			sdk.PostAudit(auditEvent)
+
+			return fmt.Sprintf("Customer: %s not found in CUSTOMERS file via %s", customer.Sender.Login, customersURL)
+		}
 	}
 
 	if eventHeader == "push" {
@@ -239,4 +268,59 @@ func forward(req []byte, function string, headers map[string]string) (string, in
 	}
 
 	return string(body), res.StatusCode, err
+}
+
+func validCustomer(customers []string, owner string) bool {
+	for _, customer := range customers {
+		if len(customer) > 0 &&
+			strings.EqualFold(customer, owner) {
+			return true
+		}
+	}
+	return false
+}
+
+// getCustomers reads a list of customers separated by new lines
+// who are valid users of OpenFaaS cloud
+func getCustomers(customerURL string) ([]string, error) {
+	customers := []string{}
+
+	if len(customerURL) == 0 {
+		return nil, fmt.Errorf("customerURL was nil")
+	}
+
+	httpReq, reqErr := http.NewRequest(http.MethodGet, customerURL, nil)
+	if reqErr != nil {
+		return nil, fmt.Errorf("Error while making the request to `%s` : %s", customerURL, reqErr.Error())
+	}
+
+	c := http.Client{}
+	res, reqErr := c.Do(httpReq)
+	if reqErr != nil {
+		return nil, fmt.Errorf("Error while requesting customers: %s", reqErr.Error())
+	}
+
+	if res.Body != nil {
+		defer res.Body.Close()
+
+		pageBody, readErr := ioutil.ReadAll(res.Body)
+		if readErr != nil {
+			return nil, fmt.Errorf("Error while reading response body for customers: %s", readErr)
+		}
+
+		customers = strings.Split(string(pageBody), "\n")
+
+		for i, c := range customers {
+			customers[i] = strings.ToLower(strings.TrimSuffix(c, "\r"))
+		}
+	}
+
+	return customers, nil
+}
+
+func readBool(key string) bool {
+	if val, exists := os.LookupEnv(key); exists {
+		return val == "true" || val == "1"
+	}
+	return false
 }

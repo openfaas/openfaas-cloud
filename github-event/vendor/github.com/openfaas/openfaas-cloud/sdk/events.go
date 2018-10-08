@@ -15,6 +15,7 @@ type PushEventRepository struct {
 }
 
 type PushEvent struct {
+	SCM           string
 	Ref           string `json:"ref"`
 	Repository    PushEventRepository
 	AfterCommitID string `json:"after"`
@@ -39,6 +40,37 @@ type Event struct {
 	Environment    map[string]string `json:"environment"`
 	Secrets        []string          `json:"secrets"`
 	Private        bool              `json:"private"`
+	SCM            string            `json:"scm"`
+}
+
+// PushEvent as received from GitLab
+
+type GitLabPushEvent struct {
+	Ref              string           `json:"ref"`
+	UserUsername     string           `json:"user_username"`
+	UserEmail        string           `json:"user_email"`
+	GitLabProject    GitLabProject    `json:"project"`
+	GitLabRepository GitLabRepository `json:"repository"`
+	AfterCommitID    string           `json:"after"`
+}
+
+type GitLabProject struct {
+	ID                int    `json:"id"`
+	Namespace         string `json:"namespace"`
+	Name              string `json:"name"`
+	PathWithNamespace string `json:"path_with_namespace"` //would be repo full name
+}
+
+type GitLabRepository struct {
+	CloneURL string `json:"git_http_url"`
+}
+
+type Customer struct {
+	Sender Sender `json:"sender"`
+}
+
+type Sender struct {
+	Login string `json:"login"`
 }
 
 // BuildEventFromPushEvent function to build Event from PushEvent

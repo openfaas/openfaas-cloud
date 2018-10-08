@@ -14,6 +14,7 @@ functions:
       validate_hmac: true
       write_debug: true
       read_debug: true
+      validate_customers: true
     environment_file:
       - github.yml
       - gateway_config.yml
@@ -34,7 +35,6 @@ functions:
       write_timeout: 10s
       write_debug: true
       read_debug: true
-      validate_customers: true
     environment_file:
       - gateway_config.yml
       - github.yml
