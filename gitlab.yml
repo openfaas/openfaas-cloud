@@ -3,6 +3,29 @@ provider:
   gateway: http://127.0.0.1:8080
 
 functions:
+  system-gitlab-event:
+    lang: go
+    handler: ./gitlab-event
+    image: functions/gitlab-event:0.1.0
+    labels:
+      openfaas-cloud: "1"
+      role: openfaas-system
+    environment:
+      content_type: text/plain
+      validate_customers: true
+      validate_token: false
+      write_debug: true
+      read_debug: true
+      installation_tag: "openfaas-cloud"
+      gitlab_instance: "https://gitlab.o6s.io/"
+    environment_file:
+      - gateway_config.yml
+    secrets:
+      - gitlab-webhook-secret
+      - payload-secret
+      - gitlab-api-token 
+
+
   gitlab-status:
     lang: go
     handler: ./gitlab-status
@@ -17,4 +40,4 @@ functions:
       - gateway_config.yml
     secrets:
       - gitlab-api-token
-      - payload-secret
+      - payload-secret 
