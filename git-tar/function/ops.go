@@ -3,6 +3,7 @@ package function
 import (
 	"archive/tar"
 	"bytes"
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -20,12 +21,15 @@ import (
 
 	"code.cloudfoundry.org/bytefmt"
 	"github.com/openfaas/faas-cli/schema"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/alexellis/derek/auth"
 	"github.com/alexellis/hmac"
 	"github.com/openfaas/faas-cli/stack"
 	"github.com/openfaas/openfaas-cloud/sdk"
 )
+
+const deployInParallelLimit = 2
 
 type tarEntry struct {
 	fileName     string
@@ -309,116 +313,133 @@ func clone(pushEvent sdk.PushEvent) (string, error) {
 
 func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, status *sdk.Status, payloadSecret string) error {
 
-	failedFunctions := []string{}
-	owner := pushEvent.Repository.Owner.Login
-	repoName := pushEvent.Repository.Name
-	url := pushEvent.Repository.CloneURL
-	afterCommitID := pushEvent.AfterCommitID
-	installationID := pushEvent.Installation.ID
-	sourceManagement := pushEvent.SCM
-	privateRepo := pushEvent.Repository.Private
-	repositoryURL := pushEvent.Repository.RepositoryURL
-
-	ownerID := pushEvent.Repository.Owner.ID
-
-	c := http.Client{}
-	gatewayURL := os.Getenv("gateway_url")
+	workCh := make(chan int, deployInParallelLimit)
+	eg, _ := errgroup.WithContext(context.Background())
 
 	for _, tarEntry := range tars {
-		fmt.Println("Deploying service - " + tarEntry.functionName)
-		status.AddStatus(sdk.StatusPending, fmt.Sprintf("%s function build started", tarEntry.functionName),
-			sdk.BuildFunctionContext(tarEntry.functionName))
-		statusErr := reportStatus(status, pushEvent.SCM)
-		if statusErr != nil {
-			log.Printf(statusErr.Error())
-		}
+		workCh <- 1
+		entry := tarEntry
+		eg.Go(func() error {
 
-		// log.Printf(status.AuthToken)
+			defer func() { <-workCh }()
 
-		fileOpen, err := os.Open(tarEntry.fileName)
+			fmt.Println("Deploying service - " + entry.functionName)
 
-		if err != nil {
-			return err
-		}
-
-		defer fileOpen.Close()
-
-		fileInfo, statErr := fileOpen.Stat()
-		if statErr == nil {
-			msg := fmt.Sprintf("Building %s. Tar: %s",
-				tarEntry.functionName,
-				bytefmt.ByteSize(uint64(fileInfo.Size())))
-
-			log.Printf("%s\n", msg)
-
-			auditEvent := sdk.AuditEvent{
-				Message: msg,
-				Owner:   pushEvent.Repository.Owner.Login,
-				Repo:    pushEvent.Repository.Name,
-				Source:  Source,
+			status.AddStatus(sdk.StatusPending, fmt.Sprintf("%s function build started", tarEntry.functionName),
+				sdk.BuildFunctionContext(entry.functionName))
+			statusErr := reportStatus(status, pushEvent.SCM)
+			if statusErr != nil {
+				log.Printf(statusErr.Error())
 			}
-			sdk.PostAudit(auditEvent)
-		}
 
-		tarFileBytes, tarReadErr := ioutil.ReadAll(fileOpen)
-		if tarReadErr != nil {
-			return tarReadErr
-		}
+			// log.Printf(status.AuthToken)
 
-		digest := hmac.Sign(tarFileBytes, []byte(payloadSecret))
+			postBodyReader, digest, err := readTarEntry(entry, pushEvent, payloadSecret)
+			if err != nil {
+				return err
+			}
 
-		postBodyReader := bytes.NewReader(tarFileBytes)
+			err = invokeBuildshiprun(postBodyReader, stack, entry, pushEvent, digest)
+			if err != nil {
+				return err
+			}
 
-		httpReq, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/buildshiprun", postBodyReader)
+			return nil
+		})
+	}
+	close(workCh)
 
-		httpReq.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
-
-		httpReq.Header.Add("Repo", repoName)
-		httpReq.Header.Add("Owner", owner)
-		httpReq.Header.Add("Url", url)
-		httpReq.Header.Add("Installation_id", fmt.Sprintf("%d", installationID))
-		httpReq.Header.Add("Service", tarEntry.functionName)
-		httpReq.Header.Add("Image", tarEntry.imageName)
-		httpReq.Header.Add("Sha", afterCommitID)
-		httpReq.Header.Add("Scm", sourceManagement)
-		httpReq.Header.Add("Private", strconv.FormatBool(privateRepo))
-		httpReq.Header.Add("Repo-URL", repositoryURL)
-		httpReq.Header.Add("Owner-ID", fmt.Sprintf("%d,", ownerID))
-
-		envJSON, marshalErr := json.Marshal(stack.Functions[tarEntry.functionName].Environment)
-		if marshalErr != nil {
-			log.Printf("Error marshaling %d env-vars for function %s, %s", len(stack.Functions[tarEntry.functionName].Environment), tarEntry.functionName, marshalErr)
-		}
-
-		httpReq.Header.Add("Env", string(envJSON))
-
-		secretsJSON, marshalErr := json.Marshal(stack.Functions[tarEntry.functionName].Secrets)
-		if marshalErr != nil {
-			log.Printf("Error marshaling secrets for function %s, %s", tarEntry.functionName, marshalErr)
-		}
-
-		httpReq.Header.Add("Secrets", string(secretsJSON))
-
-		res, reqErr := c.Do(httpReq)
-		if reqErr != nil {
-			failedFunctions = append(failedFunctions, tarEntry.functionName)
-			fmt.Fprintf(os.Stderr, fmt.Errorf("unable to deploy function via buildshiprun: %s", reqErr.Error()).Error())
-			continue
-		}
-
-		if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusAccepted {
-			failedFunctions = append(failedFunctions, tarEntry.functionName)
-			fmt.Fprintf(os.Stderr, fmt.Errorf("unable to deploy function via buildshiprun: invalid status code %d for %s",
-				res.StatusCode, tarEntry.functionName).Error())
-		} else {
-			fmt.Println("Service deployed ", tarEntry.functionName, res.Status, owner)
-		}
+	if err := eg.Wait(); err != nil {
+		log.Printf("Error on git-tar deploy: %s", err)
+		return err
 	}
 
-	if len(failedFunctions) > 0 {
-		return fmt.Errorf("%s failed to be deployed via buildshiprun", strings.Join(failedFunctions, ","))
+	return nil
+}
+
+func readTarEntry(tarEntry tarEntry, pushEvent sdk.PushEvent, payloadSecret string) (*bytes.Reader, []byte, error) {
+	fileOpen, err := os.Open(tarEntry.fileName)
+
+	if err != nil {
+		return nil, nil, err
 	}
 
+	defer fileOpen.Close()
+
+	fileInfo, statErr := fileOpen.Stat()
+	if statErr == nil {
+		msg := fmt.Sprintf("Building %s. Tar: %s",
+			tarEntry.functionName,
+			bytefmt.ByteSize(uint64(fileInfo.Size())))
+
+		log.Printf("%s\n", msg)
+
+		auditEvent := sdk.AuditEvent{
+			Message: msg,
+			Owner:   pushEvent.Repository.Owner.Login,
+			Repo:    pushEvent.Repository.Name,
+			Source:  Source,
+		}
+		sdk.PostAudit(auditEvent)
+	}
+
+	tarFileBytes, tarReadErr := ioutil.ReadAll(fileOpen)
+	if tarReadErr != nil {
+		return nil, nil, tarReadErr
+	}
+
+	digest := hmac.Sign(tarFileBytes, []byte(payloadSecret))
+
+	postBodyReader := bytes.NewReader(tarFileBytes)
+
+	return postBodyReader, digest, nil
+}
+
+func invokeBuildshiprun(postBodyReader *bytes.Reader, stack *stack.Services, tarEntry tarEntry, pushEvent sdk.PushEvent, digest []byte) error {
+
+	gatewayURL := os.Getenv("gateway_url")
+
+	c := http.Client{}
+	httpReq, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/buildshiprun", postBodyReader)
+
+	httpReq.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
+	httpReq.Header.Add("Repo", pushEvent.Repository.Name)
+	httpReq.Header.Add("Owner", pushEvent.Repository.Owner.Login)
+	httpReq.Header.Add("Url", pushEvent.Repository.CloneURL)
+	httpReq.Header.Add("Installation_id", fmt.Sprintf("%d", pushEvent.Installation.ID))
+	httpReq.Header.Add("Service", tarEntry.functionName)
+	httpReq.Header.Add("Image", tarEntry.imageName)
+	httpReq.Header.Add("Sha", pushEvent.AfterCommitID)
+	httpReq.Header.Add("Scm", pushEvent.SCM)
+	httpReq.Header.Add("Private", strconv.FormatBool(pushEvent.Repository.Private))
+	httpReq.Header.Add("Repo-URL", pushEvent.Repository.RepositoryURL)
+	httpReq.Header.Add("Owner-ID", fmt.Sprintf("%d,", pushEvent.Repository.Owner.ID))
+
+	envJSON, marshalErr := json.Marshal(stack.Functions[tarEntry.functionName].Environment)
+	if marshalErr != nil {
+		log.Printf("Error marshaling %d env-vars for function %s, %s", len(stack.Functions[tarEntry.functionName].Environment), tarEntry.functionName, marshalErr)
+	}
+
+	httpReq.Header.Add("Env", string(envJSON))
+
+	secretsJSON, marshalErr := json.Marshal(stack.Functions[tarEntry.functionName].Secrets)
+	if marshalErr != nil {
+		log.Printf("Error marshaling secrets for function %s, %s", tarEntry.functionName, marshalErr)
+	}
+
+	httpReq.Header.Add("Secrets", string(secretsJSON))
+
+	res, reqErr := c.Do(httpReq)
+	if reqErr != nil {
+		return fmt.Errorf("unable to deploy function %s via buildshiprun: %s", tarEntry.functionName, reqErr.Error())
+	}
+
+	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusAccepted {
+		return fmt.Errorf("unable to deploy function via buildshiprun: invalid status code %d for %s",
+			res.StatusCode, tarEntry.functionName)
+	} else {
+		fmt.Println("Service deployed ", tarEntry.functionName, res.Status, pushEvent.Repository.Owner.Login)
+	}
 	return nil
 }
 
