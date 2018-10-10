@@ -17,6 +17,9 @@ type OpenFaaSCloudClaims struct {
 	// AccessToken for use with the GitHub Profile API
 	AccessToken string `json:"access_token"`
 
+	// String with all organizations separated with commas
+	Organizations string `json:"organizations"`
+
 	// Inherit from standard claims
 	jwt.StandardClaims
 }
