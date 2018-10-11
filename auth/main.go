@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"github.com/openfaas/openfaas-cloud/auth/provider"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/openfaas/openfaas-cloud/auth/handlers"
@@ -14,6 +16,9 @@ import (
 const cookieExpiry = time.Hour * 48
 
 func main() {
+	var oauthProvider = "github"
+	var oauthProviderBaseURL string
+
 	var clientID string
 	var clientSecret string
 	var externalRedirectDomain string
@@ -25,6 +30,22 @@ func main() {
 	var oauthClientSecretPath string
 
 	var writeDebug bool
+
+	if val, exists := os.LookupEnv("oauth_provider"); exists {
+		oauthProvider = val
+	}
+
+	if !provider.IsSupported(oauthProvider) {
+		log.Fatalf(
+			"OAuth 2 provider %s is not supported. Currently supported providers: %s",
+			oauthProvider,
+			provider.GetSupportedString,
+		)
+	}
+
+	if val, exists := os.LookupEnv("oauth_provider_base_url"); exists {
+		oauthProviderBaseURL = val
+	}
 
 	if val, exists := os.LookupEnv("client_id"); exists {
 		clientID = val
@@ -59,16 +80,18 @@ func main() {
 	}
 
 	config := &handlers.Config{
+		OAuthProvider:          strings.ToLower(oauthProvider),
+		OAuthProviderBaseURL:   oauthProviderBaseURL,
 		ClientID:               clientID,
 		ClientSecret:           clientSecret,
 		CookieExpiresIn:        cookieExpiry,
 		CookieRootDomain:       cookieRootDomain,
 		ExternalRedirectDomain: externalRedirectDomain,
-		Scope:                 "read:org,read:user,user:email",
-		PublicKeyPath:         publicKeyPath,
-		PrivateKeyPath:        privateKeyPath,
-		OAuthClientSecretPath: oauthClientSecretPath,
-		Debug: writeDebug,
+		Scope:                  "read:org,read:user,user:email",
+		PublicKeyPath:          publicKeyPath,
+		PrivateKeyPath:         privateKeyPath,
+		OAuthClientSecretPath:  oauthClientSecretPath,
+		Debug:                  writeDebug,
 	}
 
 	protected := []string{

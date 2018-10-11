@@ -9,17 +9,17 @@ OpenFaaS Cloud - portable, multi-user Serverless Functions powered by GitOps
 
 ## Description
 
-OpenFaaS Cloud is a portable, multi-user Serverless Functions platform powered by GitOps. OpenFaaS Cloud introduces a build-system for your functions and native integrations into GitHub meaning that you just run `git push` to deploy your code. As soon as OpenFaaS Cloud receives the `push event` it will clone your Git repo, build, push and then deploy your function with a rolling update to your own sub-domain with HTTPS.
+OpenFaaS Cloud is a portable, multi-user Serverless Functions platform powered by GitOps. OpenFaaS Cloud introduces a build-system for your functions and native integrations into GitHub/GitLab meaning that you just run `git push` to deploy your code. As soon as OpenFaaS Cloud receives the `push event` it will clone your Git repo, build, push and then deploy your function with a rolling update to your own sub-domain with HTTPS.
 
 Features:
 
 * Portable - run anywhere or use the hosted Community Cluster
-* Multi-user - use your GitHub identity to log into your personal dashboard
+* Multi-user - use your GitHub/GitLab identity to log into your personal dashboard
 * Applies GitOps principles - your `git` repo is the source of truth
-* Integrate repos with a single click  through the *GitHub App*
+* Integrate repos with a single click  through the *GitHub App* or *GitLab repo tags*.
 * Immediate feedback - live build notifications for your commits
 * HTTPS endpoints per user
-* Secured through HMAC - the public facing function "github-event" uses HMAC to verify the origin of events
+* Secured through HMAC - the public facing functions "github-event" and "gitlab-event" uses HMAC to verify the origin of events
 
 > OpenFaaS Cloud packages, builds and deploys functions using OpenFaaS. Moby's BuildKit is used to build images and push to a local Docker registry instance.
 
@@ -74,9 +74,9 @@ Read my [introducing OpenFaaS Cloud](https://blog.alexellis.io/introducing-openf
 * Stretch goals
 
 - [x] Move Dashboard UI to React.js
-- [ ] Re-write React.js Dashboard to use native Bootstrap library
+- [x] Re-write React.js Dashboard to use native Bootstrap library
 - [ ] CI/CD integration with on-prem GitLab (in-progress)
-- [ ] UI: OAuth 2 login via GitLab (planned, help wanted)
+- [x] UI: OAuth 2 login via GitLab
 - [ ] Unprivileged builds with BuildKit or similar (under investigation)
 - [ ] Log into OpenFaaS Cloud via CLI (faas-cli cloud login)
 - [ ] Enable untrusted container builds via docker-machine?
@@ -98,7 +98,7 @@ The buildkit GRPC daemon which builds the image and pushes it to the internal re
 
 * Microservice: of-router
 
-The router component is the only ingress point for HTTP requests for serving functions and for enabling the GitHub integration. It translates "pretty URLS" into URLs namespaced by a user prefix on the OpenFaaS API Gateway. 
+The router component is the only ingress point for HTTP requests for serving functions and for enabling the GitHub/GitLab integration. It translates "pretty URLS" into URLs namespaced by a user prefix on the OpenFaaS API Gateway.
 
 * Microservice: of-auth
 
@@ -144,7 +144,7 @@ Writes statuses to GitHub Checks API showing build status and URLs for endpoints
 
 * Function: garbage-collect
 
-Removes functions which were removed or renamed within the repo for the given user. Also responsible for handling requests to uninstall GitHub app from a repo or account.
+Removes functions which were removed or renamed within the repo for the given user. Also responsible for handling requests to uninstall GitHub/GitLab app from a repo or account.
 
 * Function: audit-event
 
@@ -156,12 +156,12 @@ Handler folder should be renamed to just `metrics`. Function can provide stats o
 
 ## Conceptual architecture diagram
 
-This conceptual diagram shows how OpenFaaS Cloud integrates with GitHub through the use of an event-driven architecture.
+This conceptual diagram shows how OpenFaaS Cloud integrates with GitHub/GitLab through the use of an event-driven architecture.
 
 Main flows:
 
-1. User pushes code - GitHub push event is sent to github-event function triggering a CI/CD workflow
-2. User removes GitHub app from one or more repos - garbage collection is invoked removing 1-many functions
+1. User pushes code - GitHub/GitLab push event is sent to github-event/gitlab-event function triggering a CI/CD workflow
+2. User removes GitHub/GitLab app from one or more repos - garbage collection is invoked removing 1-many functions
 3. User accesses function via router using "pretty URL" format and request is routed to function via API Gateway
 
 ![](./docs/conceptual-overview.png)

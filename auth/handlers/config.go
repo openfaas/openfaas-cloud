@@ -5,6 +5,8 @@ import (
 )
 
 type Config struct {
+	OAuthProvider          string
+	OAuthProviderBaseURL   string
 	ClientID               string
 	ClientSecret           string
 	OAuthClientSecretPath  string // OAuthClientSecretPath when given overrides the ClientSecret env-var
