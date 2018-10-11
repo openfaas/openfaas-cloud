@@ -54,10 +54,15 @@ func Handle(req []byte) []byte {
 	statusEvent := sdk.BuildEventFromPushEvent(pushEvent)
 	status := sdk.BuildStatus(statusEvent, sdk.EmptyAuthToken)
 
-	hasStackFile, getStackFileErr := findStackFile(&pushEvent.Repository)
+	hasStackFile, getStackFileErr := findStackFile(&pushEvent)
 
 	if getStackFileErr != nil {
-		log.Printf("cannot fetch stack file %s", getStackFileErr.Error())
+		msg := fmt.Sprintf("cannot fetch stack file %s", getStackFileErr.Error())
+
+		status.AddStatus(sdk.StatusFailure, msg, sdk.StackContext)
+		reportStatus(status)
+
+		log.Printf(msg)
 		os.Exit(-1)
 	}
 
@@ -266,14 +271,18 @@ func reportStatus(status *sdk.Status) {
 // available via the CDN. Note: given that the CDN has a 5-minute timeout - this optimization
 // may have the undesired effect of preventing a user from deploying within a 5 minute window
 // of renaming an incorrect "function.yml" to "stack.yml"
-func findStackFile(repo *sdk.PushEventRepository) (bool, error) {
+func findStackFile(pushEvent *sdk.PushEvent) (bool, error) {
 
 	// If using a private repo the file will not be available via the git-raw CDN
-	if repo.Private {
+	if pushEvent.Repository.Private {
 		return true, nil
 	}
 
-	addr := fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/master/stack.yml", repo.Owner.Login, repo.Name)
+	addr, err := getRawURL(pushEvent.SCM, pushEvent.Repository.RepositoryURL, pushEvent.Repository.Owner.Login, pushEvent.Repository.Name)
+	if err != nil {
+		return false, err
+	}
+
 	req, _ := http.NewRequest(http.MethodHead, addr, nil)
 	log.Printf("Stack file request: %s", addr)
 
@@ -295,4 +304,23 @@ func findStackFile(repo *sdk.PushEventRepository) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func getRawURL(scm string, repositoryURL string, repositoryOwnerLogin string, repositoryName string) (string, error) {
+
+	addrPrefix := ""
+	rawPath := ""
+	switch scm {
+	case "github":
+		addrPrefix = "https://raw.githubusercontent.com"
+	case "gitlab":
+		addrPrefix = repositoryURL
+		rawPath = "raw/"
+	}
+	if addrPrefix == "" {
+		return "", fmt.Errorf(`failed to find stack.yml file: cannot form proper raw URL.
+			Expected pushEvent.SCM to be "github" or "gitlab", but got %s`, scm)
+	}
+
+	return fmt.Sprintf("%s/%s/%s/%smaster/stack.yml", addrPrefix, repositoryOwnerLogin, repositoryName, rawPath), nil
 }
