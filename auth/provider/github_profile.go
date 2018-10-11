@@ -21,9 +21,10 @@ func NewGitHub(c *http.Client) *GitHub {
 }
 
 // GetProfile returns a profile for a user from GitHub
-func (gh *GitHub) GetProfile(accessToken string) (*GitHubProfile, error) {
+func (gh *GitHub) GetProfile(accessToken string) (*Profile, error) {
 	var err error
-	profile := &GitHubProfile{}
+	var githubProfile GitHubProfile
+	profile := &Profile{}
 
 	req, reqErr := http.NewRequest(http.MethodGet, "https://api.github.com/user", nil)
 	req.Header.Add("Authorization", "token "+accessToken)
@@ -45,11 +46,18 @@ func (gh *GitHub) GetProfile(accessToken string) (*GitHubProfile, error) {
 
 		bytesOut, _ := ioutil.ReadAll(res.Body)
 
-		unmarshalErr := json.Unmarshal(bytesOut, profile)
+		unmarshalErr := json.Unmarshal(bytesOut, &githubProfile)
 		if unmarshalErr != nil {
 			return profile, unmarshalErr
 		}
 	}
+
+	profile.TwoFactor = githubProfile.TwoFactor
+	profile.Name = githubProfile.Name
+	profile.Email = githubProfile.Email
+	profile.CreatedAt = githubProfile.CreatedAt
+	profile.Login = githubProfile.Login
+	profile.ID = githubProfile.ID
 
 	return profile, err
 }

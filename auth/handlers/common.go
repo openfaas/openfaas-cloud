@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 )
 
 // OpenFaaSCloudClaims extends standard claims
@@ -21,8 +21,8 @@ type OpenFaaSCloudClaims struct {
 	jwt.StandardClaims
 }
 
-// GitHubAccessToken as issued by GitHub
-type GitHubAccessToken struct {
+// ProviderAccessToken as issued by GitHub or GitLab
+type ProviderAccessToken struct {
 	AccessToken string `json:"access_token"`
 }
 
@@ -41,6 +41,25 @@ func buildGitHubURL(config *Config, resource string, scope string) *url.URL {
 	q.Set("redirect_uri", redirectURI)
 
 	u.RawQuery = q.Encode()
+	return u
+}
+
+func buildGitLabURL(config *Config) *url.URL {
+	authURL := config.OAuthProviderBaseURL + "/oauth/authorize"
+
+	u, _ := url.Parse(authURL)
+	q := u.Query()
+
+	q.Set("client_id", config.ClientID)
+	q.Set("response_type", "code")
+	q.Set("state", fmt.Sprintf("%d", time.Now().Unix()))
+
+	redirectURI := combineURL(config.ExternalRedirectDomain, "/oauth2/authorized")
+
+	q.Set("redirect_uri", redirectURI)
+
+	u.RawQuery = q.Encode()
+
 	return u
 }
 

@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -58,8 +59,18 @@ func MakeQueryHandler(config *Config, protected []string) func(http.ResponseWrit
 		log.Printf("Validate %s => %d\n", resource, status)
 
 		if status == http.StatusTemporaryRedirect {
-			redirect := buildGitHubURL(config, "", config.Scope)
-			log.Printf("Go to %s\n", redirect.String())
+			var redirect *url.URL
+
+			switch config.OAuthProvider {
+			case gitlabName:
+				redirect = buildGitLabURL(config)
+
+				break
+			case githubName:
+				redirect = buildGitHubURL(config, "", config.Scope)
+
+				break
+			}
 
 			http.Redirect(w, r, redirect.String(), http.StatusTemporaryRedirect)
 			return

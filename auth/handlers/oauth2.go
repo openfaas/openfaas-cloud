@@ -17,7 +17,7 @@ import (
 
 const profileFetchTimeout = time.Second * 5
 
-// MakeOAuth2Handler makes a hanmdler for OAuth 2.0 redirects
+// MakeOAuth2Handler makes a handler for OAuth 2.0 redirects
 func MakeOAuth2Handler(config *Config) func(http.ResponseWriter, *http.Request) {
 	c := &http.Client{
 		Timeout: profileFetchTimeout,
@@ -70,7 +70,32 @@ func MakeOAuth2Handler(config *Config) func(http.ResponseWriter, *http.Request) 
 		}
 
 		log.Printf("Exchange: %s, for an access_token", code)
-		tokenURL := "https://github.com/login/oauth/access_token"
+
+		var tokenURL string
+		var oauthProvider provider.Provider
+		var redirectURI *url.URL
+
+		switch config.OAuthProvider {
+		case githubName:
+			tokenURL = "https://github.com/login/oauth/access_token"
+			oauthProvider = provider.NewGitHub(c)
+
+			break
+		case gitlabName:
+			tokenURL = fmt.Sprintf("%s/oauth/token", config.OAuthProviderBaseURL)
+			apiURL := config.OAuthProviderBaseURL + "/api/v4/"
+			oauthProvider = provider.NewGitLabProvider(c, config.OAuthProviderBaseURL, apiURL)
+
+			redirectAfterAutURL := reqQuery.Get("r")
+			redirectURI, _ = url.Parse(combineURL(config.ExternalRedirectDomain, "/oauth2/authorized"))
+
+			redirectURIQuery := redirectURI.Query()
+			redirectURIQuery.Set("r", redirectAfterAutURL)
+
+			redirectURI.RawQuery = redirectURIQuery.Encode()
+
+			break
+		}
 
 		u, _ := url.Parse(tokenURL)
 		q := u.Query()
@@ -80,8 +105,12 @@ func MakeOAuth2Handler(config *Config) func(http.ResponseWriter, *http.Request) 
 		q.Set("code", code)
 		q.Set("state", state)
 
-		u.RawQuery = q.Encode()
+		if config.OAuthProvider == gitlabName {
+			q.Set("grant_type", "authorization_code")
+			q.Set("redirect_uri", redirectURI.String())
+		}
 
+		u.RawQuery = q.Encode()
 		log.Println("Posting to", u.String())
 
 		req, _ := http.NewRequest(http.MethodPost, u.String(), nil)
@@ -99,14 +128,22 @@ func MakeOAuth2Handler(config *Config) func(http.ResponseWriter, *http.Request) 
 
 		token, tokenErr := getToken(res)
 		if tokenErr != nil {
-			log.Printf("Unable to contact identity provider: GitHub, error: %s", tokenErr)
+			log.Printf(
+				"Unable to contact identity provider: %s, error: %s",
+				config.OAuthProvider,
+				tokenErr,
+			)
 
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Unable to contact identity provider: GitHub"))
+			w.Write([]byte(fmt.Sprintf(
+				"Unable to contact identity provider: %s",
+				config.OAuthProvider,
+			)))
+
 			return
 		}
 
-		session, err := createSession(c, token, privateKey, config)
+		session, err := createSession(token, privateKey, config, oauthProvider)
 		if err != nil {
 			log.Printf("Error creating session: %s", err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
@@ -141,12 +178,11 @@ func MakeOAuth2Handler(config *Config) func(http.ResponseWriter, *http.Request) 
 	}
 }
 
-func createSession(c *http.Client, token GitHubAccessToken, privateKey crypto.PrivateKey, config *Config) (string, error) {
+func createSession(token ProviderAccessToken, privateKey crypto.PrivateKey, config *Config, oauthProvider provider.Provider) (string, error) {
 	var err error
 	var session string
 
-	client := provider.NewGitHub(c)
-	profile, profileErr := client.GetProfile(token.AccessToken)
+	profile, profileErr := oauthProvider.GetProfile(token.AccessToken)
 	if profileErr != nil {
 		return session, profileErr
 	}
@@ -155,7 +191,7 @@ func createSession(c *http.Client, token GitHubAccessToken, privateKey crypto.Pr
 	claims := OpenFaaSCloudClaims{
 		StandardClaims: jwt.StandardClaims{
 			Id:        fmt.Sprintf("%d", profile.ID),
-			Issuer:    "openfaas-cloud@github",
+			Issuer:    fmt.Sprintf("openfaas-cloud@%s", config.OAuthProvider),
 			ExpiresAt: time.Now().Add(48 * time.Hour).Unix(),
 			IssuedAt:  time.Now().Unix(),
 			Subject:   profile.Login,
@@ -170,8 +206,8 @@ func createSession(c *http.Client, token GitHubAccessToken, privateKey crypto.Pr
 	return session, err
 }
 
-func getToken(res *http.Response) (GitHubAccessToken, error) {
-	token := GitHubAccessToken{}
+func getToken(res *http.Response) (ProviderAccessToken, error) {
+	token := ProviderAccessToken{}
 	if res.Body != nil {
 		defer res.Body.Close()
 
