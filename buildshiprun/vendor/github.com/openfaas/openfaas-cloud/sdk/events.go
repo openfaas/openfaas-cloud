@@ -39,6 +39,7 @@ type Event struct {
 	Environment    map[string]string `json:"environment"`
 	Secrets        []string          `json:"secrets"`
 	Private        bool              `json:"private"`
+	SCM            string            `json:"scm"`
 }
 
 // BuildEventFromPushEvent function to build Event from PushEvent

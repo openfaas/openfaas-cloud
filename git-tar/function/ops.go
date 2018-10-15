@@ -312,6 +312,7 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, sta
 	url := pushEvent.Repository.CloneURL
 	afterCommitID := pushEvent.AfterCommitID
 	installationID := pushEvent.Installation.ID
+	sourceManagement := pushEvent.SCM
 
 	c := http.Client{}
 	gatewayURL := os.Getenv("gateway_url")
@@ -368,6 +369,7 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, sta
 		httpReq.Header.Add("Service", tarEntry.functionName)
 		httpReq.Header.Add("Image", tarEntry.imageName)
 		httpReq.Header.Add("Sha", afterCommitID)
+		httpReq.Header.Add("Scm", sourceManagement)
 
 		envJSON, marshalErr := json.Marshal(stack.Functions[tarEntry.functionName].Environment)
 		if marshalErr != nil {

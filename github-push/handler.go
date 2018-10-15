@@ -61,6 +61,8 @@ func Handle(req []byte) string {
 		return err.Error()
 	}
 
+	pushEvent.SCM = Source
+
 	var found bool
 
 	if readBool("validate_customers") {
