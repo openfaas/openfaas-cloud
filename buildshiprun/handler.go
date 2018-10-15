@@ -181,8 +181,6 @@ func Handle(req []byte) string {
 			private = 1
 		}
 
-		scm := "github" // TODO: read other scm values such as GitLab
-
 		deploy := deployment{
 			Service: serviceValue,
 			Image:   imageName,
@@ -194,7 +192,7 @@ func Handle(req []byte) string {
 				sdk.FunctionLabelPrefix + "git-deploytime": strconv.FormatInt(time.Now().Unix(), 10), //Unix Epoch string
 				sdk.FunctionLabelPrefix + "git-sha":        event.SHA,
 				sdk.FunctionLabelPrefix + "git-private":    fmt.Sprintf("%d", private),
-				sdk.FunctionLabelPrefix + "git-scm":        scm,
+				sdk.FunctionLabelPrefix + "git-scm":        event.SCM,
 				"faas_function":                            serviceValue,
 				"app":                                      serviceValue,
 				"com.openfaas.scale.min": scalingMinLimit,
@@ -298,6 +296,7 @@ func getEvent() (*sdk.Event, error) {
 	info.SHA = os.Getenv("Http_Sha")
 	info.URL = os.Getenv("Http_Url")
 	info.Image = os.Getenv("Http_Image")
+	info.SCM = os.Getenv("Http_Scm")
 
 	if len(os.Getenv("Http_Installation_id")) > 0 {
 		info.InstallationID, err = strconv.Atoi(os.Getenv("Http_Installation_id"))

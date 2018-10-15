@@ -15,6 +15,7 @@ type PushEventRepository struct {
 }
 
 type PushEvent struct {
+	SCM           string
 	Ref           string `json:"ref"`
 	Repository    PushEventRepository
 	AfterCommitID string `json:"after"`
