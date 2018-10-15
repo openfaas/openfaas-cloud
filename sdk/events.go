@@ -15,6 +15,7 @@ type PushEventRepository struct {
 }
 
 type PushEvent struct {
+	SCM           string
 	Ref           string `json:"ref"`
 	Repository    PushEventRepository
 	AfterCommitID string `json:"after"`
@@ -39,6 +40,7 @@ type Event struct {
 	Environment    map[string]string `json:"environment"`
 	Secrets        []string          `json:"secrets"`
 	Private        bool              `json:"private"`
+	SCM            string            `json:"scm"`
 }
 
 type Customer struct {
