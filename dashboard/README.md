@@ -79,6 +79,14 @@ pretty_url: "http://user.o6s.io/function"
 
 Set `public_url` to be the URL for the IP / DNS of the OpenFaaS Cloud.
 
+Set `cookie_root_domain` when using auth.
+
+Example with domain `o6s.io`:
+
+```
+cookie_root_domain: ".system.o6s.io"
+```
+
 **Deploy**
 
 > Don't forget to pull the `node8-express-template`

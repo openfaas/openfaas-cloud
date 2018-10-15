@@ -3,12 +3,43 @@
 const fs = require('fs');
 const request = require('request');
 
+const handleLogout = (context) => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const day = now.getDate();
+  const expires = new Date(year, month, day);
+  const headers = {
+    'Set-Cookie': [
+      'openfaas_cloud_token=',
+      `Expires=${expires.toUTCString()}`,
+      `Domain=${process.env.cookie_root_domain}`,
+      'Path=/',
+    ].join('; ')
+  };
+
+  fs.readFile(`${__dirname}/dist/logout.html`, (err, data) => {
+    if (err) {
+      return context.status(500).fail(err);
+    }
+
+    context
+      .headers(headers)
+      .status(200)
+      .succeed(data.toString());
+  });
+};
+
 module.exports = (event, context) => {
   const { method, path } = event;
 
   if (method !== 'GET') {
     context.status(400).fail('Bad Request');
     return;
+  }
+
+  if (/^\/logout\/?$/.test(path)) {
+    return handleLogout(context);
   }
 
   if (/^\/api\/(list-functions|system-metrics|pipeline-log).*/.test(path)) {
@@ -76,11 +107,14 @@ module.exports = (event, context) => {
     if (!headers['Content-Type']) {
       headers['Content-Type'] = 'text/html';
 
+      const isSignedIn = /openfaas_cloud_token=.*\s*/.test(event.headers.cookie);
+
       const { base_href, public_url, pretty_url, query_pretty_url } = process.env;
       content = content.replace(/__BASE_HREF__/g, base_href);
       content = content.replace(/__PUBLIC_URL__/g, public_url);
       content = content.replace(/__PRETTY_URL__/g, pretty_url);
       content = content.replace(/__QUERY_PRETTY_URL__/g, query_pretty_url);
+      content = content.replace(/__IS_SIGNED_IN__/g, isSignedIn);
     }
 
     context
