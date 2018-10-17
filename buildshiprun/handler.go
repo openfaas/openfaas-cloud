@@ -297,6 +297,7 @@ func getEvent() (*sdk.Event, error) {
 	info.URL = os.Getenv("Http_Url")
 	info.Image = os.Getenv("Http_Image")
 	info.SCM = os.Getenv("Http_Scm")
+	info.Private, _ = strconv.ParseBool(os.Getenv("Http_Private"))
 
 	if len(os.Getenv("Http_Installation_id")) > 0 {
 		info.InstallationID, err = strconv.Atoi(os.Getenv("Http_Installation_id"))
