@@ -296,7 +296,11 @@ func getEvent() (*sdk.Event, error) {
 	info.SHA = os.Getenv("Http_Sha")
 	info.URL = os.Getenv("Http_Url")
 	info.Image = os.Getenv("Http_Image")
+<<<<<<< HEAD
 	info.SCM = os.Getenv("Http_Scm")
+=======
+	info.Private, _ = strconv.ParseBool(os.Getenv("Http_Private"))
+>>>>>>> Handle private repo in git-tar and buildshiprun
 
 	if len(os.Getenv("Http_Installation_id")) > 0 {
 		info.InstallationID, err = strconv.Atoi(os.Getenv("Http_Installation_id"))
