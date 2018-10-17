@@ -26,7 +26,7 @@ functions:
       query_pretty_url: 'true'
   system-list-functions:
     skip_build: true
-    image: functions/list-functions:0.4.6
+    image: functions/list-functions:0.4.7
     fprocess: ./handler
     labels:
       openfaas-cloud: "1"
