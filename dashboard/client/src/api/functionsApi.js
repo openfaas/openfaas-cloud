@@ -63,8 +63,8 @@ class FunctionsApi {
       let isPrivate = false;
 
       if (
-        item.labels['com.openfaas.cloud.git-private-repo'] &&
-        item.labels['com.openfaas.cloud.git-private-repo'] === 'true'
+        item.labels['com.openfaas.cloud.git-private'] &&
+        item.labels['com.openfaas.cloud.git-private'] === '1'
       ) {
         isPrivate = true;
       }

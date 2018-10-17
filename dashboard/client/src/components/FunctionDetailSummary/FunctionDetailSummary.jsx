@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faAward } from '@fortawesome/free-solid-svg-icons';
+import { faAward, faUserSecret } from '@fortawesome/free-solid-svg-icons';
 
 import { FunctionOverviewPanel } from '../FunctionOverviewPanel'
 import { ReplicasProgress } from "../ReplicasProgress";
@@ -93,7 +93,12 @@ const FunctionDetailSummary = ({ fn, handleShowBadgeModal }) => {
   ];
 
   const deployIcon = <FontAwesomeIcon icon="info-circle" className="mr-3" />;
-  const gitIcon = <FontAwesomeIcon icon="code-branch" className="mr-3" />;
+  const gitIcon = (
+    <span>
+      <FontAwesomeIcon icon="code-branch" className="mr-3" />
+      { fn.gitPrivate && <FontAwesomeIcon icon={faUserSecret} className="mr-3" /> }
+    </span>
+  );
   const invocationsIcon = <FontAwesomeIcon icon="bolt" className="mr-3 mr-lg-2 d-inline-block d-lg-none d-xl-inline-block" />;
   const deployButton = (
     <Button outline color="secondary" size="xs" tag={Link} to={to}>
