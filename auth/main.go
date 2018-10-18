@@ -86,6 +86,7 @@ func main() {
 
 	router.HandleFunc("/q/", handlers.MakeQueryHandler(config, protected))
 	router.HandleFunc("/login/", handlers.MakeLoginHandler(config))
+	router.HandleFunc("/logout/", handlers.MakeLogoutHandler(config))
 	router.HandleFunc("/oauth2/", handlers.MakeOAuth2Handler(config))
 	router.HandleFunc("/healthz/", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
