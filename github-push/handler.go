@@ -18,6 +18,9 @@ import (
 // Source name for this function when auditing
 const Source = "github-push"
 
+//SCM identifier
+const SCM = "github"
+
 var audit sdk.Audit
 
 // Handle a serverless request
@@ -61,7 +64,7 @@ func Handle(req []byte) string {
 		return err.Error()
 	}
 
-	pushEvent.SCM = Source
+	pushEvent.SCM = SCM
 
 	var found bool
 
