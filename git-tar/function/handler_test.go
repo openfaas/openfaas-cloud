@@ -14,28 +14,28 @@ func Test_getRawURL(t *testing.T) {
 		Expected             string
 	}{
 		{
-			RepositoryURL:        "",
+			RepositoryURL:        "https://gitlab.url.io/myuser/myrepo",
 			RepositoryOwnerLogin: "myuser",
 			RepositoryName:       "myrepo",
 			SCM:                  "github",
 			Expected:             "https://raw.githubusercontent.com/myuser/myrepo/master/stack.yml",
 		},
 		{
-			RepositoryURL:        "",
+			RepositoryURL:        "https://gitlab.url.io/myuser/myrepo",
 			RepositoryOwnerLogin: "myuser",
 			RepositoryName:       "myrepo",
 			SCM:                  "github",
 			Expected:             "https://raw.githubusercontent.com/myuser/myrepo/master/stack.yml",
 		},
 		{
-			RepositoryURL:        "https://gitlab.url.io",
+			RepositoryURL:        "https://gitlab.url.io/myuser/myrepo",
 			RepositoryOwnerLogin: "myuser",
 			RepositoryName:       "myrepo",
 			SCM:                  "gitlab",
 			Expected:             "https://gitlab.url.io/myuser/myrepo/raw/master/stack.yml",
 		},
 		{
-			RepositoryURL:        "https://gitlab.url.io",
+			RepositoryURL:        "https://gitlab.url.io/myuser/myrepo",
 			RepositoryOwnerLogin: "myuser",
 			RepositoryName:       "myrepo",
 			SCM:                  "gitlab",
