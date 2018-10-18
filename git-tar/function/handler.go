@@ -308,19 +308,17 @@ func findStackFile(pushEvent *sdk.PushEvent) (bool, error) {
 
 func getRawURL(scm string, repositoryURL string, repositoryOwnerLogin string, repositoryName string) (string, error) {
 
-	addrPrefix := ""
-	rawPath := ""
+	rawURL := ""
 	switch scm {
 	case "github":
-		addrPrefix = "https://raw.githubusercontent.com"
+		rawURL = fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/master/stack.yml", repositoryOwnerLogin, repositoryName)
 	case "gitlab":
-		addrPrefix = repositoryURL
-		rawPath = "raw/"
+		rawURL = fmt.Sprintf("%s/raw/master/stack.yml", repositoryURL)
 	}
-	if addrPrefix == "" {
+	if rawURL == "" {
 		return "", fmt.Errorf(`failed to find stack.yml file: cannot form proper raw URL.
 			Expected pushEvent.SCM to be "github" or "gitlab", but got %s`, scm)
 	}
 
-	return fmt.Sprintf("%s/%s/%s/%smaster/stack.yml", addrPrefix, repositoryOwnerLogin, repositoryName, rawPath), nil
+	return rawURL, nil
 }
