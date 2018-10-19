@@ -1,6 +1,8 @@
 import axios from 'axios';
 import moment from 'moment';
 
+const getRepoURL = annotations => annotations['com.openfaas.cloud.git-repo-url'] || '';
+
 class FunctionsApi {
   constructor() {
     this.selectedRepo = '';
@@ -83,6 +85,7 @@ class FunctionsApi {
         gitDeployTime: item.labels['com.openfaas.cloud.git-deploytime'],
         gitPrivate: isPrivate,
         gitSha: item.labels['com.openfaas.cloud.git-sha'],
+        gitRepoURL: getRepoURL(item.annotations || {}),
         minReplicas: item.labels['com.openfaas.scale.min'],
         maxReplicas: item.labels['com.openfaas.scale.max'],
       };

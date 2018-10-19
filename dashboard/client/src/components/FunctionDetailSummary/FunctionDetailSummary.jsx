@@ -78,7 +78,7 @@ const FunctionDetailSummary = ({ fn, handleShowBadgeModal }) => {
       renderValue() {
         return (
           <a
-            href={`https://github.com/${repo}/commit/${fn.gitSha}`}
+            href={`${fn.gitRepoURL}/commit/${fn.gitSha}`}
             target="_blank"
           >
             { fn.gitSha }

@@ -13,8 +13,8 @@ const genFnDetailPath = ({ shortName, gitOwner, gitRepo }, user) => (
   `${user}/${shortName}?repoPath=${gitOwner}/${gitRepo}`
 );
 
-const genRepoUrl = ({ gitOwner, gitRepo }) => (
-  `https://github.com/${gitOwner}/${gitRepo}/commits/master`
+const genRepoUrl = ({ gitOwner, gitRepoURL }) => (
+  `${gitRepoURL}/commits/master`
 );
 
 const FunctionTableItem = ({ onClick, fn, user }) => {
