@@ -164,7 +164,7 @@ Main flows:
 2. User removes GitHub app from one or more repos - garbage collection is invoked removing 1-many functions
 3. User accesses function via router using "pretty URL" format and request is routed to function via API Gateway
 
-![](./docs/conceptual-overview-28-sept-2018.png)
+![](./docs/conceptual-overview.png)
 
 ## Try it out
 
