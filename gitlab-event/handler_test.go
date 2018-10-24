@@ -66,6 +66,12 @@ func Test_getUser(t *testing.T) {
 			expectedName:      "",
 			expectedErr:       fmt.Errorf("possible out of range error"),
 		},
+		{
+			title:             "Case when field is empty",
+			pathWithNamespace: "",
+			expectedName:      "",
+			expectedErr:       fmt.Errorf("possible out of range error"),
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.title, func(t *testing.T) {
