@@ -6,9 +6,13 @@ functions:
   gitlab-status:
     lang: go
     handler: ./gitlab-status
-    image: martindekov/gitlab-status:latest
+    image: functions/gitlab-status:0.1.0
+    labels:
+      openfaas-cloud: "1"
+      role: openfaas-system
     environment:
       write_debug: true
+      read_debug: true
     environment_file:
       - gateway_config.yml
     secrets:

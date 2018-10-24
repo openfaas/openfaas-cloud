@@ -20,7 +20,11 @@ import (
 )
 
 // Source of this event for auditing
-const Source = "git-tar"
+const (
+	Source = "git-tar"
+	GitLab = "gitlab"
+	GitHub = "github"
+)
 
 // Handle clones the git repo and checks out the SHA then uses the
 // OpenFaaS CLI to shrinkwrap a tarball to be build with Docker
@@ -61,7 +65,10 @@ func Handle(req []byte) []byte {
 		msg := fmt.Sprintf("cannot fetch stack file %s", getStackFileErr.Error())
 
 		status.AddStatus(sdk.StatusFailure, msg, sdk.StackContext)
-		reportStatus(status)
+		statusErr := reportStatus(status, pushEvent.SCM)
+		if statusErr != nil {
+			log.Printf(statusErr.Error())
+		}
 
 		log.Printf(msg)
 		os.Exit(-1)
@@ -69,7 +76,10 @@ func Handle(req []byte) []byte {
 
 	if !hasStackFile {
 		status.AddStatus(sdk.StatusFailure, "unable to find stack.yml", sdk.StackContext)
-		reportStatus(status)
+		statusErr := reportStatus(status, pushEvent.SCM)
+		if statusErr != nil {
+			log.Printf(statusErr.Error())
+		}
 
 		auditEvent := sdk.AuditEvent{
 			Message: "no stack.yml file found",
@@ -86,14 +96,20 @@ func Handle(req []byte) []byte {
 	if err != nil {
 		log.Println("Clone ", err.Error())
 		status.AddStatus(sdk.StatusFailure, "clone error : "+err.Error(), sdk.StackContext)
-		reportStatus(status)
+		statusErr := reportStatus(status, pushEvent.SCM)
+		if statusErr != nil {
+			log.Printf(statusErr.Error())
+		}
 		os.Exit(-1)
 	}
 
 	if _, err := os.Stat(path.Join(clonePath, "template")); err == nil {
 		log.Println("Post clone check found a user-generated template folder")
 		status.AddStatus(sdk.StatusFailure, "remove custom 'templates' folder", sdk.StackContext)
-		reportStatus(status)
+		statusErr := reportStatus(status, pushEvent.SCM)
+		if statusErr != nil {
+			log.Printf(statusErr.Error())
+		}
 		os.Exit(-1)
 	}
 
@@ -101,7 +117,10 @@ func Handle(req []byte) []byte {
 	if err != nil {
 		log.Println("parseYAML ", err.Error())
 		status.AddStatus(sdk.StatusFailure, "parseYAML error : "+err.Error(), sdk.StackContext)
-		reportStatus(status)
+		statusErr := reportStatus(status, pushEvent.SCM)
+		if statusErr != nil {
+			log.Printf(statusErr.Error())
+		}
 		os.Exit(-1)
 	}
 
@@ -109,7 +128,10 @@ func Handle(req []byte) []byte {
 	if err != nil {
 		log.Println("Error fetching templates ", err.Error())
 		status.AddStatus(sdk.StatusFailure, "fetchTemplates error : "+err.Error(), sdk.StackContext)
-		reportStatus(status)
+		statusErr := reportStatus(status, pushEvent.SCM)
+		if statusErr != nil {
+			log.Printf(statusErr.Error())
+		}
 		os.Exit(-1)
 	}
 
@@ -118,7 +140,10 @@ func Handle(req []byte) []byte {
 	if err != nil {
 		log.Println("Shrinkwrap ", err.Error())
 		status.AddStatus(sdk.StatusFailure, "shrinkwrap error : "+err.Error(), sdk.StackContext)
-		reportStatus(status)
+		statusErr := reportStatus(status, pushEvent.SCM)
+		if statusErr != nil {
+			log.Printf(statusErr.Error())
+		}
 		os.Exit(-1)
 	}
 
@@ -127,7 +152,10 @@ func Handle(req []byte) []byte {
 	if err != nil {
 		log.Println("Error creating tar(s): ", err.Error())
 		status.AddStatus(sdk.StatusFailure, "tar(s) creation failed, error : "+err.Error(), sdk.StackContext)
-		reportStatus(status)
+		statusErr := reportStatus(status, pushEvent.SCM)
+		if statusErr != nil {
+			log.Printf(statusErr.Error())
+		}
 		os.Exit(-1)
 	}
 
@@ -135,21 +163,28 @@ func Handle(req []byte) []byte {
 	if err != nil {
 		log.Printf("Error parsing secrets: %s\n", err.Error())
 		status.AddStatus(sdk.StatusFailure, "failed to parse secrets, error : "+err.Error(), sdk.StackContext)
-		reportStatus(status)
+		statusErr := reportStatus(status, pushEvent.SCM)
+		if statusErr != nil {
+			log.Printf(statusErr.Error())
+		}
 		os.Exit(-1)
 	}
 
 	err = deploy(tars, pushEvent, stack, status, payloadSecret)
 	if err != nil {
 		status.AddStatus(sdk.StatusFailure, "deploy failed, error : "+err.Error(), sdk.StackContext)
-		reportStatus(status)
+		statusErr := reportStatus(status, pushEvent.SCM)
+		if statusErr != nil {
+			log.Printf(statusErr.Error())
+		}
 		log.Printf("deploy error: %s", err)
 		os.Exit(-1)
 	}
-
 	status.AddStatus(sdk.StatusSuccess, "stack is successfully deployed", sdk.StackContext)
-	reportStatus(status)
-
+	statusErr := reportStatus(status, pushEvent.SCM)
+	if statusErr != nil {
+		log.Printf(statusErr.Error())
+	}
 	err = collect(pushEvent, stack)
 	if err != nil {
 		log.Printf("collect error: %s", err)
@@ -245,28 +280,6 @@ func getPayloadSecret() (string, error) {
 	return payloadSecret, nil
 }
 
-func reportStatus(status *sdk.Status) {
-
-	if !enableStatusReporting() {
-		return
-	}
-
-	hmacKey, keyErr := getPayloadSecret()
-
-	if keyErr != nil {
-		log.Printf("failed to load hmac key for status, error " + keyErr.Error())
-
-		return
-	}
-
-	gatewayURL := os.Getenv("gateway_url")
-
-	_, reportErr := status.Report(gatewayURL, hmacKey)
-	if reportErr != nil {
-		log.Printf("failed to report status, error: %s", reportErr.Error())
-	}
-}
-
 // findStackFile returns true if the repo has a stack.yml file in its git-raw CDN. When
 // using a private repo the value will return true always since private repos are not
 // available via the CDN. Note: given that the CDN has a 5-minute timeout - this optimization
@@ -311,9 +324,9 @@ func getRawURL(scm string, repositoryURL string, repositoryOwnerLogin string, re
 
 	rawURL := ""
 	switch scm {
-	case "github":
+	case GitHub:
 		rawURL = fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/master/stack.yml", repositoryOwnerLogin, repositoryName)
-	case "gitlab":
+	case GitLab:
 		rawURL = fmt.Sprintf("%s/raw/master/stack.yml", repositoryURL)
 	}
 	if rawURL == "" {

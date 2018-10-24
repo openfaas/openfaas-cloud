@@ -110,19 +110,19 @@ func Handle(req []byte) string {
 		audit.Post(auditEvent)
 
 		status.AddStatus(sdk.StatusFailure, msg, sdk.StackContext)
-		reportStatus(status)
+		reportGitHubStatus(status)
 		return msg
 	}
 
 	serviceValue := sdk.FormatServiceName(pushEvent.Repository.Owner.Login, pushEvent.Repository.Name)
 
 	status.AddStatus(sdk.StatusPending, fmt.Sprintf("%s stack deploy is in progress", serviceValue), sdk.StackContext)
-	reportStatus(status)
+	reportGitHubStatus(status)
 
 	statusCode, postErr := postEvent(pushEvent)
 	if postErr != nil {
 		status.AddStatus(sdk.StatusFailure, postErr.Error(), sdk.StackContext)
-		reportStatus(status)
+		reportGitHubStatus(status)
 		return postErr.Error()
 	}
 
@@ -212,7 +212,7 @@ func enableStatusReporting() bool {
 	return os.Getenv("report_status") == "true"
 }
 
-func reportStatus(status *sdk.Status) {
+func reportGitHubStatus(status *sdk.Status) {
 
 	if !enableStatusReporting() {
 		return
