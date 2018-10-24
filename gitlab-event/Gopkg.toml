@@ -35,4 +35,4 @@
 
 [[constraint]]
   name = "github.com/openfaas/openfaas-cloud"
-  version = "0.8.0"
+  version = "0.8.1"

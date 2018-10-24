@@ -57,16 +57,28 @@ func Handle(req []byte) string {
 			return fmt.Sprintf("Unexpected error: %s", secretErr.Error())
 		}
 		if !tokenMatch(xGitlabToken, tokenSecretKey) {
-			return fmt.Sprintf("The request token and the existing tokens mismatch")
+			return fmt.Sprintf("the request token and the existing tokens mismatch")
 		}
 	}
 
 	instance := os.Getenv("gitlab_instance")
+	if instance == "" {
+		return fmt.Sprintf("environmental variable gitlab_instance is missing for gitlab-event")
+	}
+
+	apiToken, tokenErr := sdk.ReadSecret("gitlab-api-token")
+
+	if tokenErr != nil {
+		return fmt.Sprintf("unable to read GitLab API token: %s", tokenErr.Error())
+	}
 
 	switch eventName.Event {
 	case "push":
 		eventInfo := GitLabPushEvent{}
-		json.Unmarshal(req, &eventInfo)
+		unmarshalErr := json.Unmarshal(req, &eventInfo)
+		if unmarshalErr != nil {
+			return fmt.Sprint("unable to unmarshal request into struct")
+		}
 
 		if readBool("validate_customers") {
 			var found bool
@@ -86,7 +98,7 @@ func Handle(req []byte) string {
 				return fmt.Sprintf("Customer: %s not found in CUSTOMERS file via %s", eventInfo.UserUsername, customersURL)
 			}
 		}
-		installed, err := InstalledApp(eventInfo.GitLabProject.ID, instance)
+		installed, err := InstalledApp(eventInfo.GitLabProject.ID, instance, apiToken)
 		if err != nil {
 			return fmt.Sprintf("Error while trying to connect to GitLab API: %s", err.Error())
 		}
@@ -133,7 +145,7 @@ func Handle(req []byte) string {
 			}
 		}
 
-		installed, err := InstalledApp(eventInfo.ProjectID, instance)
+		installed, err := InstalledApp(eventInfo.ProjectID, instance, apiToken)
 		if err != nil {
 			return fmt.Sprintf("Error while trying to connect to GitLab API: %s", err.Error())
 		}
@@ -158,7 +170,9 @@ func Handle(req []byte) string {
 func garbageCollect(garbageRequests []GarbageRequest) error {
 	client := http.Client{}
 
+	suffix := os.Getenv("dns_suffix")
 	gatewayURL := os.Getenv("gateway_url")
+	gatewayURL = sdk.CreateServiceURL(gatewayURL, suffix)
 
 	payloadSecret, err := sdk.ReadSecret("payload-secret")
 	if err != nil {
@@ -167,9 +181,16 @@ func garbageCollect(garbageRequests []GarbageRequest) error {
 
 	for _, garbageRequest := range garbageRequests {
 
-		body, _ := json.Marshal(garbageRequest)
+		body, bodyErr := json.Marshal(garbageRequest)
+		if bodyErr != nil {
+			return fmt.Errorf("error while marshaling garbage-collect request: %s", bodyErr.Error())
+		}
+
 		bodyReader := bytes.NewReader(body)
-		req, _ := http.NewRequest(http.MethodPost, gatewayURL+"async-function/garbage-collect", bodyReader)
+		req, reqErr := http.NewRequest(http.MethodPost, gatewayURL+"async-function/garbage-collect", bodyReader)
+		if reqErr != nil {
+			return reqErr
+		}
 
 		digest := hmac.Sign(body, []byte(payloadSecret))
 		req.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
@@ -186,7 +207,10 @@ func garbageCollect(garbageRequests []GarbageRequest) error {
 			garbageRequest.Repo, garbageRequest.Owner, res.StatusCode)
 
 		if res.StatusCode != http.StatusAccepted {
-			resBody, _ := ioutil.ReadAll(res.Body)
+			resBody, bodyReader := ioutil.ReadAll(res.Body)
+			if bodyReader != nil {
+				return bodyReader
+			}
 			fmt.Printf("Error in garbageCollect: %s\n", resBody)
 		}
 	}
@@ -205,10 +229,17 @@ func forward(req []byte, function string, headers map[string]string) (string, in
 		return "", http.StatusInternalServerError, err
 	}
 
+	suffix := os.Getenv("dns_suffix")
+	gatewayURL := os.Getenv("gateway_url")
+	gatewayURL = sdk.CreateServiceURL(gatewayURL, suffix)
+
 	c := http.Client{}
 
 	bodyReader := bytes.NewBuffer(req)
-	pushReq, _ := http.NewRequest(http.MethodPost, os.Getenv("gateway_url")+"function/"+function, bodyReader)
+	pushReq, reqErr := http.NewRequest(http.MethodPost, gatewayURL+"function/"+function, bodyReader)
+	if reqErr != nil {
+		return "", http.StatusBadRequest, reqErr
+	}
 	digest := hmac.Sign(req, []byte(payloadSecret))
 	pushReq.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
 
@@ -230,7 +261,10 @@ func forward(req []byte, function string, headers map[string]string) (string, in
 	if res.Body != nil {
 		defer res.Body.Close()
 	}
-	body, _ := ioutil.ReadAll(res.Body)
+	body, bodyErr := ioutil.ReadAll(res.Body)
+	if bodyErr != nil {
+		return "", http.StatusInternalServerError, bodyErr
+	}
 
 	if res.StatusCode != http.StatusOK {
 		err = fmt.Errorf(string(body))
@@ -239,29 +273,32 @@ func forward(req []byte, function string, headers map[string]string) (string, in
 	return string(body), res.StatusCode, err
 }
 
-func InstalledApp(id int, instance string) (bool, error) {
+func InstalledApp(id int, instance, apiToken string) (bool, error) {
 	wholeURL := instance + "/api/v4/projects/" + strconv.Itoa(id)
 
 	req, reqErr := http.NewRequest(http.MethodGet, wholeURL, nil)
-
 	if reqErr != nil {
 		return false, reqErr
 	}
+	req.Header.Add("PRIVATE-TOKEN", apiToken)
 
 	client := &http.Client{}
 	resp, respErr := client.Do(req)
-
 	if respErr != nil {
 		return false, respErr
 	}
 	defer resp.Body.Close()
+
 	body, bodyErr := ioutil.ReadAll(resp.Body)
 	if bodyErr != nil {
 		return false, bodyErr
 	}
 	projectInfo := GitLabProjectTags{}
 
-	json.Unmarshal(body, &projectInfo)
+	unmarshalErr := json.Unmarshal(body, &projectInfo)
+	if unmarshalErr != nil {
+		return false, unmarshalErr
+	}
 
 	for _, tag := range projectInfo.TagList {
 		if strings.EqualFold(tag, "openfaas-cloud") {
@@ -288,14 +325,20 @@ func getCustomers(customerURL string) ([]string, error) {
 		return nil, fmt.Errorf("customerURL was nil")
 	}
 	c := http.Client{}
-	httpReq, _ := http.NewRequest(http.MethodGet, customerURL, nil)
+	httpReq, httpErr := http.NewRequest(http.MethodGet, customerURL, nil)
+	if httpErr != nil {
+		return customers, httpErr
+	}
 	res, reqErr := c.Do(httpReq)
 	if reqErr != nil {
 		return customers, reqErr
 	}
 	if res.Body != nil {
 		defer res.Body.Close()
-		pageBody, _ := ioutil.ReadAll(res.Body)
+		pageBody, bodyErr := ioutil.ReadAll(res.Body)
+		if bodyErr != nil {
+			return customers, bodyErr
+		}
 		customers = strings.Split(string(pageBody), "\n")
 		for i, c := range customers {
 			customers[i] = strings.ToLower(c)
