@@ -50,7 +50,7 @@ func Handle(req []byte) string {
 	gitlabPushEvent := sdk.GitLabPushEvent{}
 	err := json.Unmarshal(req, &gitlabPushEvent)
 	if err != nil {
-		return err.Error()
+		return fmt.Sprintf("error while unmarshaling gitlabPushEvent struct: %s", err.Error())
 	}
 
 	privateRepo := checkPublicRepo(gitlabPushEvent.GitLabProject.VisibilityLevel)
@@ -102,7 +102,7 @@ func Handle(req []byte) string {
 	if postErr != nil {
 		status.AddStatus(sdk.StatusFailure, postErr.Error(), sdk.StackContext)
 		reportGitLabStatus(status)
-		return postErr.Error()
+		return fmt.Sprintf("error while posting event to git-tar: %s", postErr.Error())
 	}
 
 	auditEvent := sdk.AuditEvent{
@@ -132,22 +132,21 @@ func postEvent(pushEvent sdk.PushEvent) (int, error) {
 		return http.StatusBadRequest, fmt.Errorf("error while marshalling event: %s", bodyErr.Error())
 	}
 
-	c := http.Client{}
 	bodyReader := bytes.NewBuffer(body)
 	httpReq, httpErr := http.NewRequest(http.MethodPost, gatewayURL+"async-function/git-tar", bodyReader)
 	if httpErr != nil {
-		return http.StatusBadRequest, fmt.Errorf("error while making request to git-tar: %s", httpErr.Error())
+		return http.StatusBadRequest, fmt.Errorf("error while creating request to git-tar: %s", httpErr.Error())
 	}
-
 	digest := hmac.Sign(body, []byte(payloadSecret))
 	httpReq.Header.Add("X-Cloud-Signature", "sha1="+hex.EncodeToString(digest))
 
+	c := http.Client{}
 	res, reqErr := c.Do(httpReq)
-	if reqErr != nil {
-		return http.StatusServiceUnavailable, reqErr
-	}
 	if res.Body != nil {
 		defer res.Body.Close()
+	}
+	if reqErr != nil {
+		return http.StatusServiceUnavailable, fmt.Errorf("error while making request to git-tar: %s", reqErr.Error())
 	}
 
 	return res.StatusCode, nil
@@ -161,16 +160,13 @@ func readBool(key string) bool {
 }
 
 func reportGitLabStatus(status *sdk.Status) {
-
 	payloadSecret, secretErr := sdk.ReadSecret("payload-secret")
 	if secretErr != nil {
 		log.Printf("unexpected error while reading secret: %s", secretErr)
 	}
-
 	suffix := os.Getenv("dns_suffix")
 	gatewayURL := os.Getenv("gateway_url")
 	gatewayURL = sdk.CreateServiceURL(gatewayURL, suffix)
-
 	statusBytes, marshalErr := json.Marshal(status)
 	if marshalErr != nil {
 		log.Printf("error while marshalling request: %s", marshalErr.Error())
@@ -181,17 +177,20 @@ func reportGitLabStatus(status *sdk.Status) {
 	if reqErr != nil {
 		log.Printf("error while making request to gitlab-status: `%s`", reqErr.Error())
 	}
-
 	digest := hmac.Sign(statusBytes, []byte(payloadSecret))
 	req.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
 
 	client := http.Client{}
-
 	res, resErr := client.Do(req)
 	if resErr != nil {
 		log.Printf("unexpected error while retrieving response: %s", resErr.Error())
 	}
-	defer res.Body.Close()
+	if res.Body != nil {
+		defer res.Body.Close()
+	}
+	if res.StatusCode != http.StatusOK {
+		log.Printf("unexpected status code: %d", res.StatusCode)
+	}
 
 	_, bodyErr := ioutil.ReadAll(res.Body)
 	if bodyErr != nil {
