@@ -18,6 +18,11 @@ import (
 	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
+const (
+	GitLab = "gitlab"
+	GitHub = "github"
+)
+
 var (
 	imageValidator = regexp.MustCompile("(?:[a-zA-Z0-9./]*(?:[._-][a-z0-9]?)*(?::[0-9]+)?[a-zA-Z0-9./]+(?:[._-][a-z0-9]+)*/)*[a-zA-Z0-9]+(?:[._-][a-z0-9]+)+(?::[a-zA-Z0-9._-]+)?")
 )
@@ -96,7 +101,10 @@ func Handle(req []byte) string {
 		sdk.PostAudit(auditEvent)
 
 		status.AddStatus(sdk.StatusFailure, err.Error(), sdk.BuildFunctionContext(event.Service))
-		reportStatus(status)
+		statusErr := reportStatus(status, event.SCM)
+		if statusErr != nil {
+			log.Printf(statusErr.Error())
+		}
 
 		return auditEvent.Message
 	}
@@ -117,7 +125,10 @@ func Handle(req []byte) string {
 		sdk.PostAudit(auditEvent)
 
 		status.AddStatus(sdk.StatusFailure, err.Error(), sdk.BuildFunctionContext(event.Service))
-		reportStatus(status)
+		statusErr := reportStatus(status, event.SCM)
+		if statusErr != nil {
+			log.Printf(statusErr.Error())
+		}
 		return auditEvent.Message
 	}
 
@@ -130,7 +141,10 @@ func Handle(req []byte) string {
 		msg := "repository_url env-var not set"
 		fmt.Fprintf(os.Stderr, msg)
 		status.AddStatus(sdk.StatusFailure, msg, sdk.BuildFunctionContext(event.Service))
-		reportStatus(status)
+		statusErr := reportStatus(status, event.SCM)
+		if statusErr != nil {
+			log.Printf(statusErr.Error())
+		}
 		os.Exit(1)
 	}
 
@@ -151,7 +165,10 @@ func Handle(req []byte) string {
 	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusAccepted {
 		msg := "Unable to build image, check builder logs"
 		status.AddStatus(sdk.StatusFailure, msg, sdk.BuildFunctionContext(event.Service))
-		reportStatus(status)
+		statusErr := reportStatus(status, event.SCM)
+		if statusErr != nil {
+			log.Printf(statusErr.Error())
+		}
 
 		auditEvent.Message = fmt.Sprintf("buildshiprun failure: %s", msg)
 		sdk.PostAudit(auditEvent)
@@ -224,8 +241,11 @@ func Handle(req []byte) string {
 
 		if err != nil {
 			status.AddStatus(sdk.StatusFailure, err.Error(), sdk.BuildFunctionContext(event.Service))
-			reportStatus(status)
-
+			statusErr := reportStatus(status, event.SCM)
+			if statusErr != nil {
+				log.Printf(statusErr.Error())
+			}
+			log.Fatal(err.Error())
 			auditEvent.Message = fmt.Sprintf("buildshiprun failure: %s", err.Error())
 			sdk.PostAudit(auditEvent)
 			log.Fatalf("buildshiprun failure: %s", err.Error())
@@ -237,7 +257,10 @@ func Handle(req []byte) string {
 	}
 
 	status.AddStatus(sdk.StatusSuccess, fmt.Sprintf("deployed: %s", serviceValue), sdk.BuildFunctionContext(event.Service))
-	reportStatus(status)
+	statusErr := reportStatus(status, event.SCM)
+	if statusErr != nil {
+		log.Printf(statusErr.Error())
+	}
 	return fmt.Sprintf("buildStatus %s %s", imageName, res.Status)
 }
 
@@ -437,7 +460,19 @@ func enableStatusReporting() bool {
 	return os.Getenv("report_status") == "true"
 }
 
-func reportStatus(status *sdk.Status) {
+func reportStatus(status *sdk.Status, SCM string) error {
+	if SCM == GitHub {
+		reportGitHubStatus(status)
+	} else if SCM == GitLab {
+		reportGitLabStatus(status)
+	} else {
+		return fmt.Errorf("non-supported SCM: %s", SCM)
+	}
+	return nil
+}
+
+func reportGitHubStatus(status *sdk.Status) {
+
 	if !enableStatusReporting() {
 		return
 	}
@@ -530,4 +565,49 @@ func getMemoryLimit() string {
 	}
 
 	return fmt.Sprintf("%s%s", unit, suffix)
+}
+
+func reportGitLabStatus(status *sdk.Status) {
+
+	payloadSecret, secretErr := sdk.ReadSecret("payload-secret")
+	if secretErr != nil {
+		log.Printf("unexpected error while reading secret: %s", secretErr)
+	}
+
+	suffix := os.Getenv("dns_suffix")
+	gatewayURL := os.Getenv("gateway_url")
+	gatewayURL = sdk.CreateServiceURL(gatewayURL, suffix)
+
+	statusBytes, marshalErr := json.Marshal(status)
+	if marshalErr != nil {
+		log.Printf("error while marshalling request: %s", marshalErr.Error())
+	}
+
+	statusReader := bytes.NewReader(statusBytes)
+	req, reqErr := http.NewRequest(http.MethodPost, gatewayURL+"function/gitlab-status", statusReader)
+	if reqErr != nil {
+		log.Printf("error while making request to gitlab-status: `%s`", reqErr.Error())
+	}
+
+	digest := hmac.Sign(statusBytes, []byte(payloadSecret))
+	req.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
+
+	client := http.Client{}
+
+	res, resErr := client.Do(req)
+	if resErr != nil {
+		log.Printf("unexpected error while retrieving response: %s", resErr.Error())
+	}
+	if res.Body != nil {
+		defer res.Body.Close()
+	}
+	if res.StatusCode != http.StatusOK {
+		log.Printf("unexpected status code: %d", res.StatusCode)
+	}
+
+	_, bodyErr := ioutil.ReadAll(res.Body)
+	if bodyErr != nil {
+		log.Printf("unexpected error while reading response body: %s", bodyErr.Error())
+	}
+	status.CommitStatuses = make(map[string]sdk.CommitStatus)
 }
