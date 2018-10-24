@@ -25,7 +25,6 @@ functions:
       - payload-secret
       - gitlab-api-token 
 
-
   gitlab-status:
     lang: go
     handler: ./gitlab-status
