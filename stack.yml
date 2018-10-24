@@ -60,6 +60,8 @@ functions:
     secrets:
       - payload-secret
       - private-key
+# Uncomment this for GitLab
+#      - gitlab-api-token
 
   buildshiprun:
     lang: go
