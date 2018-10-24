@@ -271,16 +271,39 @@ func clone(pushEvent sdk.PushEvent) (string, error) {
 		return "", fmt.Errorf("cannot create user-dir: %s", userDir)
 	}
 
-	at := &githubAuthToken{
-		appID:          os.Getenv("github_app_id"),
-		installationID: pushEvent.Installation.ID,
-		privateKeyPath: sdk.GetPrivateKeyPath(),
+	var cloneURL string
+
+	if pushEvent.SCM == "github" {
+
+		at := &githubAuthToken{
+			appID:          os.Getenv("github_app_id"),
+			installationID: pushEvent.Installation.ID,
+			privateKeyPath: sdk.GetPrivateKeyPath(),
+		}
+
+		cloneURL, err = getRepositoryURL(pushEvent, at)
+
+		if err != nil {
+			return "", fmt.Errorf("cannot get repository url to clone: %t", err)
+		}
 	}
 
-	cloneURL, err := getRepositoryURL(pushEvent, at)
+	if pushEvent.SCM == "gitlab" {
 
-	if err != nil {
-		return "", fmt.Errorf("cannot get repository url to clone: %t", err)
+		if pushEvent.Repository.Private {
+			tokenAPI, tokenErr := sdk.ReadSecret("gitlab-api-token")
+			if tokenErr != nil {
+				return "", fmt.Errorf("cannot read api token from GitLab in secret `gitlab-api-token`: %s", tokenErr.Error())
+			}
+
+			var formatErr error
+			cloneURL, formatErr = formatGitLabCloneURL(pushEvent, tokenAPI)
+			if formatErr != nil {
+				return "", fmt.Errorf("error while formatting clone URL for GitLab: %s", formatErr.Error())
+			}
+		} else {
+			cloneURL = pushEvent.Repository.CloneURL
+		}
 	}
 
 	git := exec.Command("git", "clone", cloneURL)
@@ -492,4 +515,12 @@ func getShortSHA(sha string) string {
 		return sha
 	}
 	return sha[:7]
+}
+
+func formatGitLabCloneURL(pushEvent sdk.PushEvent, tokenAPI string) (string, error) {
+	url, urlErr := url.Parse(pushEvent.Repository.CloneURL)
+	if urlErr != nil {
+		return "", fmt.Errorf("error while parsing URL: %s", urlErr.Error())
+	}
+	return fmt.Sprintf("https://%s:%s@%s%s", pushEvent.Repository.Owner.Login, tokenAPI, url.Host, url.Path), nil
 }
