@@ -10,7 +10,7 @@ func FormatServiceName(owner, functionName string) string {
 }
 
 func CreateServiceURL(URL, suffix string) string {
-	if len(suffix) == 0 {
+	if strings.Contains(URL, suffix) {
 		return URL
 	}
 	columns := strings.Count(URL, ":")

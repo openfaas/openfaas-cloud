@@ -205,3 +205,48 @@ func Test_formatTemplateReposUnvalid(t *testing.T) {
 		})
 	}
 }
+
+func Test_formatGitLabCloneURL(t *testing.T) {
+	tests := []struct {
+		title            string
+		event            sdk.PushEvent
+		token            string
+		expectedCloneURL string
+	}{
+		{
+			title: "We have the fields populated right",
+			event: sdk.PushEvent{
+				Repository: sdk.PushEventRepository{
+					Owner:    sdk.Owner{Login: "martindekov"},
+					CloneURL: "https://gitlab.example.io/martindekov/gitlab-playground.git",
+				},
+			},
+			token:            "zxcvasd123",
+			expectedCloneURL: "https://martindekov:zxcvasd123@gitlab.example.io/martindekov/gitlab-playground.git",
+		},
+		{
+			title:            "We have the struct not populated right but token exists",
+			event:            sdk.PushEvent{},
+			token:            "zxcvasd123",
+			expectedCloneURL: "https://:zxcvasd123@",
+		},
+		{
+			title:            "We have nothing populated right and token does not exist",
+			event:            sdk.PushEvent{},
+			token:            "",
+			expectedCloneURL: "https://:@",
+		},
+	}
+	var expectedError error
+	for _, test := range tests {
+		cloneURL, formatErr := formatGitLabCloneURL(test.event, test.token)
+		t.Run("Properly formatted URL", func(t *testing.T) {
+			if cloneURL != test.expectedCloneURL {
+				t.Errorf("Expected URL: %s got: %s", test.expectedCloneURL, cloneURL)
+			}
+			if formatErr != expectedError {
+				t.Errorf("Expected error: %v got: %v", expectedError, formatErr)
+			}
+		})
+	}
+}

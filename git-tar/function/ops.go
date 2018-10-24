@@ -274,16 +274,27 @@ func clone(pushEvent sdk.PushEvent) (string, error) {
 		return "", fmt.Errorf("cannot create user-dir: %s", userDir)
 	}
 
-	at := &githubAuthToken{
-		appID:          os.Getenv("github_app_id"),
-		installationID: pushEvent.Installation.ID,
-		privateKeyPath: sdk.GetPrivateKeyPath(),
-	}
+	var cloneURL string
+	var cloneErr error
 
-	cloneURL, err := getRepositoryURL(pushEvent, at)
+	switch pushEvent.SCM {
+	case GitHub:
 
-	if err != nil {
-		return "", fmt.Errorf("cannot get repository url to clone: %t", err)
+		cloneURL, cloneErr = GitHubCloneURL(pushEvent)
+		if cloneErr != nil {
+			return "", fmt.Errorf("error while creating GitLab CloneURL: %s", cloneErr.Error())
+		}
+
+	case GitLab:
+
+		if pushEvent.Repository.Private {
+			cloneURL, cloneErr = GitLabCloneURL(pushEvent)
+			if cloneErr != nil {
+				return "", fmt.Errorf("error while creating GitLab CloneURL: %s", cloneErr.Error())
+			}
+		} else {
+			cloneURL = pushEvent.Repository.CloneURL
+		}
 	}
 
 	git := exec.Command("git", "clone", cloneURL)
@@ -589,4 +600,40 @@ func reportGitHubStatus(status *sdk.Status) {
 	if reportErr != nil {
 		log.Printf("failed to report status, error: %s", reportErr.Error())
 	}
+}
+
+func formatGitLabCloneURL(pushEvent sdk.PushEvent, tokenAPI string) (string, error) {
+	url, urlErr := url.Parse(pushEvent.Repository.CloneURL)
+	if urlErr != nil {
+		return "", fmt.Errorf("error while parsing URL: %s", urlErr.Error())
+	}
+	return fmt.Sprintf("https://%s:%s@%s%s", pushEvent.Repository.Owner.Login, tokenAPI, url.Host, url.Path), nil
+}
+func GitLabCloneURL(pushEvent sdk.PushEvent) (string, error) {
+	tokenAPI, tokenErr := sdk.ReadSecret("gitlab-api-token")
+	if tokenErr != nil {
+		return "", fmt.Errorf("cannot read api token from GitLab in secret `gitlab-api-token`: %s", tokenErr.Error())
+	}
+
+	cloneURL, formatErr := formatGitLabCloneURL(pushEvent, tokenAPI)
+	if formatErr != nil {
+		return "", fmt.Errorf("error while formatting clone URL for GitLab: %s", formatErr.Error())
+	}
+
+	return cloneURL, nil
+}
+
+func GitHubCloneURL(pushEvent sdk.PushEvent) (string, error) {
+	at := &githubAuthToken{
+		appID:          os.Getenv("github_app_id"),
+		installationID: pushEvent.Installation.ID,
+		privateKeyPath: sdk.GetPrivateKeyPath(),
+	}
+
+	cloneURL, err := getRepositoryURL(pushEvent, at)
+	if err != nil {
+		return "", fmt.Errorf("cannot get repository url to clone: %t", err)
+	}
+
+	return cloneURL, nil
 }
