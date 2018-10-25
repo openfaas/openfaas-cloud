@@ -64,13 +64,13 @@ func Test_getUser(t *testing.T) {
 			title:             "Error is not nil since the string is not formatted as expected",
 			pathWithNamespace: "exampleusername:exampleproject",
 			expectedName:      "",
-			expectedErr:       fmt.Errorf("possible out of range error"),
+			expectedErr:       fmt.Errorf("un-proper format of the variable possible out of range error"),
 		},
 		{
 			title:             "Case when field is empty",
 			pathWithNamespace: "",
 			expectedName:      "",
-			expectedErr:       fmt.Errorf("possible out of range error"),
+			expectedErr:       fmt.Errorf("un-proper format of the variable possible out of range error"),
 		},
 	}
 	for _, test := range tests {
