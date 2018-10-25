@@ -38,7 +38,6 @@ func Handle(req []byte) string {
 			Message: "required : " + EventSource,
 			Source:  Source,
 		}
-
 		sdk.PostAudit(auditEvent)
 
 		return fmt.Sprintf("%s: %s required cannot handle: %s", Source, EventSource, eventHeader)
@@ -51,12 +50,10 @@ func Handle(req []byte) string {
 	}
 
 	if !checkSupportedEvents(eventName.Event) {
-
 		auditEvent := sdk.AuditEvent{
 			Message: "bad event: " + eventName.Event,
 			Source:  Source,
 		}
-
 		sdk.PostAudit(auditEvent)
 
 		return fmt.Sprintf("%s cannot handle event: %s", Source, eventName.Event)
@@ -94,7 +91,7 @@ func Handle(req []byte) string {
 		eventInfo := sdk.GitLabPushEvent{}
 		unmarshalErr := json.Unmarshal(req, &eventInfo)
 		if unmarshalErr != nil {
-			return fmt.Sprintf("unable to unmarshal request into struct: %s", unmarshalErr.Error())
+			return fmt.Sprintf("unable to unmarshal request into eventInfo struct: %s", unmarshalErr.Error())
 		}
 
 		if readBool("validate_customers") {
@@ -114,10 +111,9 @@ func Handle(req []byte) string {
 			}
 		}
 
-		installed, err := InstalledApp(eventInfo.GitLabProject.ID, instance, apiToken, installationTag)
-
+		installed, err := appInstalled(eventInfo.GitLabProject.ID, instance, apiToken, installationTag)
 		if err != nil {
-			return fmt.Sprintf("Error while trying to connect to GitLab API: %s", err.Error())
+			return fmt.Sprintf("error while trying to connect to GitLab API: %s", err.Error())
 		}
 		if installed {
 			headers := map[string]string{
@@ -163,14 +159,14 @@ func Handle(req []byte) string {
 					Source:  Source,
 				}
 				sdk.PostAudit(auditEvent)
+
 				return fmt.Sprintf("Customer: %s not found in CUSTOMERS file via %s", username, customersURL)
 			}
 		}
 
-		installed, err := InstalledApp(eventInfo.ProjectID, instance, apiToken, installationTag)
-
+		installed, err := appInstalled(eventInfo.ProjectID, instance, apiToken, installationTag)
 		if err != nil {
-			return fmt.Sprintf("Error while trying to connect to GitLab API: %s", err.Error())
+			return fmt.Sprintf("error while trying to connect to GitLab API: %s", err.Error())
 		}
 		if !installed {
 			garbageRequest := []GarbageRequest{}
@@ -182,8 +178,9 @@ func Handle(req []byte) string {
 				})
 			err := garbageCollect(garbageRequest)
 			if err != nil {
-				return fmt.Sprintf("Unexpected error in garbage collect: `%s`\n", err.Error())
+				return fmt.Sprintf("unexpected error in garbage collect: `%s`\n", err.Error())
 			}
+
 			return fmt.Sprintf("Function: `%s` deleted", eventInfo.Name)
 		}
 	}
@@ -212,7 +209,7 @@ func garbageCollect(garbageRequests []GarbageRequest) error {
 		bodyReader := bytes.NewReader(body)
 		req, reqErr := http.NewRequest(http.MethodPost, gatewayURL+"async-function/garbage-collect", bodyReader)
 		if reqErr != nil {
-			return reqErr
+			return fmt.Errorf("error while creating request to garbage-collect: %s", reqErr.Error())
 		}
 
 		digest := hmac.Sign(body, []byte(payloadSecret))
@@ -220,7 +217,7 @@ func garbageCollect(garbageRequests []GarbageRequest) error {
 
 		res, err := client.Do(req)
 		if err != nil {
-			return err
+			return fmt.Errorf("error while making request to garbage-collect: %s", err.Error())
 		}
 		if res.Body != nil {
 			defer res.Body.Close()
@@ -232,9 +229,9 @@ func garbageCollect(garbageRequests []GarbageRequest) error {
 		if res.StatusCode != http.StatusAccepted {
 			resBody, bodyReader := ioutil.ReadAll(res.Body)
 			if bodyReader != nil {
-				return bodyReader
+				return fmt.Errorf("error while reading response body from garbage-collect: %s", bodyReader.Error())
 			}
-			fmt.Printf("Error in garbageCollect: %s\n", resBody)
+			fmt.Printf("error in garbageCollect: %s\n", resBody)
 		}
 	}
 	return nil
@@ -249,7 +246,8 @@ type GarbageRequest struct {
 func forward(req []byte, function string, headers map[string]string) (string, int, error) {
 	payloadSecret, err := sdk.ReadSecret("payload-secret")
 	if err != nil {
-		return "", http.StatusInternalServerError, err
+		return "", http.StatusInternalServerError,
+			fmt.Errorf("error while reading payload-secret for function %s: %s", function, err.Error())
 	}
 
 	suffix := os.Getenv("dns_suffix")
@@ -261,7 +259,8 @@ func forward(req []byte, function string, headers map[string]string) (string, in
 	bodyReader := bytes.NewBuffer(req)
 	pushReq, reqErr := http.NewRequest(http.MethodPost, gatewayURL+"function/"+function, bodyReader)
 	if reqErr != nil {
-		return "", http.StatusBadRequest, reqErr
+		return "", http.StatusBadRequest,
+			fmt.Errorf("error while making request to %s: %s", function, reqErr.Error())
 	}
 	digest := hmac.Sign(req, []byte(payloadSecret))
 	pushReq.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
@@ -286,7 +285,8 @@ func forward(req []byte, function string, headers map[string]string) (string, in
 	}
 	body, bodyErr := ioutil.ReadAll(res.Body)
 	if bodyErr != nil {
-		return "", http.StatusInternalServerError, bodyErr
+		return "", http.StatusInternalServerError,
+			fmt.Errorf("error while reading response body from %s: %s", function, bodyErr.Error())
 	}
 
 	if res.StatusCode != http.StatusOK {
@@ -296,31 +296,31 @@ func forward(req []byte, function string, headers map[string]string) (string, in
 	return string(body), res.StatusCode, err
 }
 
-func InstalledApp(id int, instance, apiToken, installationTag string) (bool, error) {
+func appInstalled(id int, instance, apiToken, installationTag string) (bool, error) {
 	wholeURL := instance + "/api/v4/projects/" + strconv.Itoa(id)
 
 	req, reqErr := http.NewRequest(http.MethodGet, wholeURL, nil)
 	if reqErr != nil {
-		return false, fmt.Errorf("Error while creating request for GitLab: %s", reqErr.Error())
+		return false, fmt.Errorf("error while creating request for GitLab: %s", reqErr.Error())
 	}
 	req.Header.Add("PRIVATE-TOKEN", apiToken)
 
 	client := &http.Client{}
 	resp, respErr := client.Do(req)
 	if respErr != nil {
-		return false, fmt.Errorf("Error while getting response from GitLab: %s", respErr.Error())
+		return false, fmt.Errorf("error while getting response from GitLab: %s", respErr.Error())
 	}
 	defer resp.Body.Close()
 
 	body, bodyErr := ioutil.ReadAll(resp.Body)
 	if bodyErr != nil {
-		return false, fmt.Errorf("Error while reading body from GitLab response: %s", bodyErr.Error())
+		return false, fmt.Errorf("error while reading body from GitLab response: %s", bodyErr.Error())
 	}
 
 	projectInfo := GitLabProjectTags{}
 	unmarshalErr := json.Unmarshal(body, &projectInfo)
 	if unmarshalErr != nil {
-		return false, fmt.Errorf("Error while un-marshaling projectInfo from body: %s", bodyErr.Error())
+		return false, fmt.Errorf("error while un-marshaling projectInfo from body: %s", bodyErr.Error())
 	}
 
 	for _, tag := range projectInfo.TagList {
@@ -380,7 +380,7 @@ func validCustomer(customers []string, owner string) bool {
 
 func getUser(pathWithNamespace string) (string, error) {
 	if !strings.Contains(pathWithNamespace, "/") {
-		return "", fmt.Errorf("possible out of range error")
+		return "", fmt.Errorf("un-proper format of the variable possible out of range error")
 	}
 	return pathWithNamespace[:strings.Index(pathWithNamespace, "/")], nil
 }
