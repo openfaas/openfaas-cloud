@@ -29,6 +29,7 @@ import (
 var (
 	lchownEnabled bool
 	buildkitURL   string
+	buildArgs     = map[string]string{}
 )
 
 func main() {
@@ -44,6 +45,18 @@ func main() {
 	buildkitURL = "tcp://of-buildkit:1234"
 	if val, ok := os.LookupEnv("buildkit_url"); ok && len(val) > 0 {
 		buildkitURL = val
+	}
+
+	if val, ok := os.LookupEnv("http_proxy"); ok {
+		buildArgs["build-arg:http_proxy"] = val
+	}
+
+	if val, ok := os.LookupEnv("https_proxy"); ok {
+		buildArgs["build-arg:https_proxy"] = val
+	}
+
+	if val, ok := os.LookupEnv("no_proxy"); ok {
+		buildArgs["build-arg:no_proxy"] = val
 	}
 
 	router := mux.NewRouter().StrictSlash(true)
@@ -71,7 +84,7 @@ func main() {
 
 func buildHandler(w http.ResponseWriter, r *http.Request) {
 
-	dt, err := build(w, r)
+	dt, err := build(w, r, buildArgs)
 
 	if err != nil {
 		w.WriteHeader(500)
@@ -93,7 +106,7 @@ func buildHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(dt)
 }
 
-func build(w http.ResponseWriter, r *http.Request) ([]byte, error) {
+func build(w http.ResponseWriter, r *http.Request, buildArgs map[string]string) ([]byte, error) {
 
 	if r.Body == nil {
 		return nil, fmt.Errorf("a body is required to build a function")
@@ -154,6 +167,14 @@ func build(w http.ResponseWriter, r *http.Request) ([]byte, error) {
 		insecure = val
 	}
 
+	frontendAttrs := map[string]string{
+		"source": cfg.Frontend,
+	}
+
+	for k, v := range buildArgs {
+		frontendAttrs[k] = v
+	}
+
 	contextDir := filepath.Join(tmpdir, "context")
 	solveOpt := client.SolveOpt{
 		Exporter: "image",
@@ -165,10 +186,8 @@ func build(w http.ResponseWriter, r *http.Request) ([]byte, error) {
 			"context":    contextDir,
 			"dockerfile": contextDir,
 		},
-		Frontend: "dockerfile.v0",
-		FrontendAttrs: map[string]string{
-			"source": cfg.Frontend,
-		},
+		Frontend:      "dockerfile.v0",
+		FrontendAttrs: frontendAttrs,
 		// ~/.docker/config.json could be provided as Kube or Swarm's secret
 		Session: []session.Attachable{authprovider.NewDockerAuthProvider()},
 	}
