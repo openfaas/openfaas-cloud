@@ -47,6 +47,8 @@ type GitLabProject struct {
 	Namespace         string `json:"namespace"`
 	Name              string `json:"name"`
 	PathWithNamespace string `json:"path_with_namespace"` //would be repo full name
+	WebURL            string `json:"web_url"`
+	VisibilityLevel   int    `json:"visibility_level"`
 }
 
 type GitLabRepository struct {
