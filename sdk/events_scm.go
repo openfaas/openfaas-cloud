@@ -1,50 +1,37 @@
 package sdk
 
-// PushEvent as received from GitHub
-type PushEventInstallation struct {
-	ID int `json:"id"`
-}
-
+// PushEventRepository represents the repository from a push event
 type PushEventRepository struct {
 	Name     string `json:"name"`
 	FullName string `json:"full_name"`
 	CloneURL string `json:"clone_url"`
 	Private  bool   `json:"private"`
+	ID       int64  `json:"id"`
 
 	Owner Owner `json:"owner"`
 }
 
+// PushEvent is received from GitHub's push event subscription
 type PushEvent struct {
-	SCM           string
 	Ref           string `json:"ref"`
 	Repository    PushEventRepository
 	AfterCommitID string `json:"after"`
 	Installation  PushEventInstallation
+	SCM           string // SCM field is for internal use and not provided by GitHub
 }
 
 // Owner is the owner of a GitHub repo
 type Owner struct {
 	Login string `json:"login"`
 	Email string `json:"email"`
+	ID    int64  `json:"id"`
 }
 
-// Event info to pass/store events across functions
-type Event struct {
-	Service        string            `json:"service"`
-	Owner          string            `json:"owner"`
-	Repository     string            `json:"repository"`
-	Image          string            `json:"image"`
-	SHA            string            `json:"sha"`
-	URL            string            `json:"url"`
-	InstallationID int               `json:"installationID"`
-	Environment    map[string]string `json:"environment"`
-	Secrets        []string          `json:"secrets"`
-	Private        bool              `json:"private"`
-	SCM            string            `json:"scm"`
+type PushEventInstallation struct {
+	ID int `json:"id"`
 }
 
-// PushEvent as received from GitLab
-
+// GitLabPushEvent as received from GitLab's system hook event
 type GitLabPushEvent struct {
 	Ref              string           `json:"ref"`
 	UserUsername     string           `json:"user_username"`
@@ -71,20 +58,4 @@ type Customer struct {
 
 type Sender struct {
 	Login string `json:"login"`
-}
-
-// BuildEventFromPushEvent function to build Event from PushEvent
-func BuildEventFromPushEvent(pushEvent PushEvent) *Event {
-	info := Event{}
-
-	info.Service = pushEvent.Repository.Name
-	info.Owner = pushEvent.Repository.Owner.Login
-	info.Repository = pushEvent.Repository.Name
-	info.URL = pushEvent.Repository.CloneURL
-	info.Private = pushEvent.Repository.Private
-
-	info.SHA = pushEvent.AfterCommitID
-	info.InstallationID = pushEvent.Installation.ID
-
-	return &info
 }
