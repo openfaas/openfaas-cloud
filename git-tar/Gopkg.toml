@@ -27,19 +27,19 @@
 
 [[constraint]]
   name = "github.com/openfaas/faas-cli"
-  version = "0.6.17"
+  version = "0.7.7"
 
 [[constraint]]
   name = "github.com/openfaas/openfaas-cloud"
-  version = "0.5.9"
+  version = "0.8.3"
 
 [[constraint]]
   name = "github.com/alexellis/hmac"
-  version = "1.2.0"
+  version = "1.2"
 
 [[constraint]]
   name = "github.com/alexellis/derek"
-  version = "0.6.1"
+  version = "0.6.3"
 
 [prune]
   go-tests = true

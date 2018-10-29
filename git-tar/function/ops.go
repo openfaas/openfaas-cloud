@@ -180,7 +180,7 @@ func formatImageShaTag(registry string, function *stack.Function, sha string, ow
 		imageName = imageName[repoIndex+1:]
 	}
 
-	sha = getShortSHA(sha)
+	sha = sdk.FormatShortSHA(sha)
 
 	imageName = schema.BuildImageName(schema.SHAFormat, imageName, sha, "master")
 
@@ -316,6 +316,8 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, sta
 	privateRepo := pushEvent.Repository.Private
 	repositoryURL := pushEvent.Repository.RepositoryURL
 
+	ownerID := pushEvent.Repository.Owner.ID
+
 	c := http.Client{}
 	gatewayURL := os.Getenv("gateway_url")
 
@@ -364,6 +366,7 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, sta
 		httpReq, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/buildshiprun", postBodyReader)
 
 		httpReq.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
+
 		httpReq.Header.Add("Repo", repoName)
 		httpReq.Header.Add("Owner", owner)
 		httpReq.Header.Add("Url", url)
@@ -374,6 +377,7 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, sta
 		httpReq.Header.Add("Scm", sourceManagement)
 		httpReq.Header.Add("Private", strconv.FormatBool(privateRepo))
 		httpReq.Header.Add("Repo-URL", repositoryURL)
+		httpReq.Header.Add("Owner-ID", fmt.Sprintf("%d,", ownerID))
 
 		envJSON, marshalErr := json.Marshal(stack.Functions[tarEntry.functionName].Environment)
 		if marshalErr != nil {
@@ -484,12 +488,4 @@ func importSecrets(pushEvent sdk.PushEvent, stack *stack.Services, clonePath str
 	fmt.Println("Parsed sealed secrets", res.Status, owner)
 
 	return nil
-}
-
-// getShortSHA returns shorter version of git commit SHA
-func getShortSHA(sha string) string {
-	if len(sha) <= 7 {
-		return sha
-	}
-	return sha[:7]
 }

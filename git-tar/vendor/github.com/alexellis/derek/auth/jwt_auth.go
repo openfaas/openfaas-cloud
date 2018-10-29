@@ -14,12 +14,9 @@ import (
 )
 
 // GetSignedJwtToken get a tokens signed with private key
-func GetSignedJwtToken(appID string, privateKeyPath string) (string, error) {
+func GetSignedJwtToken(appID string, privateKey string) (string, error) {
 
-	keyBytes, err := ioutil.ReadFile(privateKeyPath)
-	if err != nil {
-		return "", fmt.Errorf("unable to read private key path: %s, error: %s", privateKeyPath, err)
-	}
+	keyBytes := []byte(privateKey)
 
 	key, keyErr := jwt.ParseRSAPrivateKeyFromPEM(keyBytes)
 	if keyErr != nil {
@@ -43,15 +40,15 @@ func GetSignedJwtToken(appID string, privateKeyPath string) (string, error) {
 	return string(signedVal), nil
 }
 
-// JwtAuth token issued by Github in response to signed JWT Token
-type JwtAuth struct {
+// JWTAuth token issued by Github in response to signed JWT Token
+type JWTAuth struct {
 	Token     string    `json:"token"`
 	ExpiresAt time.Time `json:"expires_at"`
 }
 
 // MakeAccessTokenForInstallation makes an access token for an installation / private key
-func MakeAccessTokenForInstallation(appID string, installation int, privateKeyPath string) (string, error) {
-	signed, err := GetSignedJwtToken(appID, privateKeyPath)
+func MakeAccessTokenForInstallation(appID string, installation int, privateKey string) (string, error) {
+	signed, err := GetSignedJwtToken(appID, privateKey)
 
 	if err == nil {
 		c := http.Client{}
@@ -68,7 +65,8 @@ func MakeAccessTokenForInstallation(appID string, installation int, privateKeyPa
 			if readErr != nil {
 				return "", readErr
 			}
-			jwtAuth := JwtAuth{}
+
+			jwtAuth := JWTAuth{}
 			jsonErr := json.Unmarshal(bytesOut, &jwtAuth)
 			if jsonErr != nil {
 				return "", jsonErr

@@ -125,7 +125,7 @@ func (status *Status) Report(gateway string, payloadSecret string) (string, erro
 
 	if len(payloadSecret) > 0 {
 		digest := hmac.Sign(body, []byte(payloadSecret))
-		httpReq.Header.Add("X-Cloud-Signature", "sha1="+hex.EncodeToString(digest))
+		httpReq.Header.Add(CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
 	}
 
 	res, err := c.Do(httpReq)

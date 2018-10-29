@@ -1,35 +1,6 @@
 package sdk
 
-// PushEvent as received from GitHub
-type PushEventInstallation struct {
-	ID int `json:"id"`
-}
-
-type PushEventRepository struct {
-	Name     string `json:"name"`
-	FullName string `json:"full_name"`
-	CloneURL string `json:"clone_url"`
-	Private  bool   `json:"private"`
-
-	Owner         Owner  `json:"owner"`
-	RepositoryURL string `json:"url"`
-}
-
-type PushEvent struct {
-	SCM           string
-	Ref           string `json:"ref"`
-	Repository    PushEventRepository
-	AfterCommitID string `json:"after"`
-	Installation  PushEventInstallation
-}
-
-// Owner is the owner of a GitHub repo
-type Owner struct {
-	Login string `json:"login"`
-	Email string `json:"email"`
-}
-
-// Event info to pass/store events across functions
+// Event info used to pass events between functions
 type Event struct {
 	Service        string            `json:"service"`
 	Owner          string            `json:"owner"`
@@ -41,6 +12,7 @@ type Event struct {
 	Environment    map[string]string `json:"environment"`
 	Secrets        []string          `json:"secrets"`
 	Private        bool              `json:"private"`
+	SCM            string            `json:"scm"`
 }
 
 // BuildEventFromPushEvent function to build Event from PushEvent
