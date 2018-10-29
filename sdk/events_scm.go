@@ -59,3 +59,20 @@ type Customer struct {
 type Sender struct {
 	Login string `json:"login"`
 }
+
+type InstallationRepositoriesEvent struct {
+	Action       string `json:"action"`
+	Installation struct {
+		Account struct {
+			Login string
+		}
+	} `json:"installation"`
+	RepositoriesRemoved []Installation `json:"repositories_removed"`
+	RepositoriesAdded   []Installation `json:"repositories_added"`
+	Repositories        []Installation `json:"repositories"`
+}
+
+type Installation struct {
+	Name     string `json:"name"`
+	FullName string `json:"full_name"`
+}
