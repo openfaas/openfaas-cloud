@@ -2,11 +2,12 @@ package sdk
 
 // PushEventRepository represents the repository from a push event
 type PushEventRepository struct {
-	Name     string `json:"name"`
-	FullName string `json:"full_name"`
-	CloneURL string `json:"clone_url"`
-	Private  bool   `json:"private"`
-	ID       int64  `json:"id"`
+	Name          string `json:"name"`
+	FullName      string `json:"full_name"`
+	CloneURL      string `json:"clone_url"`
+	Private       bool   `json:"private"`
+	ID            int64  `json:"id"`
+	RepositoryURL string `json:"url"`
 
 	Owner Owner `json:"owner"`
 }
