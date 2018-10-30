@@ -205,7 +205,12 @@ func (t *githubAuthToken) getToken() (string, error) {
 		return t.token, nil
 	}
 
-	token, err := auth.MakeAccessTokenForInstallation(t.appID, t.installationID, t.privateKeyPath)
+	privateKey, ioErr := ioutil.ReadFile(t.privateKeyPath)
+	if ioErr != nil {
+		return "", ioErr
+	}
+
+	token, err := auth.MakeAccessTokenForInstallation(t.appID, t.installationID, string(privateKey))
 
 	if err != nil {
 		return "", err
