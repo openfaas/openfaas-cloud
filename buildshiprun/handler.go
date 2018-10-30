@@ -196,11 +196,13 @@ func Handle(req []byte) string {
 				sdk.FunctionLabelPrefix + "git-sha":        event.SHA,
 				sdk.FunctionLabelPrefix + "git-private":    fmt.Sprintf("%d", private),
 				sdk.FunctionLabelPrefix + "git-scm":        event.SCM,
-				sdk.FunctionLabelPrefix + "git-repo-url":   event.RepoURL,
 				"faas_function":                            serviceValue,
 				"app":                                      serviceValue,
 				"com.openfaas.scale.min": scalingMinLimit,
 				"com.openfaas.scale.max": scalingMaxLimit,
+			},
+			Annotations: map[string]string{
+				sdk.FunctionLabelPrefix + "git-repo-url": event.RepoURL,
 			},
 			Limits: Limits{
 				Memory: defaultMemoryLimit,
@@ -218,19 +220,22 @@ func Handle(req []byte) string {
 
 		deployResult, err := deployFunction(deploy, gatewayURL, c)
 
+		log.Println(deployResult)
+
 		if err != nil {
 			status.AddStatus(sdk.StatusFailure, err.Error(), sdk.BuildFunctionContext(event.Service))
 			reportStatus(status)
-			log.Fatal(err.Error())
+
 			auditEvent.Message = fmt.Sprintf("buildshiprun failure: %s", err.Error())
+			sdk.PostAudit(auditEvent)
+			log.Fatalf("buildshiprun failure: %s", err.Error())
 		} else {
 			auditEvent.Message = fmt.Sprintf("buildshiprun succeeded: deployed %s", imageName)
+			sdk.PostAudit(auditEvent)
 		}
 
-		log.Println(deployResult)
 	}
 
-	sdk.PostAudit(auditEvent)
 	status.AddStatus(sdk.StatusSuccess, fmt.Sprintf("deployed: %s", serviceValue), sdk.BuildFunctionContext(event.Service))
 	reportStatus(status)
 	return fmt.Sprintf("buildStatus %s %s", imageName, res.Status)
@@ -411,17 +416,19 @@ func deployFunction(deploy deployment, gatewayURL string, c *http.Client) (strin
 	res, err = c.Do(httpReq)
 
 	if err != nil {
-		fmt.Println(err)
+		log.Printf("error %s to system/functions %s", method, err)
 		return "", err
 	}
 
 	defer res.Body.Close()
 
-	fmt.Println("Deploy status: " + res.Status)
-	if res.StatusCode < 200 || res.StatusCode > 299 {
-		return "", fmt.Errorf("http status code %d", res.StatusCode)
-	}
+	log.Printf("Deploy status [%s] - %d", method, res.StatusCode)
+
 	buildStatus, _ := ioutil.ReadAll(res.Body)
+
+	if res.StatusCode < 200 || res.StatusCode > 299 {
+		return "", fmt.Errorf("http status code %d, error: %s", res.StatusCode, string(buildStatus))
+	}
 
 	return string(buildStatus), err
 }
@@ -479,6 +486,7 @@ type deployment struct {
 	Secrets                []string
 	ReadOnlyRootFilesystem bool   `json:"readOnlyRootFilesystem"`
 	RegistryAuth           string `json:"registryAuth"`
+	Annotations            map[string]string
 }
 
 type Limits struct {
