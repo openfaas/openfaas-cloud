@@ -60,7 +60,7 @@ func Handle(req []byte) string {
 		return err.Error()
 	}
 
-	event, eventErr := getEvent()
+	event, eventErr := getEventFromEnv()
 	if eventErr != nil {
 		log.Panic(eventErr)
 	}
@@ -188,6 +188,7 @@ func Handle(req []byte) string {
 			Labels: map[string]string{
 				sdk.FunctionLabelPrefix + "git-cloud":      "1",
 				sdk.FunctionLabelPrefix + "git-owner":      event.Owner,
+				sdk.FunctionLabelPrefix + "git-owner-id":   fmt.Sprintf("%d", event.OwnerID),
 				sdk.FunctionLabelPrefix + "git-repo":       event.Repository,
 				sdk.FunctionLabelPrefix + "git-deploytime": strconv.FormatInt(time.Now().Unix(), 10), //Unix Epoch string
 				sdk.FunctionLabelPrefix + "git-sha":        event.SHA,
@@ -287,12 +288,13 @@ func getReadOnlyRootFS() bool {
 	return readOnly
 }
 
-func getEvent() (*sdk.Event, error) {
+func getEventFromEnv() (*sdk.Event, error) {
 	var err error
 	info := sdk.Event{}
 
 	info.Service = os.Getenv("Http_Service")
 	info.Owner = os.Getenv("Http_Owner")
+
 	info.Repository = os.Getenv("Http_Repo")
 	info.SHA = os.Getenv("Http_Sha")
 	info.URL = os.Getenv("Http_Url")
@@ -300,6 +302,10 @@ func getEvent() (*sdk.Event, error) {
 	info.SCM = os.Getenv("Http_Scm")
 	info.Private, _ = strconv.ParseBool(os.Getenv("Http_Private"))
 	info.RepoURL = os.Getenv("Http_Repo_Url")
+
+	if len(os.Getenv("Http_Owner_Id")) > 0 {
+		info.OwnerID, _ = strconv.Atoi(os.Getenv("Http_Owner_Id"))
+	}
 
 	if len(os.Getenv("Http_Installation_id")) > 0 {
 		info.InstallationID, err = strconv.Atoi(os.Getenv("Http_Installation_id"))

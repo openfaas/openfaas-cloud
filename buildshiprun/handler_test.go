@@ -18,7 +18,7 @@ func TestGetEvent_ReadSecrets(t *testing.T) {
 	installationID := "123456"
 	os.Setenv("Http_Installation_id", installationID)
 
-	eventInfo, err := getEvent()
+	eventInfo, err := getEventFromEnv()
 	if err != nil {
 		t.Errorf(err.Error())
 		t.Fail()
@@ -39,7 +39,7 @@ func TestGetEvent_ReadSecrets(t *testing.T) {
 }
 
 func TestGetEvent_EmptyEnvVars(t *testing.T) {
-	_, err := getEvent()
+	_, err := getEventFromEnv()
 
 	if err != nil {
 		t.Errorf(err.Error())

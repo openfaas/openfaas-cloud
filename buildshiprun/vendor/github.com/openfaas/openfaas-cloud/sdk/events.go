@@ -32,6 +32,7 @@ type Owner struct {
 type Event struct {
 	Service        string            `json:"service"`
 	Owner          string            `json:"owner"`
+	OwnerID        int               `json:"owner-id"`
 	Repository     string            `json:"repository"`
 	Image          string            `json:"image"`
 	SHA            string            `json:"sha"`
