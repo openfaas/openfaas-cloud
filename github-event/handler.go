@@ -17,7 +17,8 @@ import (
 // Source name for this function when auditing
 const Source = "github-event"
 
-// Handle a serverless request
+// Handle receives events from the GitHub app and checks the origin via
+// HMAC. Valid events are push or installation events.
 func Handle(req []byte) string {
 	eventHeader := os.Getenv("Http_X_Github_Event")
 	xHubSignature := os.Getenv("Http_X_Hub_Signature")

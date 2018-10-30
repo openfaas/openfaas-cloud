@@ -23,7 +23,7 @@ const SCM = "github"
 
 var audit sdk.Audit
 
-// Handle a serverless request
+// Handle processes the push event from the "github-event" function
 func Handle(req []byte) string {
 
 	if audit == nil {
