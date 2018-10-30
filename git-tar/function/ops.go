@@ -488,24 +488,18 @@ func importSecrets(pushEvent sdk.PushEvent, stack *stack.Services, clonePath str
 	return nil
 }
 
-// getShortSHA returns shorter version of git commit SHA
-func getShortSHA(sha string) string {
-	if len(sha) <= 7 {
-		return sha
-	}
-	return sha[:7]
-}
-
 func formatTemplateRepos() []string {
-	templateRepos := []string{"https://github.com/openfaas/templates",
-		"https://github.com/openfaas-incubator/node8-express-template.git",
-		"https://github.com/openfaas-incubator/golang-http-template.git"}
+	templateRepos := []string{"https://github.com/openfaas/templates"}
 
-	if envTemplates := os.Getenv("custom_templates"); len(envTemplates) > 0 && strings.Contains(envTemplates, "https://") {
+	if envTemplates := os.Getenv("custom_templates"); len(envTemplates) > 0 {
 		customTemplates := strings.Split(envTemplates, ",")
 		for _, repo := range customTemplates {
-			repo = strings.Trim(repo, " ")
-			templateRepos = append(templateRepos, repo)
+			if strings.Contains(envTemplates, "https://") || strings.Contains(envTemplates, "http://") {
+				repo = strings.Trim(repo, " ")
+				templateRepos = append(templateRepos, repo)
+			} else {
+				fmt.Println("Non-valid template URL is configured in custom_templates: ", repo)
+			}
 		}
 	}
 	return templateRepos
