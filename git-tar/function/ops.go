@@ -48,12 +48,15 @@ func parseYAML(pushEvent sdk.PushEvent, filePath string) (*stack.Services, error
 }
 
 func fetchTemplates(filePath string) error {
-	templateRepos := formatTemplateRepos()
+	templateRepos, err := formatTemplateRepos()
+	if err != nil {
+		return fmt.Errorf("Failed to format template repos: %t", err)
+	}
 
 	for _, repo := range templateRepos {
 		pullCmd := exec.Command("faas-cli", "template", "pull", repo)
 		pullCmd.Dir = filePath
-		err := pullCmd.Start()
+		err = pullCmd.Start()
 		if err != nil {
 			return fmt.Errorf("Failed to start faas-cli template pull: %t", err)
 		}
@@ -547,21 +550,22 @@ func importSecrets(pushEvent sdk.PushEvent, stack *stack.Services, clonePath str
 	return nil
 }
 
-func formatTemplateRepos() []string {
+func formatTemplateRepos() ([]string, error) {
 	templateRepos := []string{"https://github.com/openfaas/templates"}
 
+	var err error
 	if envTemplates := os.Getenv("custom_templates"); len(envTemplates) > 0 {
-		customTemplates := strings.Split(envTemplates, ",")
+		customTemplates := strings.Split(strings.Trim(envTemplates, " "), ",")
 		for _, repo := range customTemplates {
-			if strings.Contains(envTemplates, "https://") || strings.Contains(envTemplates, "http://") {
-				repo = strings.Trim(repo, " ")
-				templateRepos = append(templateRepos, repo)
+			repo = strings.Trim(repo, " ")
+			if _, err = url.ParseRequestURI(repo); err != nil {
+				err = fmt.Errorf("Non-valid template URL is configured in custom_templates: %s \n%t", repo, err)
 			} else {
-				fmt.Println("Non-valid template URL is configured in custom_templates: ", repo)
+				templateRepos = append(templateRepos, repo)
 			}
 		}
 	}
-	return templateRepos
+	return templateRepos, err
 }
 
 func reportStatus(status *sdk.Status, SCM string) error {
