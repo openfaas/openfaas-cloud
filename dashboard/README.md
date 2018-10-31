@@ -24,7 +24,8 @@ $ faas-cli store deploy figlet --name alexellis-figlet --label Git-Owner=alexell
  --label com.openfaas.cloud.git-sha=665d9597547d8e0425630ba2dbb73c2951a61ce2 \
  --label com.openfaas.cloud.git-deploytime=1533026741 \
  --label com.openfaas.cloud.git-cloud=1 --network=func_functions \
- --label com.openfaas.scale.min=1 --label com.openfaas.scale.max=4
+ --label com.openfaas.scale.min=1 --label com.openfaas.scale.max=4 \
+ --annotation com.openfaas.cloud.git-repo-url=https://github.com/alexellis/figlet
 ```
 
 ```
@@ -34,7 +35,8 @@ $ faas-cli store deploy nodeinfo --name alexellis-nodeinfo \
  --label com.openfaas.cloud.git-sha=665d9597547d8e0425630ba2dbb73c2951a61ce2 \
  --label com.openfaas.cloud.git-deploytime=1533026741 \
  --label com.openfaas.cloud.git-cloud=1 \
- --label com.openfaas.scale.min=1 --label com.openfaas.scale.max=4 --network=func_functions
+ --label com.openfaas.scale.min=1 --label com.openfaas.scale.max=4 --network=func_functions \
+ --annotation com.openfaas.cloud.git-repo-url=https://github.com/alexellis/nodeinfo
 ```
 
 ### Deploy at least the list-functions function
