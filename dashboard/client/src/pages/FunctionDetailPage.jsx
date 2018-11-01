@@ -6,6 +6,7 @@ import { Card, CardHeader, CardBody } from 'reactstrap';
 import { functionsApi } from '../api/functionsApi';
 import { FunctionDetailSummary } from '../components/FunctionDetailSummary';
 import { GetBadgeModal } from '../components/GetBadgeModal'
+import { ModalRunOnMyOF } from '../components/ModalRunOnMyOF'
 
 export class FunctionDetailPage extends Component {
   constructor(props) {
@@ -16,6 +17,9 @@ export class FunctionDetailPage extends Component {
     this.handleShowBadgeModal = this.handleShowBadgeModal.bind(this);
     this.handleCloseBadgeModal = this.handleCloseBadgeModal.bind(this);
 
+    this.handleShowRunOnMyOFModal = this.handleShowRunOnMyOFModal.bind(this);
+    this.handleCloseRunOnMyOFModal = this.handleCloseRunOnMyOFModal.bind(this);
+
     this.state = {
       isLoading: true,
       fn: null,
@@ -23,6 +27,7 @@ export class FunctionDetailPage extends Component {
       repoPath,
       functionName,
       showBadgeModal: false,
+      showRunOnMyOFModal: false,
     };
   }
 
@@ -44,12 +49,21 @@ export class FunctionDetailPage extends Component {
     this.setState({ showBadgeModal: false });
   }
 
+  handleShowRunOnMyOFModal() {
+    this.setState({ showRunOnMyOFModal: true });
+  }
+
+  handleCloseRunOnMyOFModal() {
+    this.setState({ showRunOnMyOFModal: false });
+  }
+
   render() {
     const { isLoading, fn } = this.state;
     let panelBody = (
       <FunctionDetailSummary
         fn={fn}
         handleShowBadgeModal={this.handleShowBadgeModal}
+        handleShowRunOnMyOFModal={this.handleShowRunOnMyOFModal}
       />
     );
     
@@ -74,6 +88,7 @@ export class FunctionDetailPage extends Component {
           { panelBody }
         </CardBody>
         <GetBadgeModal state={this.state.showBadgeModal} closeModal={this.handleCloseBadgeModal} />
+        <ModalRunOnMyOF fn={fn || {}} state={this.state.showRunOnMyOFModal} closeModal={this.handleCloseRunOnMyOFModal} />
       </Card>
     );
   }

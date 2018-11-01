@@ -162,6 +162,7 @@ a {
 }
 
 .valid-tooltip {
-    top: -100%;
-    right: 0;
+    top: initial;
+    bottom: 5px;
+    left: 5px;
 }

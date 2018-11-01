@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faAward, faUserSecret } from '@fortawesome/free-solid-svg-icons';
+import { faAward, faCloudDownloadAlt, faUserSecret } from '@fortawesome/free-solid-svg-icons';
 
 import { FunctionOverviewPanel } from '../FunctionOverviewPanel'
 import { ReplicasProgress } from "../ReplicasProgress";
@@ -27,7 +27,7 @@ const renderContainerImage = image => {
   }
 };
 
-const FunctionDetailSummary = ({ fn, handleShowBadgeModal }) => {
+const FunctionDetailSummary = ({ fn, handleShowBadgeModal, handleShowRunOnMyOFModal }) => {
   const to = `${fn.shortName}/log?repoPath=${fn.gitOwner}/${
     fn.gitRepo
   }&commitSHA=${fn.gitSha}`;
@@ -36,7 +36,20 @@ const FunctionDetailSummary = ({ fn, handleShowBadgeModal }) => {
   const deployMeta = [
     {
       label: 'Name:',
-      value: fn.shortName,
+      renderValue() {
+        return (
+          <div className="d-flex align-items-start">
+            <div>
+            { fn.shortName }
+            </div>
+            <div className="ml-auto">
+              <Button outline size="xs" title="Run on my OpenFaaS" onClick={handleShowRunOnMyOFModal}>
+                <FontAwesomeIcon icon={faCloudDownloadAlt} />
+              </Button>
+            </div>
+          </div>
+        )
+      },
     },
     {
       label: 'Image:',
