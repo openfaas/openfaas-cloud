@@ -13,6 +13,8 @@ type Event struct {
 	Secrets        []string          `json:"secrets"`
 	Private        bool              `json:"private"`
 	SCM            string            `json:"scm"`
+	RepoURL        string            `json:"repourl"`
+	OwnerID        int               `json:"owner-id"`
 }
 
 // BuildEventFromPushEvent function to build Event from PushEvent
