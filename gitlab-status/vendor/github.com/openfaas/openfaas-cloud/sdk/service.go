@@ -10,7 +10,7 @@ func FormatServiceName(owner, functionName string) string {
 }
 
 func CreateServiceURL(URL, suffix string) string {
-	if len(suffix) == 0 {
+	if strings.Contains(URL, suffix) {
 		return URL
 	}
 	columns := strings.Count(URL, ":")
@@ -21,4 +21,12 @@ func CreateServiceURL(URL, suffix string) string {
 		return fmt.Sprintf("%s.%s%s", baseURL, suffix, port)
 	}
 	return fmt.Sprintf("%s.%s", URL, suffix)
+}
+
+// FormatShortSHA returns a 7-digit SHA
+func FormatShortSHA(sha string) string {
+	if len(sha) <= 7 {
+		return sha
+	}
+	return sha[:7]
 }
