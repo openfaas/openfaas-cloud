@@ -8,75 +8,89 @@ import (
 	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
-func TestBuildURLWithoutPrettyURL_WithSlash(t *testing.T) {
-	os.Setenv("gateway_public_url", "http://localhost:8080")
-	os.Setenv("gateway_pretty_url", "")
+func Test_buildPublicStatusURL(t *testing.T) {
 
-	event := &sdk.Event{
-		Owner:   "alexellis",
-		Service: "tester",
+	tests := []struct {
+		title            string
+		status           string
+		gatewayPublicUrl string
+		gatewayPrettyUrl string
+		eventOwner       string
+		eventService     string
+		eventURL         string
+		want             string
+	}{
+		{
+			title:            "Undefined status gives original URL",
+			status:           "not-supported",
+			gatewayPublicUrl: "",
+			gatewayPrettyUrl: "",
+			eventOwner:       "alexellis",
+			eventService:     "tester",
+			eventURL:         "http://original-value.local",
+			want:             "http://original-value.local",
+		},
+		{
+			title:            "With pretty URL",
+			status:           "success",
+			gatewayPublicUrl: "http://localhost:8080",
+			gatewayPrettyUrl: "https://user.openfaas-cloud.com/function",
+			eventOwner:       "alexellis",
+			eventService:     "tester",
+			eventURL:         "",
+			want:             "https://alexellis.openfaas-cloud.com/tester",
+		},
+		{
+			title:            "Without pretty URL & without slash",
+			status:           "success",
+			gatewayPublicUrl: "https://system.openfaas-cloud.com",
+			gatewayPrettyUrl: "",
+			eventOwner:       "alexellis",
+			eventService:     "tester",
+			eventURL:         "",
+			want:             "https://system.openfaas-cloud.com/function/alexellis-tester",
+		},
+		{
+			title:            "Without pretty URL & with slash",
+			status:           "success",
+			gatewayPublicUrl: "http://localhost:8080",
+			gatewayPrettyUrl: "",
+			eventOwner:       "alexellis",
+			eventService:     "tester",
+			eventURL:         "",
+			want:             "http://localhost:8080/function/alexellis-tester",
+		},
+		{
+			title:            "With stack deploy context",
+			status:           "success",
+			gatewayPublicUrl: "https://subdomain.openfaas-cloud.com",
+			gatewayPrettyUrl: "",
+			eventOwner:       "alexellis",
+			eventService:     "stack-deploy",
+			eventURL:         "",
+			want:             "https://system.openfaas-cloud.com/dashboard/alexellis",
+		},
 	}
 
-	val := buildPublicStatusURL("success", sdk.BuildFunctionContext(event.Service), event)
-	want := "http://localhost:8080/function/alexellis-tester"
-
-	if val != want {
-		t.Errorf("building PublicURL: want %s, got %s", want, val)
-		t.Fail()
-	}
-}
-
-func TestBuildURLWithoutPrettyURL_WithOutSlash(t *testing.T) {
-	os.Setenv("gateway_public_url", "http://localhost:8080")
-	os.Setenv("gateway_pretty_url", "")
-
-	event := &sdk.Event{
-		Owner:   "alexellis",
-		Service: "tester",
-	}
-
-	val := buildPublicStatusURL("success", sdk.BuildFunctionContext(event.Service), event)
-	want := "http://localhost:8080/function/alexellis-tester"
-
-	if val != want {
-		t.Errorf("building PublicURL: want %s, got %s", want, val)
-		t.Fail()
-	}
-}
-
-func TestBuildURLWithPrettyURL(t *testing.T) {
-	os.Setenv("gateway_public_url", "http://localhost:8080")
-	os.Setenv("gateway_pretty_url", "https://user.openfaas-cloud.com/function")
-
-	event := &sdk.Event{
-		Owner:   "alexellis",
-		Service: "tester",
+	for _, test := range tests {
+		t.Run(test.title, func(t *testing.T) {
+			if test.status != "not-supported" {
+				os.Setenv("gateway_public_url", test.gatewayPublicUrl)
+				os.Setenv("gateway_pretty_url", test.gatewayPrettyUrl)
+			}
+			event := &sdk.Event{
+				Owner:   test.eventOwner,
+				Service: test.eventService,
+				URL:     test.eventURL,
+			}
+			val := buildPublicStatusURL(test.status, sdk.BuildFunctionContext(event.Service), event)
+			if val != test.want {
+				t.Errorf("building PublicURL: want %s, got %s", test.want, val)
+				t.Fail()
+			}
+		})
 	}
 
-	val := buildPublicStatusURL("success", sdk.BuildFunctionContext(event.Service), event)
-	want := "https://alexellis.openfaas-cloud.com/tester"
-
-	if val != want {
-		t.Errorf("building PublicURL: want %s, got %s", want, val)
-		t.Fail()
-	}
-}
-
-func TestBuildURLWithUndefinedStatusGivesOriginalURL(t *testing.T) {
-
-	event := &sdk.Event{
-		Owner:   "alexellis",
-		Service: "tester",
-		URL:     "http://original-value.local",
-	}
-
-	val := buildPublicStatusURL("not-supported", sdk.BuildFunctionContext(event.Service), event)
-	want := event.URL
-
-	if val != want {
-		t.Errorf("building PublicURL: want %s, got %s", want, val)
-		t.Fail()
-	}
 }
 
 func TestToken(t *testing.T) {

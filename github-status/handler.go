@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -139,15 +140,11 @@ func buildPublicStatusURL(status string, statusContext string, event *sdk.Event)
 				url = publicURL + "function/" + serviceValue
 			}
 		} else { // For context Stack on success the gateway url is used
-			if len(gatewayPrettyURL) > 0 {
-				// https://user.get-faas.com/function
-				url = strings.Replace(gatewayPrettyURL, "user", event.Owner, 1)
-				url = strings.Replace(url, "function", "", 1)
-			} else if len(publicURL) > 0 {
+			if len(publicURL) > 0 {
 				if strings.HasSuffix(publicURL, "/") == false {
 					publicURL = publicURL + "/"
 				}
-				url = publicURL
+				url, _ = formatDashboardURL(publicURL, event.Owner)
 			}
 		}
 	} else if status == sdk.StatusFailure {
@@ -168,6 +165,38 @@ func buildPublicStatusURL(status string, statusContext string, event *sdk.Event)
 	}
 
 	return url
+}
+
+func formatDashboardURL(gatewayURL string, eventOwner string) (string, error) {
+	systemURL, formatErr := formatSystemURL(gatewayURL)
+	if formatErr != nil {
+		return "", fmt.Errorf("error while formatting dashboard URL: %s", formatErr.Error())
+	}
+
+	return fmt.Sprintf("%s/dashboard/%s", systemURL, eventOwner), nil
+}
+
+func formatSystemURL(gatewayURL string) (string, error) {
+	if strings.HasSuffix(gatewayURL, "/") {
+		gatewayURL = strings.TrimSuffix(gatewayURL, "/")
+	}
+	subDomain, err := getSubDomain(gatewayURL)
+	if err != nil {
+		return "", fmt.Errorf("error while geting subdomain for system URL: %s", err)
+	}
+	systemURL := strings.Replace(gatewayURL, subDomain, "system", -1)
+	return systemURL, nil
+}
+
+func getSubDomain(URL string) (string, error) {
+	parsedURL, parseErr := url.Parse(URL)
+	if parseErr != nil {
+		return "", fmt.Errorf("Unable to parse URL: %s", parseErr.Error())
+	}
+	subdomain := strings.Split(parsedURL.Host, ".")
+
+	//Host is www.world.org and subdomain would be www aka. 0th element of the slice
+	return subdomain[0], nil
 }
 
 func reportToGithub(commitStatus *sdk.CommitStatus, event *sdk.Event) error {
