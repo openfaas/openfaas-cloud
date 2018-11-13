@@ -1,8 +1,6 @@
 ## OpenFaaS Cloud installation guide
 
-## Intro
-
-For the legacy instructions see [./README_LEGACY.md](./README_LEGACY.md)
+Installing OpenFaaS Cloud requires some initial setup with GitHub or GitLab and a working installation of OpenFaaS. If you'd like help please see below for how to join the Slack workspace.
 
 ### Pre-reqs
 
