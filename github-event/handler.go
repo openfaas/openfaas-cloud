@@ -39,7 +39,7 @@ func Handle(req []byte) string {
 		return fmt.Sprintf("%s cannot handle event: %s", Source, eventHeader)
 	}
 
-	if readBool("validate_customers") {
+	if ValidateCustomers() {
 		customersURL := os.Getenv("customers_url")
 
 		customers, getErr := getCustomers(customersURL)
@@ -91,8 +91,7 @@ func Handle(req []byte) string {
 		eventHeader == "installation_repositories" ||
 		eventHeader == "integration_installation" {
 
-		shouldValidate := os.Getenv("validate_hmac")
-		if len(shouldValidate) > 0 && (shouldValidate == "1" || shouldValidate == "true") {
+		if HmacEnabled() {
 			webhookSecretKey, secretErr := sdk.ReadSecret("github-webhook-secret")
 			if secretErr != nil {
 				return secretErr.Error()
@@ -323,4 +322,18 @@ func readBool(key string) bool {
 		return val == "true" || val == "1"
 	}
 	return false
+}
+
+func HmacEnabled() bool {
+	if val, exists := os.LookupEnv("validate_hmac"); exists {
+		return val != "false" && val != "0"
+	}
+	return true
+}
+
+func ValidateCustomers() bool {
+	if val, exists := os.LookupEnv("validate_customers"); exists {
+		return val != "false" && val != "0"
+	}
+	return true
 }

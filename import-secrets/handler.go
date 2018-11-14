@@ -21,7 +21,7 @@ import (
 func Handle(req []byte) string {
 	event := getEventFromHeader()
 
-	if hmacEnabled() {
+	if HmacEnabled() {
 		key, err := sdk.ReadSecret("payload-secret")
 		if err != nil {
 			fmt.Fprintf(os.Stderr, err.Error())
@@ -117,10 +117,6 @@ func Handle(req []byte) string {
 	return fmt.Sprintf("Imported SealedSecret: %s as new object", name)
 }
 
-func hmacEnabled() bool {
-	return os.Getenv("validate_hmac") == "1" || os.Getenv("validate_hmac") == "true"
-}
-
 func updateEncryptedData(ss *ssv1alpha1.SealedSecret, userSecret *SealedSecret) error {
 	for k, v := range userSecret.Spec.EncryptedData {
 		encodedBytes, err := base64.StdEncoding.DecodeString(v)
@@ -156,4 +152,11 @@ type SealedSecret struct {
 	Kind       string             `yaml:"kind"`
 	Metadata   *metav1.ObjectMeta `yaml:"metadata"`
 	Spec       SealedSecretSpec   `yaml:"spec"`
+}
+
+func HmacEnabled() bool {
+	if val, exists := os.LookupEnv("validate_hmac"); exists {
+		return val != "false" && val != "0"
+	}
+	return true
 }
