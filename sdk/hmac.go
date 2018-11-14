@@ -8,9 +8,12 @@ import (
 )
 
 // HmacEnabled uses validate_hmac env-var to verify if the
-// feature is enabled
+// feature is disabled
 func HmacEnabled() bool {
-	return os.Getenv("validate_hmac") == "1" || os.Getenv("validate_hmac") == "true"
+	if val, exists := os.LookupEnv("validate_hmac"); exists {
+		return val != "false" && val != "0"
+	}
+	return true
 }
 
 // ValidHMAC returns an error if HMAC could not be validated or if
@@ -31,4 +34,11 @@ func validHMACWithSecretKey(payload *[]byte, secretText string, digest string) e
 		return fmt.Errorf("unable to validate HMAC")
 	}
 	return nil
+}
+
+func readBool(key string) bool {
+	if val, exists := os.LookupEnv(key); exists {
+		return val != "false" && val != "0"
+	}
+	return true
 }

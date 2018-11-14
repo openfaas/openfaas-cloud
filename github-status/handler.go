@@ -35,8 +35,7 @@ var (
 // function along with the function stack by sending
 // commit statuses to GitHub on pending, failure or success
 func Handle(req []byte) string {
-
-	if hmacEnabled() {
+	if HmacEnabled() {
 
 		key, keyErr := sdk.ReadSecret("payload-secret")
 		if keyErr != nil {
@@ -317,10 +316,6 @@ func getCheckRunDescription(status *sdk.CommitStatus, url *string) *string {
 	return &status.Description
 }
 
-func hmacEnabled() bool {
-	return os.Getenv("validate_hmac") == "1" || os.Getenv("validate_hmac") == "true"
-}
-
 func buildStatus(status string, desc string, context string, url string) *github.RepoStatus {
 	return &github.RepoStatus{State: &status, TargetURL: &url, Description: &desc, Context: &context}
 }
@@ -361,4 +356,11 @@ func formatLog(logs string, maxCheckMessageLength int) string {
 	logValue = fmt.Sprintf(frame, logValue)
 
 	return logValue
+}
+
+func HmacEnabled() bool {
+	if val, exists := os.LookupEnv("validate_hmac"); exists {
+		return val != "false" && val != "0"
+	}
+	return true
 }

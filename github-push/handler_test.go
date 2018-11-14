@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/openfaas/openfaas-cloud/sdk"
@@ -19,6 +20,7 @@ func (h HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func Test_Handle_Push_InvalidBranch(t *testing.T) {
 	audit = sdk.NilLogger{}
 	os.Setenv("Http_X_Github_Event", "push")
+	os.Setenv("validate_hmac", "false")
 	os.Setenv("validate_customers", "false")
 
 	res := Handle([]byte(
@@ -55,21 +57,19 @@ func Test_Handle_IssueComment(t *testing.T) {
 		t.Fail()
 	}
 }
+
 func Test_Handle_ValidateCustomers_Matched(t *testing.T) {
 	server := httptest.NewServer(&HTTPHandler{})
-
 	os.Setenv("Http_X_Github_Event", "push")
 	os.Setenv("validate_customers", "true")
 	os.Setenv("customers_url", server.URL)
-
 	res := Handle([]byte(
 		`{"ref":"refs/heads/master","repository":{ "owner": { "login": "alexellis" } }}`,
 	))
-
 	// This error is as far as we can get right now without subbing more code.
-	want := "unable to read secret: /var/openfaas/secrets/payload-secret, error: open /var/openfaas/secrets/payload-secret: no such file or directory"
-	if res != want {
-		t.Errorf("want error: \"%s\", got: \"%s\"", want, res)
+	secretErr := "unable to read secret"
+	if !strings.Contains(res, secretErr) {
+		t.Errorf("want error: \"%s\", got: \"%s\"", secretErr, res)
 		t.Fail()
 	}
 }
