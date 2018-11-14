@@ -9,7 +9,7 @@ functions:
   system-dashboard:
     lang: node8-express
     handler: ./of-cloud-dashboard
-    image: functions/of-cloud-dashboard:0.2.2
+    image: functions/of-cloud-dashboard:0.3.0
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -24,6 +24,7 @@ functions:
       # Comment out if not using public pretty-URL
       pretty_url: https://user.o6s.io/function
       query_pretty_url: 'true'
+
   system-list-functions:
     skip_build: true
     image: functions/list-functions:0.4.7
