@@ -355,14 +355,33 @@ kubectl create secret generic -n openfaas-fn \
 Install Minio with helm
 
 ```
-helm install --name cloud --namespace openfaas \
+helm install --name cloud-minio --namespace openfaas \
    --set accessKey=$ACCESS_KEY,secretKey=$SECRET_KEY,replicas=1,persistence.enabled=false,service.port=9000,service.type=NodePort \
   stable/minio
 ```
 
-The name value should be `cloud-minio.openfaas.svc.cluster.local`
+The value of the `--name` flag should be the name of the service we want to create and in our case the name is `cloud-minio`
 
-Enter the value of the DNS above into `s3_url` in `gateway_config.yml` adding the port at the end:`cloud-minio-svc.openfaas.svc.cluster.local:9000`
+The URL is formatted like so:
+
+```
+<service_name>.<namespace>.svc.cluster.local:<port>
+```
+
+and in our case minio can be accessed with this URL: 
+
+```
+cloud-minio.openfaas.svc.cluster.local:9000
+```
+
+
+Enter the value of the DNS above into `s3_url` in `gateway_config.yml` adding the port at the end:
+
+```
+  s3_url: cloud-minio.openfaas.svc.cluster.local:9000
+```
+
+> Note: minio uses port 9000
 
 #### Swarm
 
