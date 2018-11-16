@@ -6,7 +6,7 @@ functions:
   system-gitlab-event:
     lang: go
     handler: ./gitlab-event
-    image: functions/gitlab-event:0.1.0
+    image: functions/gitlab-event:0.1.1
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
