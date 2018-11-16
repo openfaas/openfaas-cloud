@@ -94,13 +94,18 @@ func Handle(req []byte) string {
 			return fmt.Sprintf("unable to unmarshal request into eventInfo struct: %s", unmarshalErr.Error())
 		}
 
+		username, usernameErr := getUser(eventInfo.GitLabProject.PathWithNamespace)
+		if usernameErr != nil {
+			return fmt.Sprintf("error while formatting username: %s", usernameErr.Error())
+		}
+
 		if readBool("validate_customers") {
 			customersURL := os.Getenv("customers_url")
 			customers, getErr := getCustomers(customersURL)
 			if getErr != nil {
 				return fmt.Sprintf("unable to read customers from %s error: %s", customersURL, getErr.Error())
 			}
-			if !validCustomer(customers, eventInfo.UserUsername) {
+			if !validCustomer(customers, username) {
 				auditEvent := sdk.AuditEvent{
 					Message: "Customer not found",
 					Owner:   eventInfo.UserUsername,
