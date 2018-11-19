@@ -11,7 +11,7 @@ module.exports = (event, context) => {
     return;
   }
 
-  if (/^\/api\/(list-functions|pipeline-log).*/.test(path)) {
+  if (/^\/api\/(list-functions|system-metrics|pipeline-log).*/.test(path)) {
     // proxy api requests to the gateway
     const gatewayUrl = process.env.gateway_url.replace(/\/$/, '');
     const proxyPath = path.replace(/^\/api\//, '');
