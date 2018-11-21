@@ -4,9 +4,9 @@ provider:
 
 functions:
   system-dashboard:
-    lang: node8-express
-    handler: ./of-cloud-dashboard
-    image: functions/of-cloud-dashboard:0.3.3
+    lang: dockerfile
+    handler: ./
+    image: functions/of-cloud-dashboard:0.3.4
     labels:
       openfaas-cloud: "1"
       role: openfaas-system

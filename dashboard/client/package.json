@@ -22,7 +22,6 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "PUBLIC_URL=dist react-scripts build",
-    "postbuild": "rm -rf ../of-cloud-dashboard/dist && mv build ../of-cloud-dashboard/dist",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   },

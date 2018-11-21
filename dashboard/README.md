@@ -59,14 +59,6 @@ From the dashboard folder make edits to `stack.yml` (read the comments in the fi
 $ faas-cli deploy --filter="system-dashboard"
 ```
 
-### Build and Bundle the Assets
-
-If you have satisfied the prerequisites, the following command should create the assets for the Dashboard.
-
-```bash
-make
-```
-
 **Edit `stack.yml` if needed.**
 
 Set `query_pretty_url` to `true` when using a sub-domain for each user. If set, also define `pretty_url` with the pattern for the URL.
@@ -103,16 +95,6 @@ Install `yarn` (requires Node.js LTS)
 ```
 npm i -g yarn
 ```
-
-The source code for the dashboard (written in React.js) with Bootstrap 3 has to be built into a generated folder. In order to do this type in `make`
-
-```bash
-make
-```
-
-You will see new files written into `of-cloud-dashboard/dist`
-
-When you are ready to make a Pull Request, do not commit the `of-cloud-dashboard/dist` folder since it will cause issues with multiple developers clashing over the same files. Instead only commit the `client` folder and make sure that you ignore any edits that you have made to `stack.yml` for your local environment.
 
 **Set Proxy**
 
