@@ -1,6 +1,6 @@
 ## OpenFaaS Cloud installation guide
 
-Installing OpenFaaS Cloud requires some initial setup with GitHub or GitLab and a working installation of OpenFaaS. If you'd like help please see below for how to join the Slack workspace.
+Installing OpenFaaS Cloud requires some initial setup with GitHub or GitLab and a working installation of OpenFaaS. See the [deployment guides](https://github.com/openfaas/faas/tree/master/guide#deployment-guides-start-here) for instructions on setting up OpenFaaS. If you'd like help please see below for how to join the Slack workspace.
 
 ### Pre-reqs
 
@@ -39,30 +39,30 @@ Optionally to enable Login to the dashboard
 
 ### Create your GitHub App
 
-Create a GitHub app from your GitHub profile page.
+- Create a [GitHub app](https://developer.github.com/apps/building-your-first-github-app/#register-a-new-app-with-github) from your GitHub profile page. Enter the following required fields:
+  - GitHub App name
+  - Homepage URL
+  - Webhook URL. The GitHub app will deliver webhooks to your OpenFaaS Cloud instance every time code is pushed in a user's function repository. Make sure you provide the public URL for your OpenFaaS gateway to the GitHub app:
+    - With the router configured the Webhook URL should be like: `http://system.openfaas.cloud/github-event`
 
-Select these OAuth permissions: 
+    - If you don't have the router configured remove the `system-` prefix from `system-github-event` in `stack.yml` and set the Webhook URL like: `http://my.openfaas.cloud/functions/github-event`
 
-- "Repository contents" read-only
-- "Commit statuses" read and write
-- "Checks" read and write
 
-* Now select only the "push" event.
+- Select these OAuth permissions:
+  - "Checks" read and write
+  - "Repository contents" read-only
+  - "Commit statuses" read and write
 
-* Where can this GitHub App be installed?
+- From "Subscribe to events":
+  - select only the "Push" event
 
-Any account
+- From "Where can this GitHub App be installed?"
+  - select "Any account"
 
-* Save the new app.
+- Save the new app.
 
-* Now download the private key for your GitHub App which we will use later in the guide for allowing OpenFaaS Cloud to write to Checks or Commit statuses when a build passes or fails.
-
-The GitHub app will deliver webhooks to your OpenFaaS Cloud instance every time code is pushed in a user's function repository. Make sure you provide the public URL for your OpenFaaS gateway to the GitHub app:
-
-* With the router configured the URL should be like: `http://system.openfaas.cloud/github-event`
-
-* If you don't have the router configured remove the `system-` prefix from `system-github-event` in `stack.yml` and set the URL like: `http://my.openfaas.cloud/functions/github-event`
-
+- Now download the private key for your GitHub App which we will use later in the guide for allowing OpenFaaS Cloud to write to Checks or Commit statuses when a build passes or fails.
+- Make a note of the public URL of your GitHub App for later use
 
 ### Create an internal trust secret
 
@@ -158,7 +158,7 @@ You can edit `buildshiprun_limits.yml` to set the memory limit for your function
 
 ### Deploy your container builder
 
-You need to generate the ```~/.docker/config.json``` using the ```docker login``` command. 
+You need to generate the ```~/.docker/config.json``` using the ```docker login``` command.
 
 If you are not on Linux, i.e. you are on Mac or Windows, docker stores credentials in credentials store by default and your docker config.json file will look like this:
 ```
@@ -217,7 +217,7 @@ Create the secret for your registry
 ```
 kubectl create secret generic \
   --namespace openfaas \
-  registry-secret --from-file=$HOME/.docker/config.json 
+  registry-secret --from-file=$HOME/.docker/config.json
 ```
 
 Create of-builder, of-buildkit:
@@ -368,7 +368,7 @@ The URL is formatted like so:
 <service_name>.<namespace>.svc.cluster.local:<port>
 ```
 
-and in our case minio can be accessed with this URL: 
+and in our case minio can be accessed with this URL:
 
 ```
 cloud-minio.openfaas.svc.cluster.local:9000
@@ -407,7 +407,7 @@ docker service create --constraint="node.role==manager" \
 minio/minio:latest server /export
 ```
 
-Minio: 
+Minio:
 
 * Enter the value of the DNS above into `s3_url` in `gateway_config.yml` adding the port at the end:`minio:9000`
 
@@ -556,7 +556,7 @@ For local testing use the following:
 
 http://auth.system.gw.io:8081/
 
-Port 8081 corresponds to the port where you are running the router component. 
+Port 8081 corresponds to the port where you are running the router component.
 
 > Note: in a production-grade deployment the router is running on port 443 (HTTPS) so the URL may be `https://auth.o6s.io/`.
 
