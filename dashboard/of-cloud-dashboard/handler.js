@@ -55,22 +55,37 @@ module.exports = (event, context) => {
     headers['Content-Type'] = 'application/octet-stream';
   }
 
-  let content;
-  if (headers['Content-Type']) {
-    content = fs.readFileSync(`${__dirname}${path}`);
-  } else {
-    headers['Content-Type'] = 'text/html';
-    content = fs.readFileSync(`${__dirname}/dist/index.html`).toString();
+  let contentPath = `${__dirname}${path}`;
 
-    const { base_href, public_url, pretty_url, query_pretty_url } = process.env;
-    content = content.replace(/__BASE_HREF__/g, base_href);
-    content = content.replace(/__PUBLIC_URL__/g, public_url);
-    content = content.replace(/__PRETTY_URL__/g, pretty_url);
-    content = content.replace(/__QUERY_PRETTY_URL__/g, query_pretty_url);
+  if (!headers['Content-Type']) {
+    contentPath = `${__dirname}/dist/index.html`;
   }
 
-  context
-    .headers(headers)
-    .status(200)
-    .succeed(content);
+  fs.readFile(contentPath, (err, data) => {
+    if (err) {
+      context
+        .headers(headers)
+        .status(500)
+        .fail(err);
+
+      return;
+    }
+
+    let content = data.toString();
+
+    if (!headers['Content-Type']) {
+      headers['Content-Type'] = 'text/html';
+
+      const { base_href, public_url, pretty_url, query_pretty_url } = process.env;
+      content = content.replace(/__BASE_HREF__/g, base_href);
+      content = content.replace(/__PUBLIC_URL__/g, public_url);
+      content = content.replace(/__PRETTY_URL__/g, pretty_url);
+      content = content.replace(/__QUERY_PRETTY_URL__/g, query_pretty_url);
+    }
+
+    context
+      .headers(headers)
+      .status(200)
+      .succeed(content);
+  });
 };
