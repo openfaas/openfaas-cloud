@@ -24,7 +24,9 @@ const (
 
 var audit sdk.Audit
 
-// Handle a serverless request
+// Handle accepts push event from gitlab-event
+// and transforms the payload into PushEvent struct
+// which is then sent to git-tar for a function to be built
 func Handle(req []byte) string {
 	validateErr := validateRequest(req)
 	if validateErr != nil {

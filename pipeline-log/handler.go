@@ -14,7 +14,8 @@ import (
 	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
-// Handle a serverless request
+// Handle sends the function logs to the
+// pipeline to be exposed in the dashboard
 func Handle(req []byte) string {
 	method := os.Getenv("Http_Method")
 

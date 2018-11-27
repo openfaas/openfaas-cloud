@@ -11,7 +11,9 @@ import (
 	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
-// Handle a serverless request
+// Handle reports the building process of the
+// function and the function stack to GitLab by
+// sending commit statuses on pending, success, failure
 func Handle(req []byte) string {
 	if validateError := validateRequest(req); validateError != nil {
 		log.Fatal(validateError)

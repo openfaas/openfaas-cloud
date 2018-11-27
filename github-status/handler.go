@@ -31,7 +31,9 @@ var (
 	token = ""
 )
 
-// Handle a serverless request
+// Handle reports the building process of the
+// function along with the function stack by sending
+// commit statuses to GitHub on pending, failure or success
 func Handle(req []byte) string {
 
 	if hmacEnabled() {
