@@ -33,6 +33,10 @@ const handleLogout = (context) => {
 module.exports = (event, context) => {
   const { method, path } = event;
 
+  parseOrganizations: parseOrganizations;
+  decodeCookie: decodeCookie;
+  getCookie: getCookie;
+
   if (method !== 'GET') {
     context.status(400).fail('Bad Request');
     return;
@@ -111,12 +115,17 @@ module.exports = (event, context) => {
 
       const isSignedIn = /openfaas_cloud_token=.*\s*/.test(event.headers.cookie);
 
+      let cookie = getCookie(event);
+      let organizations = parseOrganizations(cookie);
+
       const { base_href, public_url, pretty_url, query_pretty_url } = process.env;
       content = content.replace(/__BASE_HREF__/g, base_href);
       content = content.replace(/__PUBLIC_URL__/g, public_url);
       content = content.replace(/__PRETTY_URL__/g, pretty_url);
       content = content.replace(/__QUERY_PRETTY_URL__/g, query_pretty_url);
       content = content.replace(/__IS_SIGNED_IN__/g, isSignedIn);
+      content = content.replace(/__ORGANIZATIONS__/g, organizations);
+
     }
 
     context
@@ -125,3 +134,32 @@ module.exports = (event, context) => {
       .succeed(content);
   });
 };
+
+var parseOrganizations = function (cookie) {
+  var decodedCookie = decodeCookie(cookie);
+  console.log("decodedCookie -> ", decodedCookie);
+  if (decodedCookie && 'organizations' in decodedCookie) {
+    return decodedCookie.organizations;
+  }
+  return '';
+}
+
+var atob = function atob(str) {
+  return Buffer.from(str, 'base64').toString('binary');
+}
+
+var decodeCookie = function (token) {
+  try {
+    return JSON.parse(atob(token.split('.')[1]));
+  } catch (e) {
+    return null;
+  }
+}
+
+var getCookie = function (event = {}) {
+  if (!event.headers && !event.headers.cookie) {
+    console.log("event does not contain a cookie");
+    return null;
+  }
+  return event.headers.cookie;
+}
