@@ -19,7 +19,7 @@ The Dashboard is a SPA(Single Page App) made with React and will require the fol
 This may be simpler than deploying the builder and connecting your OpenFaaS Cloud to a GitHub App.
 
 ```
-$ faas-cli store deploy figlet --name alexellis-figlet --label Git-Owner=alexellis \
+$ faas-cli store deploy figlet --name alexellis-figlet --label com.openfaas.cloud.git-owner=alexellis \
  --label com.openfaas.cloud.git-repo=figlet \
  --label com.openfaas.cloud.git-sha=665d9597547d8e0425630ba2dbb73c2951a61ce2 \
  --label com.openfaas.cloud.git-deploytime=1533026741 \

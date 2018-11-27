@@ -93,7 +93,23 @@ class FunctionsApi {
       };
     });
   }
-  fetchFunctions(user) {
+
+  fetchFunctions(user, organizations) {
+    var orgs = [];
+    orgs.push(user);
+    if (organizations) {
+      orgs = orgs.concat(organizations.split(',')).filter(item => item);
+    }
+
+    var fetchPromises = [];
+    orgs.forEach((org)=> {
+      fetchPromises.push(this.fetchFunctionsByUser(org));
+    });
+
+    return Promise.all(fetchPromises);
+  }
+
+  fetchFunctionsByUser(user) {
     const url = `${this.apiBaseUrl}/list-functions?user=${user}`;
     return axios
       .get(url)

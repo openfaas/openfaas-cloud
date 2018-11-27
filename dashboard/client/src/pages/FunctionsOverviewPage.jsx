@@ -18,8 +18,20 @@ export class FunctionsOverviewPage extends Component {
   componentDidMount() {
     this.setState({ isLoading: true });
 
-    functionsApi.fetchFunctions(this.state.user).then(res => {
-      this.setState({ isLoading: false, fns: res });
+
+    functionsApi.fetchFunctions(this.state.user, window.ORGANIZATIONS)
+    .then(res => {
+      let functions = [];
+      res.forEach( (set) => {
+        set.forEach(  (item) => {
+          functions.push(item);
+        });
+      });
+
+      this.setState({ isLoading: false, fns: functions });
+    })
+    .catch((e) => {
+      console.error(e);
     });
   }
 
