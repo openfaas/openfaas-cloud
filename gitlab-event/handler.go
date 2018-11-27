@@ -28,7 +28,9 @@ var (
 	supportedEvents = [...]string{PushEvent, ProjectUpdateEvent, ProjectDestroyEvent}
 )
 
-// Handle a serverless request
+// Handle is the function which accepts events from
+// GitLab and filters them also checks if the repository
+// is installed on the cloud
 func Handle(req []byte) string {
 	eventHeader := os.Getenv("Http_X_Gitlab_Event")
 	xGitlabToken := os.Getenv("Http_X_Gitlab_Token")

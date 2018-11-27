@@ -13,7 +13,10 @@ import (
 	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
-// Handle a serverless request
+// Handle takes the functions which are built
+// by buildshiprun and exposes the function object
+// to be consumed by the dashboard so the function
+// can be displayed
 func Handle(req []byte) string {
 
 	user := string(req)

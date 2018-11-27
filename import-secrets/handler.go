@@ -17,7 +17,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// Handle a serverless request
+// Handle uses SealedSecrets to bind the secrets
+// to the cluster so the buildshiprun can bind user
+// secrets to function
 func Handle(req []byte) string {
 	event := getEventFromHeader()
 

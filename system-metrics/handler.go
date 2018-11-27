@@ -17,7 +17,7 @@ type Metrics struct {
 	Failure int `json:"failure"`
 }
 
-// Handle a serverless request
+// Handle exposes the OpenFaaS instance metrics
 func Handle(req []byte) string {
 	fnName, err := parseFunctionName()
 
