@@ -1,7 +1,13 @@
 import React, { Component } from 'react';
 import { FunctionTable } from '../components/FunctionTable';
+import { FunctionEmptyState } from "../components/FunctionEmptyState";
 import { functionsApi } from '../api/functionsApi';
-import { Card, CardHeader, CardBody, CardText } from 'reactstrap';
+import {
+  Card,
+  CardHeader,
+  CardBody,
+  CardText,
+} from 'reactstrap';
 
 export class FunctionsOverviewPage extends Component {
   constructor(props) {
@@ -23,20 +29,35 @@ export class FunctionsOverviewPage extends Component {
     });
   }
 
-  render() {
+  renderContentView() {
     const { user, isLoading, fns } = this.state;
+
+    if (!isLoading && fns.length === 0) {
+      return (
+        <FunctionEmptyState />
+      )
+    }
+
+    return (
+      <CardBody>
+        <CardText>
+          Welcome to the OpenFaaS Cloud Dashboard! Click on a function for more details.
+        </CardText>
+        <FunctionTable isLoading={isLoading} fns={fns} user={user} />
+      </CardBody>
+    )
+  }
+
+  render() {
+    const { user } = this.state;
 
     return (
       <Card outline color="success">
         <CardHeader className="bg-success color-success">
-          Functions for <span id="username">{user}</span>
+          Functions for <span id="username">{ user }</span>
         </CardHeader>
-        <CardBody>
-          <CardText>
-            Welcome to the OpenFaaS Cloud Dashboard! Click on a function for more details.
-          </CardText>
-          <FunctionTable isLoading={isLoading} fns={fns} user={user} />
-        </CardBody>
+
+        { this.renderContentView() }
       </Card>
     );
   }

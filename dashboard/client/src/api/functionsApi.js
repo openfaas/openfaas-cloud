@@ -20,11 +20,9 @@ class FunctionsApi {
     this.cachedFunctions = {};
   }
 
-  parseFunctionResponse({
-    data
-  }, userName) {
+  parseFunctionResponse({ data }, userName) {
+    data = data || [];
     const user = userName.toLowerCase();
-
     data.sort((a, b) => {
       if (
         !a ||
