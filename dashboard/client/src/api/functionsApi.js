@@ -20,9 +20,9 @@ class FunctionsApi {
     this.cachedFunctions = {};
   }
 
-  parseFunctionResponse({
-    data
-  }, user) {
+  parseFunctionResponse({ data }, user) {
+    data = data || [];
+
     data.sort((a, b) => {
       if (
         !a ||
