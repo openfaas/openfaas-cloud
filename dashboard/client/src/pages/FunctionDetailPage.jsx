@@ -5,8 +5,8 @@ import { Card, CardHeader, CardBody } from 'reactstrap';
 
 import { functionsApi } from '../api/functionsApi';
 import { FunctionDetailSummary } from '../components/FunctionDetailSummary';
-import { GetBadgeModal } from '../components/GetBadgeModal'
-import { ModalRunOnMyOF } from '../components/ModalRunOnMyOF'
+import { GetBadgeModal } from '../components/GetBadgeModal';
+import { ModalRunOnMyOF } from '../components/ModalRunOnMyOF';
 
 export class FunctionDetailPage extends Component {
   constructor(props) {
@@ -23,13 +23,28 @@ export class FunctionDetailPage extends Component {
     this.state = {
       isLoading: true,
       fn: null,
+      functionInvocationData: null,
       user,
       repoPath,
       functionName,
       showBadgeModal: false,
-      showRunOnMyOFModal: false,
+      showRunOnMyOFModal: false
     };
   }
+
+  changeFunctionInvocationTimePeriod = timePeriod => {
+    const { user, functionName } = this.state;
+
+    functionsApi
+      .fetchFunctionInvocation({
+        user,
+        functionName,
+        timePeriod
+      })
+      .then(res => {
+        this.setState({ functionInvocationData: res });
+      });
+  };
 
   componentDidMount() {
     const { user, repoPath, functionName } = this.state;
@@ -39,6 +54,8 @@ export class FunctionDetailPage extends Component {
     functionsApi.fetchFunction(user, repoPath, functionName).then(res => {
       this.setState({ isLoading: false, fn: res });
     });
+
+    this.changeFunctionInvocationTimePeriod('60m');
   }
 
   handleShowBadgeModal() {
@@ -58,15 +75,19 @@ export class FunctionDetailPage extends Component {
   }
 
   render() {
-    const { isLoading, fn } = this.state;
+    const { isLoading, fn, functionInvocationData } = this.state;
     let panelBody = (
       <FunctionDetailSummary
         fn={fn}
+        changeFunctionInvocationTimePeriod={
+          this.changeFunctionInvocationTimePeriod
+        }
+        functionInvocationData={functionInvocationData}
         handleShowBadgeModal={this.handleShowBadgeModal}
         handleShowRunOnMyOFModal={this.handleShowRunOnMyOFModal}
       />
     );
-    
+
     if (isLoading) {
       panelBody = (
         <div style={{ textAlign: 'center' }}>
@@ -77,18 +98,19 @@ export class FunctionDetailPage extends Component {
 
     return (
       <Card outline color="success">
-        <CardHeader
-          className="bg-success color-success d-flex align-items-center justify-content-between"
-        >
-          <div>
-            Function Overview
-          </div>
+        <CardHeader className="bg-success color-success d-flex align-items-center justify-content-between">
+          <div>Function Overview</div>
         </CardHeader>
-        <CardBody>
-          { panelBody }
-        </CardBody>
-        <GetBadgeModal state={this.state.showBadgeModal} closeModal={this.handleCloseBadgeModal} />
-        <ModalRunOnMyOF fn={fn || {}} state={this.state.showRunOnMyOFModal} closeModal={this.handleCloseRunOnMyOFModal} />
+        <CardBody>{panelBody}</CardBody>
+        <GetBadgeModal
+          state={this.state.showBadgeModal}
+          closeModal={this.handleCloseBadgeModal}
+        />
+        <ModalRunOnMyOF
+          fn={fn || {}}
+          state={this.state.showRunOnMyOFModal}
+          closeModal={this.handleCloseRunOnMyOFModal}
+        />
       </Card>
     );
   }
