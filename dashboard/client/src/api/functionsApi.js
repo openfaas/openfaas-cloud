@@ -20,7 +20,9 @@ class FunctionsApi {
     this.cachedFunctions = {};
   }
 
-  parseFunctionResponse({ data }, user) {
+  parseFunctionResponse({
+    data
+  }, user) {
     data.sort((a, b) => {
       if (
         !a ||
@@ -118,14 +120,35 @@ class FunctionsApi {
       // fetch functions if cache not found
       this.fetchFunctions(user).then(() => {
         const fn = this.cachedFunctions[key];
-        fn !== undefined
-          ? resolve(fn)
-          : reject(new Error(`Function ${key} not found`));
+        fn !== undefined ?
+          resolve(fn) :
+          reject(new Error(`Function ${key} not found`));
       });
     });
   }
 
-  fetchFunctionLog({ commitSHA, repoPath, functionName }) {
+  async fetchFunctionInvocation(params) {
+    const {
+      user,
+      functionName,
+      timePeriod
+    } = params;
+    try {
+      const url = `${this.apiBaseUrl}/system-metrics?function=${user}-${functionName}&metrics_window=${timePeriod}`;
+      const result = await axios
+        .get(url);
+      return result.data;
+    } catch (error) {
+      console.error('Error fetching function invocation', params, error);
+      return null;
+    }
+  }
+
+  fetchFunctionLog({
+    commitSHA,
+    repoPath,
+    functionName
+  }) {
     const url = `${
       this.apiBaseUrl
     }/pipeline-log?commitSHA=${commitSHA}&repoPath=${repoPath}&function=${functionName}`;
