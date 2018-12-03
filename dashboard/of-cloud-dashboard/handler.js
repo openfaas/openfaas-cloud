@@ -78,9 +78,31 @@ module.exports = (event, context) => {
 };
 
 function dnsFormatter(gatewayURL, dnsSuffix) {
-  const urlParts = gatewayURL.split(":")
-  const baseURL = urlParts[0] + urlParts[1]
-  const port = urlParts[2]
-  const wholeURL = baseURL + "." + dnsSuffix + ":" + port
+  let wholeURL
+  if (gatewayURL.includes(dnsSuffix) && gatewayURL && dnsSuffix) {
+    wholeURL = gatewayURL
+  } else {
+    if (!gatewayURL) {
+      gatewayURL = "http://gateway:8080"
+    }
+    if (gatewayURL.includes(":")) {
+      const urlParts = gatewayURL.split(":")
+      const baseURL = urlParts[0] + ":" + urlParts[1]
+      const port = urlParts[2]
+      if (!dnsSuffix) {
+        wholeURL = baseURL + ":" + port
+      } else {
+        wholeURL = baseURL + "." + dnsSuffix + ":" + port
+      }
+    } else if (dnsSuffix) {
+      wholeURL = gatewayURL + "." + dnsSuffix
+    } else {
+      wholeURL = gatewayURL
+    }
+  }
   return wholeURL
+}
+
+module.exports = {
+  dnsFunc: dnsFormatter,
 }
