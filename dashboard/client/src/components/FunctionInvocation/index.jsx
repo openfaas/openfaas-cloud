@@ -55,20 +55,20 @@ export class FunctionInvocation extends React.Component {
           </Progress>
           <span className="font-weight-bold">{total}</span> invocations
         </div>
-        <ListGroup className="mt-3 m0 flex-row">
-          <ListGroupItem className="d-flex flex-fill flex-column align-items-center">
-            <h5 className="m-0">
+        <div className="mt-3 mx-1 row flex-row border">
+          <div className="d-flex col-6 flex-column align-items-center border-right p-2">
+            <h5 className="mt-1">
               <Badge color="success">{success}</Badge>
             </h5>
             <span>Success</span>
-          </ListGroupItem>
-          <ListGroupItem className="d-flex flex-fill flex-column align-items-center">
-            <h5 className="m0">
+          </div>
+          <div className="d-flex col-6 flex-column align-items-center p-2">
+            <h5 className="mt-1">
               <Badge color="danger">{failure}</Badge>
             </h5>
             <span>Error</span>
-          </ListGroupItem>
-        </ListGroup>
+          </div>
+        </div>
       </div>
     );
   }
