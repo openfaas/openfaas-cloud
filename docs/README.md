@@ -140,7 +140,7 @@ private_key_filename: my-private-key
 
 ### Setup your customer access control list (ACL)
 
-Edit `customers_url` in gateway_config.yml.
+Edit `customers_url` in gateway_config.yml?
 
 Enter a list of GitHub usernames for your customers, these are case-sensitive.
 
