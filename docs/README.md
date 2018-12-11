@@ -9,7 +9,7 @@ Installing OpenFaaS Cloud requires some initial setup with GitHub or GitLab and 
 * [OpenFaaS](https://github.com/openfaas/faas) deployed with [basic authentication](https://docs.openfaas.com/reference/authentication/) enabled
 * Extended timeouts for the queue-worker, gateway and the backend provider ?
 
-For the queue-worker, set the `ack_wait` field to `15m` to allow for a Docker build of up to 15 minutes total.
+For the queue-worker, set the `ack_wait` environment variable to `15m` to allow for a Docker build of up to 15 minutes total.
 
 ### Moving parts
 
@@ -31,7 +31,7 @@ Optionally to enable Login to the dashboard
 ### Before you begin
 
 * You must enable basic auth to prevent user-functions from accessing the admin API of the gateway
-* A list of valid users is defined in the CUSTOMERS file in this GitHub repo, this acts as an ACL, but you can define your own
+* A list of valid users is defined in the CUSTOMERS file in this GitHub repo, this acts as an ACL, but you can define your own?
 * Swarm offers no isolation between functions (they can call each other)
 * For Kubernetes isolation can be applied through [NetworkPolicy](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
 
