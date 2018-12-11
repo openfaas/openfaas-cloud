@@ -158,7 +158,7 @@ You can edit `buildshiprun_limits.yml` to set the memory limit for your function
 
 ### Deploy your container builder
 
-You need to generate the ```~/.docker/config.json``` using the ```docker login``` command. 
+You need to generate the ```~/.docker/config.json``` using the ```docker login``` command. ?
 
 If you are not on Linux, i.e. you are on Mac or Windows, docker stores credentials in credentials store by default and your docker config.json file will look like this:
 ```
