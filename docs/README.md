@@ -249,7 +249,7 @@ cat $HOME/.docker/config.json | docker secret create registry-secret -
 Create of-builder and of-buildkit:
 
 ```
-./of-builder/deploy_swarm.sh
+./of-builder/deploy_swarm.sh?
 ```
 
 ### Configure push repository and gateway URL
