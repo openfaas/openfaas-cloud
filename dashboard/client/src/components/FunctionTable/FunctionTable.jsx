@@ -50,6 +50,7 @@ const FunctionTable = withRouter(({ isLoading, fns, user, history }) => {
     <Table {...tableProps}>
       <thead>
       <tr>
+        <th>Owner</th>
         <th>Name</th>
         <th style={{ width: '42px' }} />
         <th>Repository</th>
