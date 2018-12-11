@@ -258,14 +258,13 @@ In gateway_config.yml
 
 ```yaml
 environment:
-  gateway_url: http://gateway.openfaas:8080/
-  gateway_public_url: http://of-cloud.public-facing-url.com:8080/
-  audit_url: http://gateway.openfaas:8080/function/audit-event
+  ...
   repository_url: docker.io/ofcommunity/
   push_repository_url: docker.io/ofcommunity/
+  ...
 ```
 
-Replace "ofcommunity" with your Docker Hub account i.e. `alexellis2/cloud/` or replace the whole string with the address of your private registry `reg.my-domain.xyz`.
+Replace "ofcommunity" with your Docker Hub account i.e. `alexellis2/cloud/` or replace the whole string with the address of your private registry `reg.my-domain.xyz`?
 
 Now set your gateway's public URL in the `gateway_public_url` field.
 
