@@ -61,7 +61,7 @@ The GitHub app will deliver webhooks to your OpenFaaS Cloud instance every time 
 
 * With the router configured the URL should be like: `http://system.openfaas.cloud/github-event`
 
-* If you don't have the router configured remove the `system-` prefix from `system-github-event` in `stack.yml` and set the URL like: `http://my.openfaas.cloud/functions/github-event`
+* If you don't have the router configured remove the `system-` prefix from `system-github-event` in `stack.yml` and set the URL like: `http://my.openfaas.cloud/functions/github-event` ?
 
 
 ### Create an internal trust secret
