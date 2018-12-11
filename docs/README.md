@@ -142,7 +142,7 @@ private_key_filename: my-private-key
 
 Edit `customers_url` in gateway_config.yml?
 
-Enter a list of GitHub usernames for your customers, these are case-sensitive.
+Enter a list of GitHub usernames for your customers, these are case-sensitive?.
 
 ### Customize for Kubernetes or Swarm
 
