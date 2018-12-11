@@ -117,7 +117,7 @@ echo -n "$WEBHOOK_SECRET" | docker secret create github-webhook-secret -
 
 #### Create a secret for your GitHub App's private key
 
-Download the `.pem` file from the GitHub App page, then save it as a file named `private-key` with no extension.
+Download the `.pem` file from the GitHub App page, then save it as a file named `private-key` with no extension.?
 
 * Kubernetes
 
