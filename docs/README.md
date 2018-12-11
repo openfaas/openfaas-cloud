@@ -439,9 +439,9 @@ faas-cli deploy
 
 ### Test it out
 
-Now find the public URL of your GitHub App and navigate to it. Click "Install" and pick a GitHub repo you want to use.
+Now find the public URL of your GitHub App and navigate to it (go to your GitHub Application settings page and click `Public page` from the left-hand navigation menu). Click "Install" and pick a GitHub repo you want to use.
 
-Now create a new function, rename the YAML file for the functions to `stack.yml` and then commit it. When you put it up you'll see the logs in the `github-push` function.
+Now create a new function in the repository use choose, rename the YAML file for the functions to `stack.yml` and then commit it. When you put it up you'll see the logs in the `github-push` function.
 
 #### Troubleshoot Kubernetes
 
