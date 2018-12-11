@@ -292,7 +292,7 @@ Configure your service account with a pull secret as per [OpenFaaS docs](https:/
 
 The functions will need to use basic authentication to access the gateway's administrative endpoints.
 
-Use the credentials you got when you set up OpenFaaS.
+Use the credentials you got when you set up OpenFaaS.?
 
 #### Swarm
 
