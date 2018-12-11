@@ -98,9 +98,9 @@ environment:
     github_app_id: "<app_id>"
 ```
 
-* Create a secret for the HMAC / webhook value:
+#### Create a secret for the HMAC / webhook value:
 
-Kubernetes:
+##### Kubernetes:
 
 ```bash
 WEBHOOK_SECRET="Long-Password-Phrase-Goes-Here"
@@ -108,7 +108,7 @@ WEBHOOK_SECRET="Long-Password-Phrase-Goes-Here"
 kubectl create secret generic -n openfaas-fn github-webhook-secret --from-literal github-webhook-secret="$WEBHOOK_SECRET"
 ```
 
-Swarm:
+##### Swarm:
 
 ```bash
 WEBHOOK_SECRET="Long-Password-Phrase-Goes-Here"
