@@ -7,7 +7,7 @@ Installing OpenFaaS Cloud requires some initial setup with GitHub or GitLab and 
 * Kubernetes or Docker Swarm (Docker cannot be running with XFS as a backing file-system due to buildkit restrictions)
 * Registry account - Docker Hub account or private registry with TLS
 * OpenFaaS deployed with authentication enabled
-* Extended timeouts for the queue-worker, gateway and the backend provider
+* Extended timeouts for the queue-worker, gateway and the backend provider ?
 
 For the queue-worker, set the `ack_wait` field to `15m` to allow for a Docker build of up to 15 minutes total.
 
