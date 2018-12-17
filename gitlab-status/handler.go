@@ -88,8 +88,8 @@ func sendReport(URL string, token string, state string, desc string, context str
 		return fmt.Errorf("error while creating request to GitLab API: %s", reqErr.Error())
 	}
 	req.Header.Set("PRIVATE-TOKEN", token)
-	client := &http.Client{}
-	resp, clientErr := client.Do(req)
+
+	resp, clientErr := http.DefaultClient.Do(req)
 	if clientErr != nil {
 		return fmt.Errorf("error while sending request to GitLab API: %s", clientErr.Error())
 	}
