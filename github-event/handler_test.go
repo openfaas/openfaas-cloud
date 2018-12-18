@@ -5,6 +5,8 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+
+	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
 type HTTPHandler struct {
@@ -61,5 +63,75 @@ func Test_Handle_ValidateCustomersInvalid(t *testing.T) {
 	if res != want {
 		t.Errorf("want error: \"%s\", got: \"%s\"", want, res)
 		t.Fail()
+	}
+}
+
+func Test_Handle_Event(t *testing.T) {
+	audit = sdk.NilLogger{}
+	os.Setenv("Http_X_Hub_Signature", "")
+	var events = []struct {
+		scenario          string
+		header            string
+		action            string
+		validateCustomers string
+		validateHmac      string
+		want              string
+	}{
+		{
+			scenario:          "Empty event",
+			header:            "",
+			action:            "",
+			validateCustomers: "false",
+			validateHmac:      "false",
+			want:              "github-event cannot handle event: ",
+		},
+		{
+			scenario:          "Non-supported event",
+			header:            "other",
+			action:            "",
+			validateCustomers: "false",
+			validateHmac:      "false",
+			want:              "github-event cannot handle event: other",
+		},
+		{
+			scenario:          "Validate customers",
+			header:            "push",
+			action:            "",
+			validateCustomers: "true",
+			validateHmac:      "false",
+			want:              "Customer:  not found in CUSTOMERS file via ",
+		},
+		{
+			scenario:          "Push event",
+			header:            "push",
+			action:            "",
+			validateCustomers: "false",
+			validateHmac:      "false",
+			want:              "unable to read secret: /var/openfaas/secrets/payload-secret, error: open /var/openfaas/secrets/payload-secret: no such file or directory",
+		},
+	}
+	for _, event := range events {
+		t.Run(event.scenario, func(t *testing.T) {
+			os.Setenv("Http_X_Github_Event", event.header)
+			os.Setenv("validate_customers", event.validateCustomers)
+
+			req := []byte{}
+			audit = sdk.NilLogger{}
+			server := httptest.NewServer(&HTTPHandler{})
+
+			if event.validateCustomers == "true" {
+				os.Setenv("customers_url", server.URL)
+				req = []byte(
+					`{"ref":"refs/heads/master","repository":{ "owner": { "login": "alexellis" } }}`,
+				)
+				event.want = event.want + server.URL
+			}
+
+			res := Handle(req)
+
+			if res != event.want {
+				t.Errorf("want %s, but got %s", event.want, res)
+			}
+		})
 	}
 }
