@@ -18,9 +18,16 @@ import (
 // Source name for this function when auditing
 const Source = "github-event"
 
+var audit sdk.Audit
+
 // Handle receives events from the GitHub app and checks the origin via
 // HMAC. Valid events are push or installation events.
 func Handle(req []byte) string {
+
+	if audit == nil {
+		audit = sdk.AuditLogger{}
+	}
+
 	eventHeader := os.Getenv("Http_X_Github_Event")
 	xHubSignature := os.Getenv("Http_X_Hub_Signature")
 
@@ -172,7 +179,6 @@ func Handle(req []byte) string {
 }
 
 func garbageCollect(garbageRequests []GarbageRequest) error {
-	client := http.Client{}
 
 	gatewayURL := os.Getenv("gateway_url")
 
@@ -190,7 +196,7 @@ func garbageCollect(garbageRequests []GarbageRequest) error {
 		digest := hmac.Sign(body, []byte(payloadSecret))
 		req.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
 
-		res, err := client.Do(req)
+		res, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return err
 		}
@@ -235,8 +241,6 @@ func forward(req []byte, function string, headers map[string]string) (string, in
 		return "", http.StatusInternalServerError, err
 	}
 
-	c := http.Client{}
-
 	bodyReader := bytes.NewBuffer(req)
 	pushReq, _ := http.NewRequest(http.MethodPost, os.Getenv("gateway_url")+"function/"+function, bodyReader)
 	digest := hmac.Sign(req, []byte(payloadSecret))
@@ -246,7 +250,7 @@ func forward(req []byte, function string, headers map[string]string) (string, in
 		pushReq.Header.Add(k, v)
 	}
 
-	res, err := c.Do(pushReq)
+	res, err := http.DefaultClient.Do(pushReq)
 	if err != nil {
 		msg := "cannot post to " + function + ": " + err.Error()
 		auditEvent := sdk.AuditEvent{
@@ -293,8 +297,7 @@ func getCustomers(customerURL string) ([]string, error) {
 		return nil, fmt.Errorf("Error while making the request to `%s` : %s", customerURL, reqErr.Error())
 	}
 
-	c := http.Client{}
-	res, reqErr := c.Do(httpReq)
+	res, reqErr := http.DefaultClient.Do(httpReq)
 	if reqErr != nil {
 		return nil, fmt.Errorf("Error while requesting customers: %s", reqErr.Error())
 	}
@@ -309,8 +312,8 @@ func getCustomers(customerURL string) ([]string, error) {
 
 		customers = strings.Split(string(pageBody), "\n")
 
-		for i, c := range customers {
-			customers[i] = strings.ToLower(strings.TrimSuffix(c, "\r"))
+		for customer, client := range customers {
+			customers[customer] = strings.ToLower(strings.TrimSuffix(client, "\r"))
 		}
 	}
 
