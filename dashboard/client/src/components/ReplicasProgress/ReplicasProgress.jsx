@@ -2,11 +2,10 @@ import React from 'react';
 import { Progress } from 'reactstrap';
 
 const ReplicasProgress = ({ fn }) => {
-  const { replicas, minReplicas, maxReplicas } = fn;
+  const { replicas, maxReplicas } = fn;
 
-  const lowerReplicas = minReplicas && minReplicas.length && parseInt(minReplicas, 10) ? minReplicas : 1;
   const upperReplicas = maxReplicas && maxReplicas.length && parseInt(maxReplicas, 10) ? maxReplicas : 20;
-  const percentage = Math.floor((lowerReplicas / upperReplicas) * 100);
+  const percentage = Math.floor((replicas / upperReplicas) * 100);
 
   let status = null;
 
