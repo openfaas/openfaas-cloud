@@ -2,9 +2,6 @@ provider:
   name: faas
   gateway: http://127.0.0.1:8080
 
-# If using of-router then retain the system- prefix, if not using a wildcard-DNS
-# please remove the prefix of `system-`
-
 functions:
   system-dashboard:
     lang: node8-express
@@ -23,6 +20,7 @@ functions:
       public_url: https://system.o6s.io
       # Comment out if not using public pretty-URL
       pretty_url: https://user.o6s.io/function
+      # Comment out if not using public pretty-URL
       query_pretty_url: 'true'
 
   system-list-functions:

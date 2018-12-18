@@ -625,6 +625,8 @@ $ faas-cli template pull https://github.com/openfaas-incubator/node8-express-tem
 $ faas-cli up
 ```
 
+Access the dashboard via: http://gateway_ip:port/functions/system-dashboard/username or http://system.o6s.io/dashboard where `o6s.io` is your domain configured with a wildcard entry.
+
 ### SealedSecret support
 
 The support for SealedSecrets is optional.
