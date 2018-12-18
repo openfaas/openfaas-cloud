@@ -66,7 +66,7 @@ functions:
   buildshiprun:
     lang: go
     handler: ./buildshiprun
-    image: functions/of-buildshiprun:0.9.1
+    image: functions/of-buildshiprun:0.9.2
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -75,6 +75,7 @@ functions:
       write_timeout: 5m
       write_debug: true
       read_debug: true
+      scaling_factor: 50
     environment_file:
       - buildshiprun_limits.yml
       - gateway_config.yml

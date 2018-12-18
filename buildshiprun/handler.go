@@ -191,6 +191,8 @@ func Handle(req []byte) string {
 		scalingMinLimit := getConfig("scaling_min_limit", "1")
 		scalingMaxLimit := getConfig("scaling_max_limit", "4")
 
+		scalingFactor := getConfig("scaling_factor", "20")
+
 		readOnlyRootFS := getReadOnlyRootFS()
 
 		registryAuth := getRegistryAuthSecret()
@@ -215,8 +217,9 @@ func Handle(req []byte) string {
 				sdk.FunctionLabelPrefix + "git-scm":        event.SCM,
 				"faas_function":                            serviceValue,
 				"app":                                      serviceValue,
-				"com.openfaas.scale.min": scalingMinLimit,
-				"com.openfaas.scale.max": scalingMaxLimit,
+				"com.openfaas.scale.min":    scalingMinLimit,
+				"com.openfaas.scale.max":    scalingMaxLimit,
+				"com.openfaas.scale.factor": scalingFactor,
 			},
 			Annotations: map[string]string{
 				sdk.FunctionLabelPrefix + "git-repo-url": event.RepoURL,
