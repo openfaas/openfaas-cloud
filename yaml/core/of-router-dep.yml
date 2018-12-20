@@ -27,8 +27,9 @@ spec:
           - name: auth_url
             value: "http://auth.openfaas:8080"
 # For no OAuth 2.0
+# Use the echo function deployed as part of the stack
           # - name: auth_url
-          #   value: "http://echo.openfaas:8080"
+          #   value: "http://echo.openfaas-fn:8080"
         ports:
         - containerPort: 8080
           protocol: TCP
