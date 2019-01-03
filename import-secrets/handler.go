@@ -23,7 +23,7 @@ import (
 func Handle(req []byte) string {
 	event := getEventFromHeader()
 
-	if HmacEnabled() {
+	if sdk.HmacEnabled() {
 		key, err := sdk.ReadSecret("payload-secret")
 		if err != nil {
 			fmt.Fprintf(os.Stderr, err.Error())
@@ -154,11 +154,4 @@ type SealedSecret struct {
 	Kind       string             `yaml:"kind"`
 	Metadata   *metav1.ObjectMeta `yaml:"metadata"`
 	Spec       SealedSecretSpec   `yaml:"spec"`
-}
-
-func HmacEnabled() bool {
-	if val, exists := os.LookupEnv("validate_hmac"); exists {
-		return val != "false" && val != "0"
-	}
-	return true
 }
