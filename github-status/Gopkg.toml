@@ -39,7 +39,7 @@
 
 [[constraint]]
   name = "github.com/openfaas/openfaas-cloud"
-  version = "0.5.9"
+  version = "0.8.8"
 
 [prune]
   go-tests = true

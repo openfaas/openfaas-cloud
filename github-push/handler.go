@@ -42,7 +42,7 @@ func Handle(req []byte) string {
 
 	xHubSignature := os.Getenv("Http_X_Hub_Signature")
 
-	if HmacEnabled() {
+	if sdk.HmacEnabled() {
 		webhookSecretKey, secretErr := sdk.ReadSecret("github-webhook-secret")
 		if secretErr != nil {
 			return secretErr.Error()
@@ -166,11 +166,4 @@ func reportGitHubStatus(status *sdk.Status) {
 	if reportErr != nil {
 		log.Printf("failed to report status, error: %s", reportErr.Error())
 	}
-}
-
-func HmacEnabled() bool {
-	if val, exists := os.LookupEnv("validate_hmac"); exists {
-		return val != "false" && val != "0"
-	}
-	return true
 }

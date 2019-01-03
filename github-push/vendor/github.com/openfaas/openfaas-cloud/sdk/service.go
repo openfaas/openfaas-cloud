@@ -22,3 +22,11 @@ func CreateServiceURL(URL, suffix string) string {
 	}
 	return fmt.Sprintf("%s.%s", URL, suffix)
 }
+
+// FormatShortSHA returns a 7-digit SHA
+func FormatShortSHA(sha string) string {
+	if len(sha) <= 7 {
+		return sha
+	}
+	return sha[:7]
+}

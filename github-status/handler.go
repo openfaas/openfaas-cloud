@@ -35,7 +35,7 @@ var (
 // function along with the function stack by sending
 // commit statuses to GitHub on pending, failure or success
 func Handle(req []byte) string {
-	if HmacEnabled() {
+	if sdk.HmacEnabled() {
 
 		key, keyErr := sdk.ReadSecret("payload-secret")
 		if keyErr != nil {
@@ -356,11 +356,4 @@ func formatLog(logs string, maxCheckMessageLength int) string {
 	logValue = fmt.Sprintf(frame, logValue)
 
 	return logValue
-}
-
-func HmacEnabled() bool {
-	if val, exists := os.LookupEnv("validate_hmac"); exists {
-		return val != "false" && val != "0"
-	}
-	return true
 }
