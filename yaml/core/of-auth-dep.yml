@@ -26,6 +26,13 @@ spec:
       - name: of-auth
         image: openfaas/cloud-auth:0.5.0
         imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 2
+          periodSeconds: 10
+          timeoutSeconds: 2
         env:
           - name: port
             value: "8080"

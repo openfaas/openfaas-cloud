@@ -23,6 +23,13 @@ spec:
       - name: of-builder
         image: openfaas/of-builder:0.6.2
         imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 2
+          periodSeconds: 10
+          timeoutSeconds: 2
         env:
           - name: enable_lchown
             value: "true"

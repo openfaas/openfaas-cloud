@@ -16,6 +16,13 @@ spec:
       - name: of-router
         image: openfaas/cloud-router:0.5.1
         imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 2
+          periodSeconds: 10
+          timeoutSeconds: 2
         env:
           - name: upstream_url
             value: "http://gateway.openfaas:8080"
