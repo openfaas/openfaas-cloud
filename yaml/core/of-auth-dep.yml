@@ -29,8 +29,14 @@ spec:
         env:
           - name: port
             value: "8080"
+          - name: oauth_client_secret_path
+            value: "/var/secrets/of-client-secret/of-client-secret"
+          - name: public_key_path
+            value: "/var/secrets/public/key.pub"
+          - name: private_key_path
+            value: "/var/secrets/private/key"
 # Update for your configuration:
-          - name: client_secret
+          - name: client_secret # this can also be provided via a secret named of-client-secret
             value: ""
           - name: client_id
             value: ""
@@ -49,13 +55,6 @@ spec:
             value: "https://auth.system.o6s.io"
           - name: cookie_root_domain
             value: ".system.o6s.io"
-
-          - name: public_key_path
-            value: "/var/secrets/public/key.pub"
-          - name: private_key_path
-            value: "/var/secrets/private/key"
-          - name: of-client-secret
-            value: "/var/secrets/of-client-secret/of-client-secret"
 
 # This is a default and can be overriden
           - name: customers_url
