@@ -34,7 +34,9 @@ The details page for a function:
 ### Requirements
 
 * OpenFaaS (0.9.10 or greater is recommended)
-* Docker Swarm or Kubernetes (other OpenFaaS providers may work in the future)
+* Docker Swarm or Kubernetes
+
+> Note: other OpenFaaS providers may work, but have not been tested
 
 ## Blog post
 
@@ -58,11 +60,25 @@ See also: [COMPONENTS.md](docs/COMPONENTS.md) for detailed information on each c
 
 See the [Roadmap & Features](docs/ROADMAP.md)
 
-## Try it out
+## Get started
 
-You can set up and host your own *OpenFaaS Cloud* or contact alex@openfaas.com for instructions on how to participate in a public trial of a fully-hosted service (a.k.a. Community Cluster). Read the privacy statement and terms and conditions for the hosted version of [OpenFaaS Cloud](./PRIVACY.md).
+You can set up and host your own *OpenFaaS Cloud* or contact alex@openfaas.com for instructions on how to participate in a public trial of a fully-hosted service (a.k.a. Community Cluster).
 
-Read the [development guide](docs/README.md) to find out more about the functions and to start hacking on OpenFaaS Cloud.
+### Option 1: Automated deployment (self-hosted)
+
+You can set up your own OpenFaaS Cloud with authentication, wildcard certificates using the [ofc-bootstrap tool](https://github.com/openfaas-incubator/ofc-bootstrap)
+
+This method assumes you are using Kubernetes and have a public IP available. Some basic knowledge of how to setup a GitHub App and GitHub OAuth App along with a DNS service account on Google Cloud DNS or AWS Route53.
+
+### Option 2: Manual deployment (self-hosted)
+
+The manual deployment takes longer, but covers all the requirements in detail and is the most flexible option. You may follow this guide if you are contributing to the project, or if you want to use Swarm.
+
+Read the [developer's guide](docs/README.md) to find out more about the functions and to start hacking on OpenFaaS Cloud.
+
+### Option 3: Community Cluster (SaaS)
+
+There are a limited amount of spots available on the OpenFaaS Community Cluster. To apply contact alex@openfaas.com with what you plan to run on the environment. Read the privacy statement and terms and conditions for the hosted version of [OpenFaaS Cloud](./PRIVACY.md).
 
 ## Getting help
 
