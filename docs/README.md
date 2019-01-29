@@ -231,13 +231,6 @@ kubectl apply -f ./yaml/core
 kubectl apply -f ./yaml/network-policy
 ```
 
-(Optional) Add a role of "openfaas-system" using a label to the namespace where you deployed Ingress Controller. For example if Ingress Controller is deployed in the namespace `ingress-nginx`:
-```
-kubectl label namespace ingress-nginx role=openfaas-system
-```
-
-If you don't have Ingress Controller installed in cluster. [Read this](#troubleshoot-network-policies)
-
 #### For Swarm
 
 Create the secret for your registry
@@ -469,23 +462,12 @@ kubectl get events --sort-by=.metadata.creationTimestamp -n openfaas-fn
 ```
 
 ##### Troubleshoot Network Policies
-The NetworkPolicy configuration is designed to work with a Kubernetes IngressController. If you are using a NodePort or LoadBalancer you have to deploy NetworkPolicy below.
-```yaml
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: gateway
-  namespace: openfaas
-spec:
-  policyTypes:
-    - Ingress
-  podSelector:
-    matchLabels:
-      app: gateway
-  ingress:
-    - from: []
-      ports:
-        - port: 8080
+
+The NetworkPolicy configuration is designed to work with a namespaces `openfaas` and `openfaas-fn`.
+If your are using different namespaces you need to make sure that they're labeled correctly:
+```
+kubectl label ns openfaas role=openfaas-system
+kubectl label ns openfaas-fn role=openfaas-fn
 ```
 
 #### Troubleshoot Swarm
