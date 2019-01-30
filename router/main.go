@@ -42,6 +42,7 @@ func main() {
 
 	router := http.NewServeMux()
 	router.HandleFunc("/", makeHandler(c, cfg.Timeout, cfg.UpstreamURL, &authProxy1))
+	router.HandleFunc("/healthz", makeHealthzHandler())
 
 	log.Printf("Using port %s\n", cfg.Port)
 
@@ -260,4 +261,19 @@ func makeProxy(timeout time.Duration) *http.Client {
 		},
 	}
 	return &proxyClient
+}
+
+func makeHealthzHandler() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		switch r.Method {
+		case http.MethodGet:
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("OK"))
+			break
+
+		default:
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
+	}
 }

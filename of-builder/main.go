@@ -61,6 +61,8 @@ func main() {
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/build", buildHandler)
+	router.HandleFunc("/healthz", healthzHandler)
+
 	server := &http.Server{
 		Addr:    "0.0.0.0:8080",
 		Handler: router,
@@ -310,4 +312,17 @@ func validateRequest(req *[]byte, r *http.Request) (err error) {
 	}
 
 	return nil
+}
+
+func healthzHandler(w http.ResponseWriter, r *http.Request) {
+
+	switch r.Method {
+	case http.MethodGet:
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+		break
+
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
 }
