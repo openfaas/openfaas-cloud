@@ -107,7 +107,7 @@ docker run \
  -e client_id="$CLIENT_ID" \
  -e PORT=8080 \
  -p 8880:8080 \
- -e external_redirect_domain="http://auth.system.gw.io:8081" \
+ -e external_redirect_domain="http://auth.system.gw.io/" \
  -e cookie_root_domain=".system.gw.io" \
  -e public_key_path=/tmp/key.pub \
  -e private_key_path=/tmp/key \
@@ -131,7 +131,7 @@ docker service create --name auth \
  -e client_id="$CLIENT_ID" \
  -e PORT=8080 \
  -p 8085:8080 \
- -e external_redirect_domain="http://auth.system.gw.io:8081" \
+ -e external_redirect_domain="http://auth.system.gw.io/" \
  -e cookie_root_domain=".system.gw.io" \
  -e public_key_path=/run/secrets/jwt-public-key \
  -e private_key_path=/run/secrets/jwt-private-key \
@@ -147,5 +147,5 @@ docker service create --name auth \
 If you want to integrate OpenFaaS Cloud with your self-managed GitLab you need to set env variables, where instead of ... you should put valid url to your self-hosted GitLab (for example: https://gitlab.domain.com):
 ```
 oauth_provider="gitlab"
-oauth_provider_base_url="..."
+oauth_provider_base_url="https://gitlab.domain.com"
 ```
