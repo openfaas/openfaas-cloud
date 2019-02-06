@@ -1,4 +1,4 @@
-FROM golang:1.9-alpine AS builder
+FROM golang:1.10-alpine AS builder
 
 WORKDIR /go/src/github.com/openfaas/openfaas-cloud/router
 
@@ -10,7 +10,7 @@ COPY config_test.go     .
 RUN go test -v \
     && go build -o /usr/bin/router .
 
-FROM alpine:3.8
+FROM alpine:3.9
 
 RUN apk add --no-cache ca-certificates
 

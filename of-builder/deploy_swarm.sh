@@ -10,9 +10,9 @@
 docker rm -f of-buildkit
 docker run -d --net func_functions -d --privileged \
 --restart always \
---name of-buildkit alexellis2/buildkit:2018-04-17 --addr tcp://0.0.0.0:1234
+--name of-buildkit moby/buildkit:v0.3.3 --addr tcp://0.0.0.0:1234
 
-export OF_BUILDER_TAG=0.6.1
+export OF_BUILDER_TAG=0.6.2
 
 # You should mount your .docker/config.json file here, but first make sure it is
 # readable. `chmod 777 $HOME/.docker/config.json`

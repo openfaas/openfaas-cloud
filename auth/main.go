@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/openfaas/openfaas-cloud/auth/provider"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/openfaas/openfaas-cloud/auth/provider"
 
 	"github.com/openfaas/openfaas-cloud/auth/handlers"
 )
@@ -39,7 +40,7 @@ func main() {
 		log.Fatalf(
 			"OAuth 2 provider %s is not supported. Currently supported providers: %s",
 			oauthProvider,
-			provider.GetSupportedString,
+			provider.GetSupportedString(),
 		)
 	}
 
@@ -87,11 +88,11 @@ func main() {
 		CookieExpiresIn:        cookieExpiry,
 		CookieRootDomain:       cookieRootDomain,
 		ExternalRedirectDomain: externalRedirectDomain,
-		Scope:                  "read:org,read:user,user:email",
-		PublicKeyPath:          publicKeyPath,
-		PrivateKeyPath:         privateKeyPath,
-		OAuthClientSecretPath:  oauthClientSecretPath,
-		Debug:                  writeDebug,
+		Scope:                 "read:org,read:user,user:email",
+		PublicKeyPath:         publicKeyPath,
+		PrivateKeyPath:        privateKeyPath,
+		OAuthClientSecretPath: oauthClientSecretPath,
+		Debug: writeDebug,
 	}
 
 	protected := []string{

@@ -92,14 +92,14 @@ The builder service calls into the buildkit daemon to build an OpenFaaS function
 ### Build
 
 ```sh
-export OF_BUILDER_TAG=0.6.1
+export OF_BUILDER_TAG=0.6.2
 make build push
 ```
 
 ### Deploy
 
 ```
-export OF_BUILDER_TAG=0.6.1
+export OF_BUILDER_TAG=0.6.2
 docker service create \
  --network func_functions \
  --name of-builder \

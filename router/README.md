@@ -37,7 +37,7 @@ curl -H "Host: alexellis.domain.io" localhost:8081/kubecon-tester
 ### Development
 
 ```sh
-TAG=0.5.1 make build ; make push
+TAG=0.6.0 make build push
 ```
 
 > Note: on Kubernetes change `gateway:8080` to `gateway.openfaas:8080`.
@@ -45,7 +45,7 @@ TAG=0.5.1 make build ; make push
 If you wish to bypass authentication you can run the router auth an auth_url of the `echo` function deployed via the `stack.yml`.
 
 ``` sh
-TAG=0.5.1
+TAG=0.6.0
 
 # As a container
 

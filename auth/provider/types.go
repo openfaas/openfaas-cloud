@@ -10,7 +10,6 @@ const (
 	gitlabName = "gitlab"
 )
 
-
 type Profile struct {
 	ID        int       `json:"id"`
 	Login     string    `json:"login"`
@@ -29,8 +28,8 @@ var supportedProviders = []string{
 	gitlabName,
 }
 
-func GetSupportedString() {
-	strings.Join(supportedProviders, ", ")
+func GetSupportedString() string {
+	return strings.Join(supportedProviders, ", ")
 }
 
 func IsSupported(name string) bool {
@@ -42,4 +41,3 @@ func IsSupported(name string) bool {
 
 	return false
 }
-
