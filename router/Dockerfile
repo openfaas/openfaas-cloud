@@ -1,5 +1,5 @@
 FROM golang:1.10-alpine AS builder
-
+RUN apk add --no-cache g++
 WORKDIR /go/src/github.com/openfaas/openfaas-cloud/router
 
 COPY main.go            .

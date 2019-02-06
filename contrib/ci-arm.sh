@@ -2,6 +2,7 @@
 
 HERE=`pwd`
 ARCH=$(uname -m)
+ACTION=${1}
 declare -a folders=("of-builder" "router" "auth")
 
 if [ "$ARCH" = "armv7l" ] ; then
@@ -13,9 +14,9 @@ else
    exit 1
 fi
 
-echo "Executing ${1} operation for ${ARM_VERSION} target architecture"
+echo "Executing ${ACTION} action for ${ARM_VERSION} target architecture"
 
 for i in "${folders[@]}"
 do
-    cd $HERE/$i && make ci-${ARM_VERSION}-${1}
+    cd $HERE/$i && make ci-${ARM_VERSION}-${ACTION}
 done
