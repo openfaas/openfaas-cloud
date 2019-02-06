@@ -53,3 +53,44 @@ func Test_ValidateCustomers(t *testing.T) {
 		})
 	}
 }
+
+func Test_ValidateCustomerList(t *testing.T) {
+	tests := []struct {
+		Title        string
+		CustomerList []string
+		Output       bool
+	}{
+		{
+			Title:        "Customer names without - ",
+			CustomerList: []string{"alexellis", "stefan", "ivana"},
+			Output:       true,
+		},
+		{
+			Title:        "Customer names with -",
+			CustomerList: []string{"alexellis", "alexellis-suffix", "stefan", "ivana"},
+			Output:       false,
+		},
+		{
+			Title:        "Customer names with -",
+			CustomerList: []string{"alexellis", "stefan-prodan", "stefan", "ivana"},
+			Output:       false,
+		},
+		{
+			Title:        "Customer names with -",
+			CustomerList: []string{"alexellis", "stefan-prodan", "ivana"},
+			Output:       true,
+		},
+		{
+			Title:        "Customer names without -",
+			CustomerList: []string{"alexellis", "alexe", "stefan", "ivana"},
+			Output:       true,
+		},
+	}
+
+	for _, test := range tests {
+		value := ValidateCustomerList(test.CustomerList)
+		if value != test.Output {
+			t.Errorf("Expected value: %v, got: %v", test.Output, value)
+		}
+	}
+}
