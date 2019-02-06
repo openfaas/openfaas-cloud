@@ -1,0 +1,30 @@
+provider:
+  name: faas
+  gateway: http://127.0.0.1:8080
+
+functions:
+  system-dashboard:
+    lang: node8-express
+    handler: ./of-cloud-dashboard
+    image: functions/of-cloud-dashboard:0.3.3
+    labels:
+      openfaas-cloud: "1"
+      role: openfaas-system
+    environment_file:
+      - dashboard_config.yml
+
+  system-list-functions:
+    skip_build: true
+    image: functions/list-functions:0.4.7
+    fprocess: ./handler
+    labels:
+      openfaas-cloud: "1"
+      role: openfaas-system
+    environment:
+      gateway_url: http://gateway.openfaas:8080/
+      secret_mount_path: /var/openfaas/secrets
+      basic_auth: true
+      write_debug: true
+    secrets:
+      - basic-auth-user
+      - basic-auth-password

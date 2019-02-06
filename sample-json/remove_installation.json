@@ -1,0 +1,78 @@
+{
+  "action": "removed",
+  "installation": {
+    "id": 67038,
+    "account": {
+      "login": "alexellis",
+      "id": 27013154,
+      "avatar_url": "https://avatars3.githubusercontent.com/u/27013154?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/openfaas",
+      "html_url": "https://github.com/openfaas",
+      "followers_url": "https://api.github.com/users/openfaas/followers",
+      "following_url": "https://api.github.com/users/openfaas/following{/other_user}",
+      "gists_url": "https://api.github.com/users/openfaas/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/openfaas/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/openfaas/subscriptions",
+      "organizations_url": "https://api.github.com/users/openfaas/orgs",
+      "repos_url": "https://api.github.com/users/openfaas/repos",
+      "events_url": "https://api.github.com/users/openfaas/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/openfaas/received_events",
+      "type": "Organization",
+      "site_admin": false
+    },
+    "repository_selection": "all",
+    "access_tokens_url": "https://api.github.com/installations/67038/access_tokens",
+    "repositories_url": "https://api.github.com/installation/repositories",
+    "html_url": "https://github.com/organizations/openfaas/settings/installations/67038",
+    "app_id": 6661,
+    "target_id": 27013154,
+    "target_type": "Organization",
+    "permissions": {
+      "pull_requests": "write",
+      "issues": "write",
+      "contents": "read",
+      "metadata": "read"
+    },
+    "events": [
+      "commit_comment",
+      "issues",
+      "issue_comment",
+      "pull_request",
+      "pull_request_review_comment"
+    ],
+    "created_at": 1510607894,
+    "updated_at": 1510608399,
+    "single_file_name": null
+  },
+  "repository_selection": "selected",
+  "repositories_added": [
+
+  ],
+  "repositories_removed": [
+    {
+      "id": 121932906,
+      "name": "release",
+      "full_name": "alexellis/release"
+    }
+  ],
+  "sender": {
+    "login": "alexellis",
+    "id": 6358735,
+    "avatar_url": "https://avatars1.githubusercontent.com/u/6358735?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/alexellis",
+    "html_url": "https://github.com/alexellis",
+    "followers_url": "https://api.github.com/users/alexellis/followers",
+    "following_url": "https://api.github.com/users/alexellis/following{/other_user}",
+    "gists_url": "https://api.github.com/users/alexellis/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/alexellis/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/alexellis/subscriptions",
+    "organizations_url": "https://api.github.com/users/alexellis/orgs",
+    "repos_url": "https://api.github.com/users/alexellis/repos",
+    "events_url": "https://api.github.com/users/alexellis/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/alexellis/received_events",
+    "type": "User",
+    "site_admin": false
+  }
+}

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="theme-color" content="#000000">
+  <!-- inject __BASE_HREF__ from the server side -->
+  <base href="__BASE_HREF__">
+  <link rel="manifest" href="%PUBLIC_URL%/manifest.json">
+  <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico?v=1">
+  <title>OpenFaaS Cloud</title>
+  <!-- inject global variables from the server side -->
+  <script>
+    window.SIGNED_IN = '__IS_SIGNED_IN__';
+    window.BASE_HREF = '__BASE_HREF__';
+    window.PUBLIC_URL = '__PUBLIC_URL__';
+    window.PRETTY_URL = '__PRETTY_URL__';
+    window.QUERY_PRETTY_URL = '__QUERY_PRETTY_URL__';
+  </script>
+</head>
+
+<body>
+  <noscript>
+    You need to enable JavaScript to run this app.
+  </noscript>
+  <div id="root"></div>
+</body>
+
+</html>

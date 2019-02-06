@@ -1,0 +1,38 @@
+{
+  "name": "of-cloud-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^1.2.4",
+    "@fortawesome/free-brands-svg-icons": "^5.3.1",
+    "@fortawesome/free-solid-svg-icons": "^5.3.1",
+    "@fortawesome/react-fontawesome": "^0.1.2",
+    "axios": "^0.18.0",
+    "bootstrap": "^4.1.3",
+    "moment": "^2.22.2",
+    "prop-types": "^15.6.2",
+    "query-string": "^5.1.1",
+    "react": "^16.4.2",
+    "react-ace": "^6.1.4",
+    "react-dom": "^16.4.2",
+    "react-router-dom": "^4.3.1",
+    "react-scripts": "1.1.5",
+    "reactstrap": "^6.4.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "PUBLIC_URL=dist react-scripts build",
+    "postbuild": "rm -rf ../of-cloud-dashboard/dist && mv build ../of-cloud-dashboard/dist",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  },
+  "proxy": {
+    "/api": {
+      "pathRewrite": {
+        "^/api": "/"
+      },
+      "target": "http://127.0.0.1:8080/function"
+    }
+  },
+  "devDependencies": {}
+}

@@ -1,0 +1,12 @@
+environment:
+  write_debug: true
+  # gateway_url: http://gateway:8080/ # when using Swarm
+  gateway_url: http://gateway.openfaas:8080/
+  # base_href: `/function/system-dashboard/` # if not using router
+  base_href: '/dashboard/'
+  # public_url: http://laptop-ip:8080/ # use IP of laptop or remote machine, do not use localhost/127.0.0.1
+  public_url: https://system.o6s.io
+  # Comment out if not using public pretty-URL
+  pretty_url: https://user.o6s.io/function
+  # Comment out if not using public pretty-URL
+  query_pretty_url: 'true'

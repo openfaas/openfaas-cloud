@@ -1,0 +1,43 @@
+environment:
+  validate_hmac: "1"
+# URLs
+  gateway_url:  http://gateway.openfaas:8080/
+  gateway_public_url: https://cloud.o6s.io/
+  audit_url: http://gateway.openfaas:8080/function/audit-event
+  # Remove gateway_pretty_url if not using pretty URL
+  gateway_pretty_url: https://user.o6s.io/function
+  # Add your custom templates by adding a coma separated URL, i.e. extend the current value with:
+  # ", https://github.com/custom/template.git, https://github.com/custom/template2.git"
+  custom_templates: "https://github.com/openfaas-incubator/node8-express-template.git, https://github.com/openfaas-incubator/golang-http-template.git"
+
+# Security
+  customers_url: "https://raw.githubusercontent.com/openfaas/openfaas-cloud/master/CUSTOMERS"
+  basic_auth: true
+  secret_mount_path: /var/openfaas/secrets
+
+# Container builder
+  repository_url: docker.io/ofcommunity/
+  push_repository_url: docker.io/ofcommunity/
+  builder_url: http://of-builder.openfaas:8080/
+
+# Logging
+  s3_url: cloud-minio.openfaas.svc.cluster.local:9000
+  s3_region: us-east-1
+  s3_tls: false
+  s3_bucket: pipeline
+
+# Function policy
+  readonly_root_filesystem: true
+  scaling_min_limit: 1
+  scaling_max_limit: 4
+  prometheus_host: prometheus.openfaas
+  prometheus_port: 9090
+  metrics_window: 60m
+
+# To use a shared Docker Hub account.
+#  repository_url: docker.io/ofcommunity/
+#  push_repository_url: docker.io/ofcommunity/
+
+# Private repo config
+# repository_url: 127.0.0.1:5000
+# push_repository_url: registry:5000

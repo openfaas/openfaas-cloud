@@ -1,0 +1,79 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: of-auth
+  namespace: openfaas
+spec:
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        prometheus.io.scrape: "false"
+      labels:
+        app: of-auth
+    spec:
+      volumes:
+        - name: jwt-private-key
+          secret:
+            secretName: jwt-private-key
+        - name: jwt-public-key
+          secret:
+            secretName: jwt-public-key
+        - name: of-client-secret
+          secret:
+            secretName: of-client-secret
+      containers:
+      - name: of-auth
+        image: openfaas/cloud-auth:0.4.0
+        imagePullPolicy: Always
+        env:
+          - name: port
+            value: "8080"
+          - name: oauth_client_secret_path
+            value: "/var/secrets/of-client-secret/of-client-secret"
+          - name: public_key_path
+            value: "/var/secrets/public/key.pub"
+          - name: private_key_path
+            value: "/var/secrets/private/key"
+# Update for your configuration:
+          - name: client_secret # this can also be provided via a secret named of-client-secret
+            value: ""
+          - name: client_id
+            value: ""
+          - name: oauth_provider_base_url
+            value: "" # If you want to use GitLab, put here address of it. For example: https://gitlab.domain.com
+          - name: oauth_provider
+            value: "github"
+# Local test config
+          # - name: external_redirect_domain
+          #   value: "http://auth.system.gw.io:8081"
+          # - name: cookie_root_domain
+          #   value: ".system.gw.io"
+
+# Community cluster config:
+          - name: external_redirect_domain
+            value: "https://auth.system.o6s.io"
+          - name: cookie_root_domain
+            value: ".system.o6s.io"
+
+# This is a default and can be overriden
+          - name: customers_url
+            value: "https://raw.githubusercontent.com/openfaas/openfaas-cloud/master/CUSTOMERS"
+
+          - name: write_debug
+            value: "false"
+
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        volumeMounts:
+        - name: jwt-private-key
+          readOnly: true
+          mountPath: "/var/secrets/private/"
+        - name: jwt-public-key
+          readOnly: true
+          mountPath: "/var/secrets/public"
+        - name: of-client-secret
+          readOnly: true
+          mountPath: "/var/secrets/of-client-secret"
+

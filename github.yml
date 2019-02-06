@@ -1,0 +1,8 @@
+environment:
+    github_app_id: "12345"
+    report_status: "true"
+
+# Optional override
+#    private_key_filename: ""
+
+#    github_webhook_secret: Deprecated - use a secret named github-webhook-secret

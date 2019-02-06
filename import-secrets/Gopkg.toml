@@ -1,0 +1,170 @@
+[[constraint]]
+  name = "github.com/bitnami-labs/sealed-secrets"
+  version = "0.7.0"
+
+[[constraint]]
+  name = "gopkg.in/yaml.v2"
+  version = "2.2.1"
+
+[[constraint]]
+  branch = "master"
+  name = "k8s.io/apimachinery"
+
+[[constraint]]
+  version = "0.8.8"
+  name = "github.com/openfaas/openfaas-cloud"
+
+[prune]
+  go-tests = true
+  unused-packages = true
+
+# everything below need to be present for k8s.io/client-go to work with dep
+# https://github.com/kubernetes/client-go/blob/master/INSTALL.md#dep-not-supported-yet
+
+[[constraint]]
+  name = "k8s.io/client-go"
+  version = "7.0.0"
+
+[[override]]
+  name = "cloud.google.com/go"
+  revision = "3b1ae45394a234c385be014e9a488f2bb6eef821"
+
+[[override]]
+  name = "github.com/Azure/go-autorest"
+  revision = "1ff28809256a84bb6966640ff3d0371af82ccba4"
+
+[[override]]
+  name = "github.com/davecgh/go-spew"
+  revision = "782f4967f2dc4564575ca782fe2d04090b5faca8"
+
+[[override]]
+  name = "github.com/dgrijalva/jwt-go"
+  revision = "01aeca54ebda6e0fbfafd0a524d234159c05ec20"
+
+[[override]]
+  name = "github.com/docker/spdystream"
+  revision = "449fdfce4d962303d702fec724ef0ad181c92528"
+
+[[override]]
+  name = "github.com/ghodss/yaml"
+  revision = "73d445a93680fa1a78ae23a5839bad48f32ba1ee"
+
+[[override]]
+  name = "github.com/gogo/protobuf"
+  revision = "c0656edd0d9eab7c66d1eb0c568f9039345796f7"
+
+[[override]]
+  name = "github.com/golang/glog"
+  revision = "44145f04b68cf362d9c4df2182967c2275eaefed"
+
+[[override]]
+  name = "github.com/golang/groupcache"
+  revision = "02826c3e79038b59d737d3b1c0a1d937f71a4433"
+
+[[override]]
+  name = "github.com/golang/protobuf"
+  revision = "1643683e1b54a9e88ad26d98f81400c8c9d9f4f9"
+
+[[override]]
+  name = "github.com/google/btree"
+  revision = "7d79101e329e5a3adf994758c578dab82b90c017"
+
+[[override]]
+  name = "github.com/google/gofuzz"
+  revision = "44d81051d367757e1c7c6a5a86423ece9afcf63c"
+
+[[override]]
+  name = "github.com/googleapis/gnostic"
+  revision = "0c5108395e2debce0d731cf0287ddf7242066aba"
+
+[[override]]
+  name = "github.com/gophercloud/gophercloud"
+  revision = "781450b3c4fcb4f5182bcc5133adb4b2e4a09d1d"
+
+[[override]]
+  name = "github.com/gregjones/httpcache"
+  revision = "787624de3eb7bd915c329cba748687a3b22666a6"
+
+[[override]]
+  name = "github.com/hashicorp/golang-lru"
+  revision = "a0d98a5f288019575c6d1f4bb1573fef2d1fcdc4"
+
+[[override]]
+  name = "github.com/imdario/mergo"
+  revision = "6633656539c1639d9d78127b7d47c622b5d7b6dc"
+
+[[override]]
+  name = "github.com/json-iterator/go"
+  revision = "2ddf6d758266fcb080a4f9e054b9f292c85e6798"
+
+[[override]]
+  name = "github.com/modern-go/concurrent"
+  revision = "bacd9c7ef1dd9b15be4a9909b8ac7a4e313eec94"
+
+[[override]]
+  name = "github.com/modern-go/reflect2"
+  revision = "05fbef0ca5da472bbf96c9322b84a53edc03c9fd"
+
+[[override]]
+  name = "github.com/peterbourgon/diskv"
+  revision = "5f041e8faa004a95c88a202771f4cc3e991971e6"
+
+[[override]]
+  name = "github.com/pmezard/go-difflib"
+  revision = "d8ed2627bdf02c080bf22230dbb337003b7aba2d"
+
+[[override]]
+  name = "github.com/spf13/pflag"
+  revision = "583c0c0531f06d5278b7d917446061adc344b5cd"
+
+[[override]]
+  name = "github.com/stretchr/testify"
+  revision = "c679ae2cc0cb27ec3293fea7e254e47386f05d69"
+
+[[override]]
+  name = "golang.org/x/crypto"
+  revision = "49796115aa4b964c318aad4f3084fdb41e9aa067"
+
+[[override]]
+  name = "golang.org/x/net"
+  revision = "1c05540f6879653db88113bc4a2b70aec4bd491f"
+
+[[override]]
+  name = "golang.org/x/oauth2"
+  revision = "a6bd8cefa1811bd24b86f8902872e4e8225f74c4"
+
+[[override]]
+  name = "golang.org/x/sys"
+  revision = "95c6576299259db960f6c5b9b69ea52422860fce"
+
+[[override]]
+  name = "golang.org/x/text"
+  revision = "b19bf474d317b857955b12035d2c5acb57ce8b01"
+
+[[override]]
+  name = "golang.org/x/time"
+  revision = "f51c12702a4d776e4c1fa9b0fabab841babae631"
+
+[[override]]
+  name = "gopkg.in/inf.v0"
+  revision = "3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4"
+
+[[override]]
+  name = "gopkg.in/yaml.v2"
+  revision = "670d4cfef0544295bc27a114dbac37980d83185a"
+
+[[override]]
+  name = "k8s.io/api"
+  revision = "5204d3828432611e41488a8042bc1d16a7c12e05"
+
+[[override]]
+  name = "k8s.io/apimachinery"
+  revision = "c3bfbaf8b18d67a795cc73475c511440d4b4de8d"
+
+[[override]]
+  name = "k8s.io/kube-openapi"
+  revision = "8a9b82f00b3a86eac24681da3f9fe6c34c01cea2"
+
+[[constraint]]
+  name = "github.com/alexellis/hmac"
+  version = "1.2.0"

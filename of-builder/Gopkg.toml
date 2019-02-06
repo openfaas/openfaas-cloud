@@ -1,0 +1,54 @@
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/docker/docker"
+
+[[constraint]]
+  name = "github.com/gorilla/mux"
+  version = "1.5.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/moby/buildkit"
+
+[[constraint]]
+  name = "github.com/pkg/errors"
+  version = "0.8.0"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/sync"
+
+[[override]]
+  name = "github.com/docker/distribution"
+  revision = "30578ca32960a4d368bf6db67b0a33c2a1f3dc6f"
+
+[[override]]
+  name = "google.golang.org/grpc"
+  version = "v1.7.4"
+
+[[override]]
+  # pr#25
+  name = "github.com/grpc-ecosystem/grpc-opentracing"
+  revision = "420e5c3331a082e0c873adeeab1819fe1749dd0b"
+  source = "github.com/tonistiigi/grpc-opentracing"
+
+[prune]
+  go-tests = true
+  unused-packages = true
+
+[[constraint]]
+  name = "github.com/alexellis/hmac"
+  version = "1.2.0"
+
+[[constraint]]
+  name = "github.com/openfaas/openfaas-cloud"
+  version = "0.7.0"
+
+[[constraint]]
+  name = "github.com/openfaas/faas-provider"
+  version = "0.7.1"
+
+[[constraint]]
+  name = "github.com/openfaas/faas"
+  version = "0.9.6"

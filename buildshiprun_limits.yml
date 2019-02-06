@@ -1,0 +1,3 @@
+environment:
+  function_memory_limit_mb: 128 #The differences in formatting are handled by buildshiprun
+  

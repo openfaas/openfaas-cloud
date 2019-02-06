@@ -1,0 +1,18 @@
+.function-table .table-hover > tbody > tr:hover {
+  cursor: pointer;
+}
+
+.function-table .progress {
+  height: 10px;
+  margin-bottom: 0;
+}
+
+.function-table .progress-bar-success,
+.function-table .progress-bar-warning,
+.function-table .progress-bar-danger {
+  opacity: 0.8;
+}
+
+.function-table .btn-xs {
+  margin: 1px;
+}
