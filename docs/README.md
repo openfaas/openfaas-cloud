@@ -631,18 +631,21 @@ Access the dashboard via: http://gateway_ip:port/functions/system-dashboard/user
 
 The support for SealedSecrets is optional.
 
-* Add the CRD entry for SealedSecret:
+* Install SealedSecrets from chart:
 
 ```sh
-release=$(curl --silent "https://api.github.com/repos/bitnami-labs/sealed-secrets/releases/latest" | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p')
-kubectl create -f https://github.com/bitnami-labs/sealed-secrets/releases/download/$release/sealedsecret-crd.yaml
+helm install --namespace kube-system --name ofc-sealedsecrets stable/sealed-secrets
 ```
 
-* Install the CRD controller to manage SealedSecrets:
-
-```sh
-kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/$release/controller.yaml
-```
+> Note: If you're having issues with already existing CRD, like:
+>```
+>Error: release ofc-sealedsecrets failed: clusterroles.rbac.authorization.k8s.io "secrets-unsealer" already exists
+>```
+>run the following before `helm install`
+>```
+>helm del --purge ofc-sealedsecrets
+>kubectl delete customresourcedefinition sealedsecrets.bitnami.com
+>```
 
 * Install kubeseal CLI
 
