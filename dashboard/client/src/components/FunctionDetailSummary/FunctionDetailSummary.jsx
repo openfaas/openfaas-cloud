@@ -179,9 +179,9 @@ const FunctionDetailSummary = ({
               }
             />
           ) : (
-            <h1 className="font-weight-bold text-center">
-              {fn.invocationCount}
-            </h1>
+            <div className="h-100 d-flex justify-content-center align-items-center">
+              <FontAwesomeIcon icon="spinner" spin />
+            </div>
           )}
         </FunctionOverviewPanel>
       </div>
