@@ -1,0 +1,204 @@
+provider:
+  name: faas
+  gateway: http://127.0.0.1:8080
+
+functions:
+  system-github-event:
+    lang: go-armhf
+    handler: ./github-event
+    image: functions/github-event:0.7.1-armhf
+    labels:
+      openfaas-cloud: "1"
+      role: openfaas-system
+    environment:
+      validate_hmac: true
+      write_debug: true
+      read_debug: true
+      validate_customers: true
+    environment_file:
+      - github.yml
+      - gateway_config.yml
+    secrets:
+      - github-webhook-secret
+      - payload-secret
+
+  github-push:
+    lang: go-armhf
+    handler: ./github-push
+    image: functions/github-push:0.7.1-armhf
+    labels:
+      openfaas-cloud: "1"
+      role: openfaas-system
+    environment:
+      validate_hmac: true
+      read_timeout: 10s
+      write_timeout: 10s
+      write_debug: true
+      read_debug: true
+    environment_file:
+      - gateway_config.yml
+      - github.yml
+    secrets:
+      - github-webhook-secret
+      - payload-secret
+
+  git-tar:
+    lang: dockerfile
+    handler: ./git-tar
+    image: functions/of-git-tar:0.9.1-armhf
+    labels:
+      openfaas-cloud: "1"
+      role: openfaas-system
+    environment:
+      read_timeout: 15m
+      write_timeout: 15m
+      write_debug: true
+      read_debug: true
+    environment_file:
+      - gateway_config.yml
+      - github.yml
+    secrets:
+      - payload-secret
+      - private-key
+# Uncomment this for GitLab
+#      - gitlab-api-token
+
+  buildshiprun:
+    lang: go-armhf
+    handler: ./buildshiprun
+    image: functions/of-buildshiprun:0.9.2-armhf
+    labels:
+      openfaas-cloud: "1"
+      role: openfaas-system
+    environment:
+      read_timeout: 5m
+      write_timeout: 5m
+      write_debug: true
+      read_debug: true
+      scaling_factor: 50
+    environment_file:
+      - buildshiprun_limits.yml
+      - gateway_config.yml
+      - github.yml
+    secrets:
+      - basic-auth-user
+      - basic-auth-password
+      - payload-secret
+#      - swarm-pull-secret
+
+  garbage-collect:
+    lang: go-armhf
+    handler: ./garbage-collect
+    image: functions/garbage-collect:0.4.3-armhf
+    labels:
+      openfaas-cloud: "1"
+      role: openfaas-system
+    environment:
+      write_debug: true
+      read_debug: true
+      read_timeout: 30s
+      write_timeout: 30s
+    environment_file:
+      - gateway_config.yml
+    secrets:
+      - basic-auth-user
+      - basic-auth-password
+      - payload-secret
+
+  github-status:
+    lang: go-armhf
+    handler: ./github-status
+    image: functions/github-status:0.3.5-armhf
+    labels:
+      openfaas-cloud: "1"
+      role: openfaas-system
+    environment:
+      write_debug: true
+      read_debug: true
+      combine_output: false
+      validate_hmac: true
+      debug_token: true
+    environment_file:
+      - gateway_config.yml
+      - github.yml
+    secrets:
+      - private-key
+      - payload-secret
+
+  import-secrets:
+    lang: go-armhf
+    handler: ./import-secrets
+    image: functions/import-secrets:0.3.2-armhf
+    labels:
+      openfaas-cloud: "1"
+      role: openfaas-system
+    environment:
+      write_debug: true
+      read_debug: true
+      validate_hmac: true
+      combined_output: false
+    environment_file:
+      - github.yml
+    secrets:
+      - payload-secret
+
+  pipeline-log:
+    lang: go-armhf
+    handler: ./pipeline-log
+    image: functions/pipeline-log:0.3.2-armhf
+    labels:
+      openfaas-cloud: "1"
+      role: openfaas-system
+    environment:
+      write_debug: true
+      read_debug: true
+      combine_output: false
+    environment_file:
+      - gateway_config.yml
+    secrets:
+      - s3-access-key
+      - s3-secret-key
+      - payload-secret
+
+  list-functions:
+    lang: go-armhf
+    handler: ./list-functions
+    image: functions/list-functions:0.4.7-armhf
+    labels:
+      openfaas-cloud: "1"
+      role: openfaas-system
+    environment:
+      write_debug: true
+      read_debug: true
+    environment_file:
+      - gateway_config.yml
+    secrets:
+      - basic-auth-user
+      - basic-auth-password
+
+  audit-event:
+    lang: go-armhf
+    handler: ./audit-event
+    image: functions/audit-event:0.1.1-armhf
+    labels:
+      openfaas-cloud: "1"
+    environment_file:
+      - slack.yml
+
+  echo:
+    skip_build: true
+    image: functions/alpine:latest-armhf
+    fprocess: cat
+    environment:
+      write_debug: true
+      read_debug: true
+
+  system-metrics:
+    lang: go-armhf
+    handler: ./system-metrics
+    image: functions/system-metrics:0.1.0-armhf
+    environment_file:
+      - gateway_config.yml
+    environment:
+      content_type: "application/json"
+
