@@ -10,7 +10,7 @@ const genLogPath = ({ shortName, gitOwner, gitRepo, gitSha }, user) => (
 );
 
 const genFnDetailPath = ({ shortName, gitOwner, gitRepo }, user) => (
-  `${user}/${shortName}?repoPath=${gitOwner}/${gitRepo}`
+  `/${user}/${shortName}?repoPath=${gitOwner}/${gitRepo}`
 );
 
 const genRepoUrl = ({ gitOwner, gitRepoURL }) => (
