@@ -63,7 +63,11 @@ docker service create --constraint="node.role==manager" \
 zeerorg/minio-armhf:latest server /export
 ```
 
-6. Change `gateway_config.yml` and remove all occurences of `.openfaas` (standard step for docker swarm)
+6. Change `gateway_config.yml`
+ - remove all occurences of `.openfaas` (standard step for docker swarm)
+ - Set `gateway_public_url` as the dns domain pointing to the IP address of machine
+ - Set `repository_url` and `push_repository_url` as "docker.io/{dockerhub_username}/"
+ - Set `s3_url` to "minio:9000"
 
 7. `faas-cli deploy -f stack.armhf.yml` and you should be good to go
 
