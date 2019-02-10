@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: of-router
-        image: openfaas/cloud-router:0.5.1
+        image: openfaas/cloud-router:0.6.0
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
