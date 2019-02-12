@@ -1,0 +1,14 @@
+provider:
+  name: faas
+  gateway: http://127.0.0.1:8080
+
+functions:
+  system-dashboard:
+    lang: node8-express-armhf
+    handler: ./of-cloud-dashboard
+    image: functions/of-cloud-dashboard:0.3.3-armhf
+    labels:
+      openfaas-cloud: "1"
+      role: openfaas-system
+    environment_file:
+      - dashboard_config.yml
