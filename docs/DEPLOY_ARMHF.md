@@ -121,7 +121,7 @@ zeerorg/minio-armhf:latest server /export
    3. Setup your "User authorization callback url" in the github app page to: "http://auth.system.subdomain:8081/"
 
 10. Dashboard Install:
-    1. Go into `/dashboard/` directory. Edit `dashboard_config.yml`
+    1. Go into `dashboard/` directory. Edit `dashboard_config.yml`
        - Remove `.openfaas` from `gateway_url`
        - Set `public_url` to `http://system.subdomain:8081/`
        - Set `pretty_url` to `http://user.subdomain:8081/function`
