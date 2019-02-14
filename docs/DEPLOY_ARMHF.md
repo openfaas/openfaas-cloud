@@ -51,6 +51,10 @@ docker secret create private-key "location of private-key.pem"
 ```bash
 SECRET_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
 ACCESS_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
+
+echo $SECRET_KEY | docker secret create s3-secret-key -
+echo $ACCESS_KEY | docker secret create s2-access-key -
+
 docker service rm minio
 
 docker service create --constraint="node.role==manager" \
