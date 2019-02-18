@@ -108,6 +108,7 @@ func Test_formatTemplateReposValid(t *testing.T) {
 		"https://github.com/openfaas/templates",
 		"https://github.com/openfaas-incubator/node8-express-template.git",
 		"https://github.com/openfaas-incubator/golang-http-template.git",
+		"https://github.com/openfaas-incubator/node10-express-template.git",
 	}
 
 	tests := []struct {
@@ -157,6 +158,7 @@ func Test_formatTemplateReposUnvalid(t *testing.T) {
 		"https://github.com/openfaas/templates",
 		"https://github.com/openfaas-incubator/node8-express-template.git",
 		"https://github.com/openfaas-incubator/golang-http-template.git",
+		"https://github.com/openfaas-incubator/node10-express-template.git",
 	}
 
 	tests := []struct {
