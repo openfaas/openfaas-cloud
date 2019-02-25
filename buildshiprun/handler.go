@@ -119,12 +119,12 @@ func Handle(req []byte) string {
 	unmarshalErr := json.Unmarshal(buildBytes, &result)
 
 	if unmarshalErr != nil {
-		log.Printf("BuildResult unmarshalErr %s\n", err)
+		log.Printf("BuildResult unmarshalErr %s\n", unmarshalErr)
 
 		auditEvent.Message = fmt.Sprintf("buildshiprun failure reading response: %s, response: %s", unmarshalErr.Error(), string(buildBytes))
 		sdk.PostAudit(auditEvent)
 
-		status.AddStatus(sdk.StatusFailure, err.Error(), sdk.BuildFunctionContext(event.Service))
+		status.AddStatus(sdk.StatusFailure, unmarshalErr.Error(), sdk.BuildFunctionContext(event.Service))
 		statusErr := reportStatus(status, event.SCM)
 		if statusErr != nil {
 			log.Printf(statusErr.Error())
