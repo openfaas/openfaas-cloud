@@ -4,7 +4,7 @@ provider:
 
 functions:
   system-dashboard:
-    lang: node8-express
+    lang: node10-express
     handler: ./of-cloud-dashboard
     image: functions/of-cloud-dashboard:0.3.3
     labels:
