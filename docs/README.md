@@ -611,12 +611,12 @@ Set `public_url` to be the URL for the IP / DNS of the OpenFaaS Cloud.
 
 **Deploy**
 
-> Don't forget to pull the `node8-express-template`
+> Don't forget to pull the `node10-express-template`
 
 ```
 $ cd dashboard
 
-$ faas-cli template pull https://github.com/openfaas-incubator/node8-express-template
+$ faas-cli template pull https://github.com/openfaas-incubator/node10-express-template
 ```
 
 > Note: if using dockerhub change the `function` prefix in `stack.yml` with your username
