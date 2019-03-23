@@ -1,4 +1,5 @@
 template/**
+e2e-test/template/**
 build
 .vscode
 .idea
@@ -9,6 +10,7 @@ secrets.yml
 
 kubeseal-darwin-amd64
 private-key
+secret-key
 basic-auth-password
 basic-auth-user
 key

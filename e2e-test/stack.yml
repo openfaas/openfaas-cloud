@@ -1,0 +1,21 @@
+provider:
+  name: faas
+  gateway: https://gateway.ofc.matiaspan.me # set to your own OpenFaaS gateway
+functions:
+  e2e-test:
+    lang: golang-http
+    handler: ./
+    image: matipan/e2e-test:v1 # change for your image name
+    environment:
+      functionOwner: matipan # owner of the repository of the function being used to test
+      functionRepo: hello-world-go # repository name for the function
+      goFilePath: ./hello-world/handler.go # file-path for the handler file
+      secret_path: /var/openfaas/secrets/
+      functionURL: https://matipan.ofc.matiaspan.me/hello-world # change this to the URL of the function you'll use to test
+      application_id: 25945 # change this for the installation number of your github app
+      exec_timeout: 360s
+      read_timeout: 360s
+      write_timeout: 360s
+    secrets:
+      - github-secret-key
+      - github-private-key
