@@ -669,6 +669,20 @@ kubeseal --fetch-cert > pub-cert.pem
 
 You will need to distribute or share pub-cert.pem so that people can use this with the OpenFaaS CLI `faas-cli cloud seal` command to seal secrets.
 
+### Custom templates
+
+You can add your own custom templates by re-deploying the `git-tar` function in `stack.yml`.
+
+In order to do that follow the steps below:
+* Navigate to `gateway_config.yml`:
+  * Under `environment` key you should be able to locate `custom_templates` in which you can see listed templates.
+  * Append your own template to the list.
+
+* Re-deploy `git-tar` function from your `stack.yml` with the changed configuration:
+```sh
+$ faas-cli deploy --filter git-tar --gateway=<of_gateway_url>
+```
+
 ### Wildcard domains with of-router
 
 Coming soon
