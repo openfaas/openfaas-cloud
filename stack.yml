@@ -6,7 +6,7 @@ functions:
   system-github-event:
     lang: go
     handler: ./github-event
-    image: functions/github-event:0.7.1
+    image: functions/github-event:0.7.2
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
