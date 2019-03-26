@@ -34,6 +34,9 @@ environment:
   prometheus_port: 9090
   metrics_window: 60m
 
+  # Enable support for the dockerfile template
+  enable_dockerfile_lang: false
+
 # To use a shared Docker Hub account.
 #  repository_url: docker.io/ofcommunity/
 #  push_repository_url: docker.io/ofcommunity/
