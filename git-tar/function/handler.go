@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strconv"
 	"strings"
 	"time"
 
@@ -122,6 +123,15 @@ func Handle(req []byte) []byte {
 			log.Printf(statusErr.Error())
 		}
 		os.Exit(-1)
+	}
+
+	if hasDockerfileFunction(stack.Functions) && !isDockerfileEnabled() {
+		status.AddStatus(sdk.StatusFailure, "detected a dockerfile function but feature is not enabled", sdk.StackContext)
+		statusErr := reportStatus(status, pushEvent.SCM)
+		if statusErr != nil {
+			log.Printf(statusErr.Error())
+		}
+		os.Exit(1)
 	}
 
 	err = fetchTemplates(clonePath)
@@ -335,4 +345,18 @@ func getRawURL(scm string, repositoryURL string, repositoryOwnerLogin string, re
 	}
 
 	return rawURL, nil
+}
+
+func isDockerfileEnabled() (ok bool) {
+	ok, _ = strconv.ParseBool(os.Getenv("enable_dockerfile_lang"))
+	return ok
+}
+
+func hasDockerfileFunction(functions map[string]stack.Function) bool {
+	for _, function := range functions {
+		if strings.ToLower(function.Language) == "dockerfile" {
+			return true
+		}
+	}
+	return false
 }
