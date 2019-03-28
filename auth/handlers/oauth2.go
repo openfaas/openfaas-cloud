@@ -143,7 +143,7 @@ func MakeOAuth2Handler(config *Config) func(http.ResponseWriter, *http.Request) 
 			return
 		}
 
-		session, err := createSession(token, privateKey, config, oauthProvider)
+		session, err := createSession(token, privateKey, config, oauthProvider, config.OAuthProvider)
 		if err != nil {
 			log.Printf("Error creating session: %s", err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
@@ -178,7 +178,7 @@ func MakeOAuth2Handler(config *Config) func(http.ResponseWriter, *http.Request) 
 	}
 }
 
-func createSession(token ProviderAccessToken, privateKey crypto.PrivateKey, config *Config, oauthProvider provider.Provider) (string, error) {
+func createSession(token ProviderAccessToken, privateKey crypto.PrivateKey, config *Config, oauthProvider provider.Provider, providerName string) (string, error) {
 	var err error
 	var session string
 
@@ -187,9 +187,14 @@ func createSession(token ProviderAccessToken, privateKey crypto.PrivateKey, conf
 		return session, profileErr
 	}
 
-	organizations, organizationsErr := getUserOrganizations(profile.Login, token.AccessToken)
-	if organizationsErr != nil {
-		return session, organizationsErr
+	organizationList := ""
+
+	if providerName == "github" {
+		organizations, organizationsErr := getUserOrganizations(profile.Login, token.AccessToken)
+		if organizationsErr != nil {
+			return session, organizationsErr
+		}
+		organizationList = organizations
 	}
 
 	method := jwt.GetSigningMethod(jwt.SigningMethodES256.Name)
@@ -202,7 +207,7 @@ func createSession(token ProviderAccessToken, privateKey crypto.PrivateKey, conf
 			Subject:   profile.Login,
 			Audience:  config.CookieRootDomain,
 		},
-		Organizations: organizations,
+		Organizations: organizationList,
 		Name:          profile.Name,
 		AccessToken:   token.AccessToken,
 	}
