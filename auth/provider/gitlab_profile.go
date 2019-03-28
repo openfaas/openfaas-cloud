@@ -29,7 +29,7 @@ func (gl *GitLabProvider) GetProfile(accessToken string) (*Profile, error) {
 	var err error
 	var gitlabProfile GitLabProfile
 
-	req, reqErr := http.NewRequest(http.MethodGet, gl.ApiURL + "user", nil)
+	req, reqErr := http.NewRequest(http.MethodGet, gl.ApiURL+"user", nil)
 	req.Header.Add("Authorization", "bearer "+accessToken)
 
 	if reqErr != nil {
@@ -43,7 +43,15 @@ func (gl *GitLabProvider) GetProfile(accessToken string) (*Profile, error) {
 	}
 
 	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("bad status code: %d", res.StatusCode)
+		var errorBytes string
+		if res.Body != nil {
+			defer res.Body.Close()
+
+			bytesOut, _ := ioutil.ReadAll(res.Body)
+			errorBytes = string(bytesOut)
+		}
+
+		return nil, fmt.Errorf("bad status code: %d, %s", res.StatusCode, errorBytes)
 	}
 
 	if res.Body != nil {
