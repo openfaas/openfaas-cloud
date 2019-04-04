@@ -1,6 +1,8 @@
-## OpenFaaS Cloud (hosted version)
+## OpenFaaS Cloud - Community Cluster (hosted version)
 
-This statement applies to the public, hosted version of OpenFaaS Cloud operated by Alex Ellis. When running OpenFaaS Cloud on your own OpenFaaS cluster these terms do not apply.
+This statement applies to the public, hosted version of OpenFaaS Cloud (aka the Community Cluster)which is operated by Alex Ellis.
+
+> Note: These terms do not apply if you are running your own OpenFaaS Cloud cluster.
 
 ### Terms of use
 
@@ -10,7 +12,7 @@ The system is monitored and will be subjected to fair use policies.
 
 The operator of OpenFaaS Cloud reserves the right to remove or revoke individual accounts from the public trial or to end the trial and remove the hosted service.
 
-Please see the [LICENSE](./LICENSE.md) of the project for further details.
+Disclaimer: You must agree to the terms of the project [LICENSE](./LICENSE.md).
 
 ## Privacy policy
 
@@ -21,8 +23,9 @@ Within the OpenFaaS API:
 * GitHub username
 * GitHub repository name
 * Container builder logs from the of-builder component for each function triggered for a build via "git push"
+* Any SealedSecrets you upload through your git repository
 
-Stored within the local Kubernetes kubelet or Docker Swarm node within container log files:
+Stored within the local Kubernetes `kubelet` within container log files:
 
 * GitHub username
 * GitHub repository name
@@ -33,17 +36,24 @@ No secret information from your GitHub profile is stored in OpenFaaS Cloud and m
 
 ### Authentication
 
-When the feature is live OpenFaaS Cloud will require a login to access the UI dashboard. Access to this dashboard will be via single sign-on (SSO) with your GitHub account through use of a GitHub OAuth 2.0 App. Once authenticated a JWT token will be issued to you containing claims about your user account - the JWT is stored in a Cookie in your browser, but is not stored on  OpenFaaS Cloud. If you wish to remove your cookie, just remove it from your browser or clear your browsing history.
+When a user attempts to access their dashboard, OpenFaaS Cloud will require authentication.
+
+Access to this dashboard will be via single sign-on (SSO) with your GitHub account through use of a GitHub OAuth 2.0 App. Once authenticated a JWT token will be issued to you containing claims about your user account - the JWT is stored in a Cookie in your browser, but is not stored on  OpenFaaS Cloud. If you wish to remove your cookie, just remove it from your browser or clear your browsing history.
 
 You may retract access to the GitHub OAuth 2.0 App through your GitHub profile.
 
 ### Uninstalling
 
-If you want to remove your endpoints from OpenFaaS Cloud please remove the GitHub App integration and GitHub OAuth 2.0 App via your GitHub profile page. This action will cause the deployed functions to be deleted, but the Docker images may still remain in the registry for a period of time after this step depending on whether a public Docker Hub account is being used or a private registry. To have all information removed contact alex@openfaas.com.
+If you want to remove your endpoints from OpenFaaS Cloud please remove the GitHub App integration and GitHub OAuth 2.0 App via your GitHub profile page. This action will cause the deployed functions to be deleted, but the Docker images may still remain in the registry for a period of time after this step depending on whether a public Docker Hub account is being used or a private registry. 
+
+#### Data protection
+
+The "Community Cluster" is hosted on servers owned and controlled by [DigitalOcean LCC](https://www.digitalocean.com/about/) in the the London region. The operator of the "Community Cluster" has no affiliation with DigitalOcean.
+
+To request your data or to have have all information removed contact alex@openfaas.com.
 
 ### Misc
 
 #### Report a vulnerability
 
 Do not report a vulnerability via Slack or GitHub. Please contact alex@openfaas.com directly. Give 5-10 working days for an initial response.
-
