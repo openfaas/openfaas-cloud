@@ -25,11 +25,11 @@ Features:
 
 The dashboard page for a user:
 
-![Dashboard](https://user-images.githubusercontent.com/6358735/46193701-f56b6680-c2f6-11e8-8bf4-9256a8341960.png)
+![Dashboard](/docs/dashboard.png)
 
 The details page for a function:
 
-![Details page](https://user-images.githubusercontent.com/6358735/46193700-f56b6680-c2f6-11e8-9bec-40b61e42ce45.png)
+![Details page](/docs/details.png)
 
 ### Requirements
 
