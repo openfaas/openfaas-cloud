@@ -1,6 +1,7 @@
 package function
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -14,6 +15,40 @@ type HTTPHandler struct {
 
 func (h HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("alexellis\n"))
+}
+
+func Test_validateCustomers_UserNotFound(t *testing.T) {
+	s := httptest.NewServer(HTTPHandler{})
+
+	customer := sdk.Customer{
+		Sender: sdk.Sender{
+			Login: "mark",
+		},
+	}
+
+	res, _ := json.Marshal(customer)
+	err := validateCustomers(res, s.URL)
+
+	if err == nil {
+		t.Errorf("Expected sender to be invalid and to generate an error")
+	}
+}
+
+func Test_validateCustomers_UserFound(t *testing.T) {
+	s := httptest.NewServer(HTTPHandler{})
+
+	customer := sdk.Customer{
+		Sender: sdk.Sender{
+			Login: "alexellis",
+		},
+	}
+
+	res, _ := json.Marshal(customer)
+	err := validateCustomers(res, s.URL)
+
+	if err != nil {
+		t.Errorf("Expected sender to be valid, but got error: %s", err.Error())
+	}
 }
 
 func Test_validCustomer_Found_Passes(t *testing.T) {
