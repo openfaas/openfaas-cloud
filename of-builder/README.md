@@ -2,8 +2,6 @@
 
 of-builder is an image builder for OpenFaaS images, it needs to be deployed with a container registry.
 
-The following instructions are for Docker Swarm but OpenFaaS Cloud works well on Kubernetes. [Documentation for Kubernetes](https://github.com/openfaas/openfaas-cloud/blob/master/docs/DEV.md#appendix-for-kubernetes)
-
 > Before you start deploy OpenFaaS via https://docs.openfaas.com/
 
 ## Kubernetes
