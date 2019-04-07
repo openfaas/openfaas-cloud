@@ -69,6 +69,7 @@ type Event struct {
 	Private        bool              `json:"private"`
 	SCM            string            `json:"scm"`
 	RepoURL        string            `json:"repourl"`
+	Labels         map[string]string `json:"labels"`
 }
 
 // BuildEventFromPushEvent function to build Event from PushEvent

@@ -34,22 +34,10 @@ type FunctionResources struct {
 	CPU    string `json:"cpu,omitempty"`
 }
 
-func validateRequest(req *[]byte) (err error) {
-	payloadSecret, err := sdk.ReadSecret("payload-secret")
-
-	if err != nil {
-		return fmt.Errorf("couldn't get payload-secret: %t", err)
-	}
-
-	xCloudSignature := os.Getenv("Http_X_Cloud_Signature")
-
-	err = hmac.Validate(*req, xCloudSignature, payloadSecret)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+type CPULimits struct {
+	Limit     string
+	Requests  string
+	Available bool
 }
 
 // Handle submits the tar to the of-builder then configures an OpenFaaS
@@ -287,6 +275,24 @@ func Handle(req []byte) string {
 	return fmt.Sprintf("buildStatus %s %s", imageName, res.Status)
 }
 
+func validateRequest(req *[]byte) (err error) {
+	payloadSecret, err := sdk.ReadSecret("payload-secret")
+
+	if err != nil {
+		return fmt.Errorf("couldn't get payload-secret: %t", err)
+	}
+
+	xCloudSignature := os.Getenv("Http_X_Cloud_Signature")
+
+	err = hmac.Validate(*req, xCloudSignature, payloadSecret)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func getConfig(key string, defaultValue string) string {
 
 	res := os.Getenv(key)
@@ -345,6 +351,8 @@ func getEventFromEnv() (*sdk.Event, error) {
 	var err error
 	info := sdk.Event{}
 
+	info.Labels = make(map[string]string)
+
 	info.Service = os.Getenv("Http_Service")
 	info.Owner = os.Getenv("Http_Owner")
 
@@ -368,13 +376,26 @@ func getEventFromEnv() (*sdk.Event, error) {
 	envVars := make(map[string]string)
 
 	if len(httpEnv) > 0 {
-		envErr := json.Unmarshal([]byte(httpEnv), &envVars)
+		unmarshalErr := json.Unmarshal([]byte(httpEnv), &envVars)
 
-		if envErr == nil {
+		if unmarshalErr == nil {
 			info.Environment = envVars
 		} else {
-			log.Printf("Error un-marshaling env-vars for function %s, %s", info.Service, envErr)
+			log.Printf("Error un-marshaling env-vars map for function %s, %s", info.Service, unmarshalErr)
 			info.Environment = make(map[string]string)
+		}
+	}
+
+	httpLabels := os.Getenv("Http_Labels")
+	labels := make(map[string]string)
+
+	if len(httpLabels) > 0 {
+		marshalErr := json.Unmarshal([]byte(httpLabels), &labels)
+		if marshalErr == nil {
+			info.Labels = labels
+		} else {
+			log.Printf("Error un-marshaling labels map for function %s, %s", info.Service, marshalErr)
+			info.Labels = make(map[string]string)
 		}
 	}
 
@@ -387,7 +408,6 @@ func getEventFromEnv() (*sdk.Event, error) {
 		if secretErr != nil {
 			log.Println(secretErr)
 		}
-
 	}
 
 	info.Secrets = secretVars
@@ -534,16 +554,13 @@ func validImage(image string) bool {
 }
 
 type deployment struct {
-	Service string
-	Image   string
-	Network string
-	Labels  map[string]string
-
-	Limits   *FunctionResources `json:"limits,omitempty"`
-	Requests *FunctionResources `json:"requests,omitempty"`
-
-	// EnvVars provides overrides for functions.
-	EnvVars                map[string]string `json:"envVars"`
+	Service                string
+	Image                  string
+	Network                string
+	Labels                 map[string]string
+	Limits                 *FunctionResources `json:"limits,omitempty"`
+	Requests               *FunctionResources `json:"requests,omitempty"`
+	EnvVars                map[string]string  `json:"envVars"` // EnvVars provides overrides for functions.
 	Secrets                []string
 	ReadOnlyRootFilesystem bool   `json:"readOnlyRootFilesystem"`
 	RegistryAuth           string `json:"registryAuth"`
@@ -569,12 +586,6 @@ func getRegistryAuthSecret() string {
 		return strings.TrimSpace(string(res))
 	}
 	return ""
-}
-
-type CPULimits struct {
-	Limit     string
-	Requests  string
-	Available bool
 }
 
 // getCPULimit gives the CPU limit in millis if using Kubernetes

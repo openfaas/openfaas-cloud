@@ -6,6 +6,33 @@ import (
 	"testing"
 )
 
+func TestGetEvent_ReadLabels(t *testing.T) {
+
+	want := map[string]string{
+		"com.openfaas.scale": "true",
+	}
+
+	val, _ := json.Marshal(want)
+	os.Setenv("Http_Labels", string(val))
+
+	eventInfo, err := getEventFromEnv()
+	if err != nil {
+		t.Errorf(err.Error())
+		t.Fail()
+	}
+
+	for k, v := range want {
+		if _, ok := eventInfo.Labels[k]; !ok {
+			t.Errorf("want %s to be present in event.Labels", k)
+			continue
+		}
+		if vv, _ := eventInfo.Labels[k]; vv != v {
+			t.Errorf("value of %s, want: %s, got %s", k, v, vv)
+		}
+
+	}
+}
+
 func TestGetEvent_ReadSecrets(t *testing.T) {
 
 	valSt := []string{"s1", "s2"}
