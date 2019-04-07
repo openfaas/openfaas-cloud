@@ -53,8 +53,6 @@ func Handle(req []byte) string {
 		return fmt.Sprintf("invalid HMAC digest for tar: %s", hmacErr.Error())
 	}
 
-	c := &http.Client{}
-
 	builderURL := os.Getenv("builder_url")
 	gatewayURL := os.Getenv("gateway_url")
 
@@ -90,7 +88,7 @@ func Handle(req []byte) string {
 	r.Header.Set(sdk.CloudSignatureHeader, xCloudSignature)
 	r.Header.Set("Content-Type", "application/octet-stream")
 
-	res, err := c.Do(r)
+	res, err := http.DefaultClient.Do(r)
 
 	if err != nil {
 		log.Printf("of-builder error: %s\n", err)
@@ -153,7 +151,7 @@ func Handle(req []byte) string {
 
 	log.Printf("buildshiprun: image '%s'\n", imageName)
 
-	logStatus, logErr := createPipelineLog(result, event, gatewayURL, c, payloadSecret)
+	logStatus, logErr := createPipelineLog(result, event, gatewayURL, payloadSecret)
 	if logErr != nil {
 		log.Printf("pipeline-log: error: %s", err.Error())
 	} else {
@@ -261,7 +259,7 @@ func Handle(req []byte) string {
 			deploy.RegistryAuth = registryAuth
 		}
 
-		deployResult, err := deployFunction(deploy, gatewayURL, c)
+		deployResult, err := deployFunction(deploy, gatewayURL)
 
 		log.Println(deployResult)
 
@@ -319,7 +317,7 @@ func getConfig(key string, defaultValue string) string {
 
 // createPipelineLog sends a log to pipeline-log and will
 // fail silently if unavailable.
-func createPipelineLog(result sdk.BuildResult, event *sdk.Event, gatewayURL string, c *http.Client, payloadSecret string) (int, error) {
+func createPipelineLog(result sdk.BuildResult, event *sdk.Event, gatewayURL string, payloadSecret string) (int, error) {
 
 	p := sdk.PipelineLog{
 		CommitSHA: event.SHA,
@@ -337,7 +335,7 @@ func createPipelineLog(result sdk.BuildResult, event *sdk.Event, gatewayURL stri
 	digest := hmac.Sign(bytesOut, []byte(payloadSecret))
 	req.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
 
-	res, err := c.Do(req)
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return http.StatusInternalServerError, err
 
@@ -436,7 +434,7 @@ func getEventFromEnv() (*sdk.Event, error) {
 	return &info, err
 }
 
-func functionExists(deploy deployment, gatewayURL string, c *http.Client) (bool, error) {
+func functionExists(deploy deployment, gatewayURL string) (bool, error) {
 
 	r, _ := http.NewRequest(http.MethodGet, gatewayURL+"system/functions", nil)
 
@@ -445,7 +443,7 @@ func functionExists(deploy deployment, gatewayURL string, c *http.Client) (bool,
 		log.Printf("Basic auth error %s", addAuthErr)
 	}
 
-	res, err := c.Do(r)
+	res, err := http.DefaultClient.Do(r)
 
 	if err != nil {
 		fmt.Println(err)
@@ -469,8 +467,8 @@ func functionExists(deploy deployment, gatewayURL string, c *http.Client) (bool,
 	return false, err
 }
 
-func deployFunction(deploy deployment, gatewayURL string, c *http.Client) (string, error) {
-	exists, err := functionExists(deploy, gatewayURL, c)
+func deployFunction(deploy deployment, gatewayURL string) (string, error) {
+	exists, err := functionExists(deploy, gatewayURL)
 
 	bytesOut, _ := json.Marshal(deploy)
 
@@ -494,7 +492,7 @@ func deployFunction(deploy deployment, gatewayURL string, c *http.Client) (strin
 		log.Printf("Basic auth error %s", addAuthErr)
 	}
 
-	res, err = c.Do(httpReq)
+	res, err = http.DefaultClient.Do(httpReq)
 
 	if err != nil {
 		log.Printf("error %s to system/functions %s", method, err)
@@ -572,14 +570,14 @@ type deployment struct {
 	Service                string
 	Image                  string
 	Network                string
-	Labels                 map[string]string
+	Labels                 map[string]string  `json:"labels"`
 	Limits                 *FunctionResources `json:"limits,omitempty"`
 	Requests               *FunctionResources `json:"requests,omitempty"`
 	EnvVars                map[string]string  `json:"envVars"` // EnvVars provides overrides for functions.
-	Secrets                []string
-	ReadOnlyRootFilesystem bool   `json:"readOnlyRootFilesystem"`
-	RegistryAuth           string `json:"registryAuth"`
-	Annotations            map[string]string
+	Secrets                []string           `json:"secrets"`
+	ReadOnlyRootFilesystem bool               `json:"readOnlyRootFilesystem"`
+	RegistryAuth           string             `json:"registryAuth"`
+	Annotations            map[string]string  `json:"annotations"`
 }
 
 type Limits struct {
@@ -680,9 +678,7 @@ func reportGitLabStatus(status *sdk.Status) {
 	digest := hmac.Sign(statusBytes, []byte(payloadSecret))
 	req.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
 
-	client := http.Client{}
-
-	res, resErr := client.Do(req)
+	res, resErr := http.DefaultClient.Do(req)
 	if resErr != nil {
 		log.Printf("unexpected error while retrieving response: %s", resErr.Error())
 	}
