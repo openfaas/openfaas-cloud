@@ -6,10 +6,11 @@ functions:
   system-gitlab-event:
     lang: go
     handler: ./gitlab-event
-    image: functions/gitlab-event:0.1.1
+    image: functions/gitlab-event:0.1.2
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
+      com.openfaas.scale.zero: false
     environment:
       content_type: text/plain
       validate_customers: true
@@ -28,10 +29,11 @@ functions:
   gitlab-status:
     lang: go
     handler: ./gitlab-status
-    image: functions/gitlab-status:0.1.0
+    image: functions/gitlab-status:0.1.1
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
+      com.openfaas.scale.zero: false
     environment:
       write_debug: true
       read_debug: true
@@ -44,10 +46,11 @@ functions:
   gitlab-push:
     lang: go
     handler: ./gitlab-push
-    image: functions/gitlab-push:0.2.0
+    image: functions/gitlab-push:0.2.1
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
+      com.openfaas.scale.zero: false
     environment:
       write_debug: true
       read_debug: true
