@@ -19,13 +19,20 @@ import (
 )
 
 const (
-	GitLab = "gitlab"
+	// GitHub SCM
 	GitHub = "github"
+	// GitLab SCM
+	GitLab = "gitlab"
 )
 
 var (
 	imageValidator = regexp.MustCompile("(?:[a-zA-Z0-9./]*(?:[._-][a-z0-9]?)*(?::[0-9]+)?[a-zA-Z0-9./]+(?:[._-][a-z0-9]+)*/)*[a-zA-Z0-9]+(?:[._-][a-z0-9]+)+(?::[a-zA-Z0-9._-]+)?")
 )
+
+type FunctionResources struct {
+	Memory string `json:"memory,omitempty"`
+	CPU    string `json:"cpu,omitempty"`
+}
 
 func validateRequest(req *[]byte) (err error) {
 	payloadSecret, err := sdk.ReadSecret("payload-secret")
@@ -224,12 +231,25 @@ func Handle(req []byte) string {
 			Annotations: map[string]string{
 				sdk.FunctionLabelPrefix + "git-repo-url": event.RepoURL,
 			},
-			Limits: Limits{
-				Memory: defaultMemoryLimit,
-			},
+			Requests:               &FunctionResources{},
+			Limits:                 &FunctionResources{},
 			EnvVars:                event.Environment,
 			Secrets:                event.Secrets,
 			ReadOnlyRootFilesystem: readOnlyRootFS,
+		}
+
+		deploy.Requests.Memory = defaultMemoryLimit
+
+		cpuLimit := getCPULimit()
+		if cpuLimit.Available {
+
+			if len(cpuLimit.Limit) > 0 {
+				deploy.Limits.CPU = cpuLimit.Limit
+			}
+
+			if len(cpuLimit.Requests) > 0 {
+				deploy.Requests.CPU = cpuLimit.Requests
+			}
 		}
 
 		gatewayURL := os.Getenv("gateway_url")
@@ -518,7 +538,10 @@ type deployment struct {
 	Image   string
 	Network string
 	Labels  map[string]string
-	Limits  Limits
+
+	Limits   *FunctionResources `json:"limits,omitempty"`
+	Requests *FunctionResources `json:"requests,omitempty"`
+
 	// EnvVars provides overrides for functions.
 	EnvVars                map[string]string `json:"envVars"`
 	Secrets                []string
@@ -529,6 +552,7 @@ type deployment struct {
 
 type Limits struct {
 	Memory string
+	CPU    string
 }
 
 type function struct {
@@ -545,6 +569,41 @@ func getRegistryAuthSecret() string {
 		return strings.TrimSpace(string(res))
 	}
 	return ""
+}
+
+type CPULimits struct {
+	Limit     string
+	Requests  string
+	Available bool
+}
+
+// getCPULimit gives the CPU limit in millis if using Kubernetes
+// for other orchestrators Available is set to false in the
+// returned struct
+func getCPULimit() CPULimits {
+	var available bool
+
+	kubernetesPort := "KUBERNETES_SERVICE_PORT"
+	limit := ""
+	requests := ""
+
+	if _, exists := os.LookupEnv(kubernetesPort); exists {
+
+		if val, ok := os.LookupEnv("function_cpu_limit_milli"); ok && len(val) > 0 {
+			limit = fmt.Sprintf("%sm", val)
+		}
+		if val, ok := os.LookupEnv("function_cpu_requests_milli"); ok && len(val) > 0 {
+			requests = fmt.Sprintf("%sm", val)
+		}
+
+		available = len(limit) > 0 || len(requests) > 0
+	}
+
+	return CPULimits{
+		Available: available,
+		Limit:     limit,
+		Requests:  requests,
+	}
 }
 
 func getMemoryLimit() string {
