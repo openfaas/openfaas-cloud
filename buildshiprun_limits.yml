@@ -1,3 +1,5 @@
 environment:
-  function_memory_limit_mb: 128 #The differences in formatting are handled by buildshiprun
-  
+  function_memory_limit_mb: 128   # The differences in formatting are handled by buildshiprun
+# https://kubernetes.io/docs/tasks/configure-pod-container/assign-cpu-resource/#specify-a-cpu-request-and-a-cpu-limit
+  function_cpu_requests_milli: 100        # Available on Kubernetes only, CPU in milliCPU
+  function_cpu_limit_milli: 500           # Available on Kubernetes only, CPU in milliCPU

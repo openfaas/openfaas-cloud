@@ -239,6 +239,44 @@ func Test_getMemoryLimit_Kubernetes(t *testing.T) {
 	}
 }
 
+func Test_getCPULimit_Kubernetes(t *testing.T) {
+	tests := []struct {
+		title         string
+		limitValue    string
+		expectedLimit string
+		wantAvailable bool
+	}{
+		{
+			title:         "Override test - Kubernetes environment variables present and limit is set",
+			limitValue:    "250",
+			expectedLimit: "250m",
+			wantAvailable: true,
+		},
+		{
+			title:         "Defaults test - Kubernetes environment variables present and limit is unset",
+			limitValue:    "",
+			expectedLimit: "",
+			wantAvailable: false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.title, func(t *testing.T) {
+			os.Setenv("KUBERNETES_SERVICE_PORT", "6443")
+			os.Setenv("function_cpu_limit_milli", test.limitValue)
+
+			limit := getCPULimit()
+			if limit.Available != test.wantAvailable {
+				t.Errorf("Limits not available, want: %v, got: %v", test.wantAvailable, limit.Available)
+			}
+
+			if limit.Limit != test.expectedLimit {
+				t.Errorf("Limits not correct, want: `%v` got: `%v`.", test.expectedLimit, limit.Limit)
+			}
+		})
+	}
+}
+
 func Test_existingVariable_Existent(t *testing.T) {
 	tests := []struct {
 		title string
