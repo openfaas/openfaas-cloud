@@ -25,6 +25,9 @@ const (
 	GitLab = "gitlab"
 )
 
+const scaleToZeroDefault = true
+const zeroScaleLabel = "com.openfaas.scale.zero"
+
 var (
 	imageValidator = regexp.MustCompile("(?:[a-zA-Z0-9./]*(?:[._-][a-z0-9]?)*(?::[0-9]+)?[a-zA-Z0-9./]+(?:[._-][a-z0-9]+)*/)*[a-zA-Z0-9]+(?:[._-][a-z0-9]+)+(?::[a-zA-Z0-9._-]+)?")
 )
@@ -197,6 +200,17 @@ func Handle(req []byte) string {
 			private = 1
 		}
 
+		scaleToZero := scaleToZeroDefault
+
+		if val, ok := event.Labels[zeroScaleLabel]; ok && len(val) > 0 {
+			boolVal, err := strconv.ParseBool(val)
+			if err != nil {
+				log.Printf("error parsing label %s : %s", zeroScaleLabel, err.Error())
+			} else {
+				scaleToZero = boolVal
+			}
+		}
+
 		deploy := deployment{
 			Service: serviceValue,
 			Image:   imageName,
@@ -215,6 +229,7 @@ func Handle(req []byte) string {
 				"com.openfaas.scale.min":    scalingMinLimit,
 				"com.openfaas.scale.max":    scalingMaxLimit,
 				"com.openfaas.scale.factor": scalingFactor,
+				zeroScaleLabel:              strconv.FormatBool(scaleToZero),
 			},
 			Annotations: map[string]string{
 				sdk.FunctionLabelPrefix + "git-repo-url": event.RepoURL,
