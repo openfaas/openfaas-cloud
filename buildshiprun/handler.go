@@ -239,7 +239,7 @@ func Handle(req []byte) string {
 			ReadOnlyRootFilesystem: readOnlyRootFS,
 		}
 
-		deploy.Requests.Memory = defaultMemoryLimit
+		deploy.Limits.Memory = defaultMemoryLimit
 
 		cpuLimit := getCPULimit()
 		if cpuLimit.Available {
