@@ -37,6 +37,9 @@ environment:
   # Enable support for the dockerfile template
   enable_dockerfile_lang: false
 
+  # Set the build branch to be used by ofc
+  build_branch: master
+
 # To use a shared Docker Hub account.
 #  repository_url: docker.io/ofcommunity/
 #  push_repository_url: docker.io/ofcommunity/

@@ -27,7 +27,7 @@ func Test_Handle_Push_InvalidBranch(t *testing.T) {
 		`{"ref":"refs/heads/staging"}`,
 	))
 
-	want := "refusing to build non-master branch: refs/heads/staging"
+	want := "refusing to build branch: refs/heads/staging"
 	if res != want {
 		t.Errorf("want error: \"%s\", got: \"%s\"", want, res)
 		t.Fail()

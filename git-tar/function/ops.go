@@ -113,7 +113,6 @@ func makeTar(pushEvent sdk.PushEvent, filePath string, services *stack.Services)
 			return nil, configErr
 		}
 
-		// fmt.Println("Base: ", base, filePath, k)
 		err = filepath.Walk(base, func(path string, f os.FileInfo, pathErr error) error {
 			if pathErr != nil {
 				return pathErr
@@ -136,14 +135,12 @@ func makeTar(pushEvent sdk.PushEvent, filePath string, services *stack.Services)
 			}
 
 			header.Name = strings.TrimPrefix(path, base)
-			// log.Printf("header.Name '%s'\n", header.Name)
 			if header.Name != "/config" {
 				header.Name = filepath.Join("context", header.Name)
 			}
 
 			header.Name = strings.TrimPrefix(header.Name, "/")
 
-			// log.Println("tar - header.Name ", header.Name)
 			if err1 = tarWriter.WriteHeader(header); err != nil {
 				return err1
 			}
@@ -180,7 +177,7 @@ func formatImageShaTag(registry string, function *stack.Function, sha string, ow
 
 	sha = sdk.FormatShortSHA(sha)
 
-	imageName = schema.BuildImageName(schema.SHAFormat, imageName, sha, "master")
+	imageName = schema.BuildImageName(schema.BranchAndSHAFormat, imageName, sha, buildBranch())
 
 	var imageRef string
 	sharedRepo := strings.HasSuffix(registry, "/")
@@ -343,8 +340,6 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, sta
 		if statusErr != nil {
 			log.Printf(statusErr.Error())
 		}
-
-		// log.Printf(status.AuthToken)
 
 		fileOpen, err := os.Open(tarEntry.fileName)
 

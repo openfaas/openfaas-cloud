@@ -222,6 +222,7 @@ func Handle(req []byte) string {
 				sdk.FunctionLabelPrefix + "git-sha":        event.SHA,
 				sdk.FunctionLabelPrefix + "git-private":    fmt.Sprintf("%d", private),
 				sdk.FunctionLabelPrefix + "git-scm":        event.SCM,
+				sdk.FunctionLabelPrefix + "git-branch":     buildBranch(),
 				"faas_function":                            serviceValue,
 				"app":                                      serviceValue,
 				"com.openfaas.scale.min":    scalingMinLimit,
@@ -694,4 +695,12 @@ func reportGitLabStatus(status *sdk.Status) {
 		log.Printf("unexpected error while reading response body: %s", bodyErr.Error())
 	}
 	status.CommitStatuses = make(map[string]sdk.CommitStatus)
+}
+
+func buildBranch() string {
+	branch := os.Getenv("build_branch")
+	if branch == "" {
+		return "master"
+	}
+	return branch
 }

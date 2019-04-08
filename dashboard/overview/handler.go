@@ -14,6 +14,7 @@ type UserData struct {
 	PublicURL      string
 	PrettyURL      string
 	QueryPrettyURL string
+	BuildBranch    string
 }
 
 // Handle a serverless request
@@ -37,6 +38,7 @@ func Handle(req []byte) string {
 
 	userData1.User = user
 	userData1.SelectedRepo = repo
+	userData1.BuildBranch = buildBranch()
 
 	log.Println("User: ", user, " Repo: ", repo)
 
@@ -49,4 +51,12 @@ func Handle(req []byte) string {
 	}
 
 	return tpl.String()
+}
+
+func buildBranch() string {
+	branch := os.Getenv("build_branch")
+	if branch == "" {
+		return "master"
+	}
+	return branch
 }

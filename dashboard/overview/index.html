@@ -93,6 +93,7 @@
             var baseURL = "{{.PublicURL}}";
             var prettyDomain = "{{.PrettyURL}}";
             var queryPrettyURL = "{{.QueryPrettyURL}}";
+            var branch = "{{.BuildBranch}}";
 
             $("#username").text(user);
 
@@ -138,7 +139,7 @@
                     }
 
                     var fullPath = item.labels["com.openfaas.cloud.git-owner"] + "/" + item.labels["com.openfaas.cloud.git-repo"];
-                    var repoLink = '<a href="https://github.com/' + fullPath + '/commits/master">' + item.labels["com.openfaas.cloud.git-repo"] + '</a>';
+                    var repoLink = '<a href="https://github.com/' + fullPath + '/commits/'+ branch +'">' + item.labels["com.openfaas.cloud.git-repo"] + '</a>';
 
                     var rowClass = "";
                     if (item.labels["com.openfaas.cloud.git-repo"] == selectedRepo) {
