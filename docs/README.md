@@ -252,7 +252,7 @@ Create of-builder and of-buildkit:
 ./of-builder/deploy_swarm.sh
 ```
 
-### Configure push repository and gateway URL
+### Configure push repository, gateway URL and build branch
 
 In gateway_config.yml
 
@@ -263,11 +263,14 @@ environment:
   audit_url: http://gateway.openfaas:8080/function/audit-event
   repository_url: docker.io/ofcommunity/
   push_repository_url: docker.io/ofcommunity/
+  build_branch: master
 ```
 
 Replace "ofcommunity" with your Docker Hub account i.e. `alexellis2/cloud/` or replace the whole string with the address of your private registry `reg.my-domain.xyz`.
 
 Now set your gateway's public URL in the `gateway_public_url` field.
+
+Set the branch you want ofc to use in the `build_branch` field.
 
 ### Configure pull secret
 

@@ -335,9 +335,9 @@ func getRawURL(scm string, repositoryURL string, repositoryOwnerLogin string, re
 	rawURL := ""
 	switch scm {
 	case GitHub:
-		rawURL = fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/master/stack.yml", repositoryOwnerLogin, repositoryName)
+		rawURL = fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/%s/stack.yml", repositoryOwnerLogin, repositoryName, buildBranch())
 	case GitLab:
-		rawURL = fmt.Sprintf("%s/raw/master/stack.yml", repositoryURL)
+		rawURL = fmt.Sprintf("%s/raw/%s/stack.yml", repositoryURL, buildBranch())
 	}
 	if rawURL == "" {
 		return "", fmt.Errorf(`failed to find stack.yml file: cannot form proper raw URL.
@@ -359,4 +359,12 @@ func hasDockerfileFunction(functions map[string]stack.Function) bool {
 		}
 	}
 	return false
+}
+
+func buildBranch() string {
+	branch := os.Getenv("build_branch")
+	if branch == "" {
+		return "master"
+	}
+	return branch
 }

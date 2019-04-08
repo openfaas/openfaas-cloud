@@ -89,6 +89,7 @@ class FunctionsApi {
         gitDeployTime: item.labels['com.openfaas.cloud.git-deploytime'],
         gitPrivate: isPrivate,
         gitSha: item.labels['com.openfaas.cloud.git-sha'],
+        gitBranch: item.labels['com.openfaas.cloud.git-branch'],
         gitRepoURL: getRepoURL(item.annotations || {}),
         minReplicas: item.labels['com.openfaas.scale.min'],
         maxReplicas: item.labels['com.openfaas.scale.max'],
