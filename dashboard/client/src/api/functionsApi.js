@@ -95,6 +95,7 @@ class FunctionsApi {
       };
     });
   }
+
   fetchFunctions(user) {
     const url = `${this.apiBaseUrl}/list-functions?user=${user}`;
     return axios
@@ -136,7 +137,7 @@ class FunctionsApi {
       timePeriod
     } = params;
     try {
-      const url = `${this.apiBaseUrl}/system-metrics?function=${user}-${functionName}&metrics_window=${timePeriod}`;
+      const url = `${this.apiBaseUrl}/system-metrics?function=${user.toLowerCase()}-${functionName}&metrics_window=${timePeriod}`;
       const result = await axios
         .get(url);
       return result.data;
