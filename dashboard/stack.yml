@@ -6,7 +6,7 @@ functions:
   system-dashboard:
     lang: node10-express
     handler: ./of-cloud-dashboard
-    image: functions/of-cloud-dashboard:0.4.1-rc1
+    image: functions/of-cloud-dashboard:0.4.2-rc1
     labels:
       openfaas-cloud: "1"
       role: openfaas-system

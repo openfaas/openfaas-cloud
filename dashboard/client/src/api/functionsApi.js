@@ -22,7 +22,9 @@ class FunctionsApi {
 
   parseFunctionResponse({
     data
-  }, user) {
+  }, userName) {
+    const user = userName.toLowerCase();
+
     data.sort((a, b) => {
       if (
         !a ||
