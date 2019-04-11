@@ -669,6 +669,14 @@ kubeseal --fetch-cert > pub-cert.pem
 
 You will need to distribute or share pub-cert.pem so that people can use this with the OpenFaaS CLI `faas-cli cloud seal` command to seal secrets.
 
+* Patch the service account for the `import-secrets` function
+
+This `ServiceAccount` needs to be patched in place so that the function can perform create / get and update on the SealedSecret CRD:
+
+```sh
+kubectl patch -n openfaas-fn deploy import-secrets -p '{"spec":{"template":{"spec":{"serviceAccountName":"sealedsecrets-importer-rw"}}}}'
+```
+
 ### Custom templates
 
 You can add your own custom templates by re-deploying the `git-tar` function in `stack.yml`.
