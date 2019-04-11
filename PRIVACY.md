@@ -8,7 +8,24 @@ This statement applies to the public, hosted version of OpenFaaS Cloud (aka the 
 
 In order to make use of OpenFaaS Cloud you need to consent to add a GitHub App to each of your GitHub repositories, you also need to add yourself to the CUSTOMERS file in this repository which maintains a list of all people participating in the public hosted environment. By adding your GitHub user account to the CUSTOMERS file you are giving consent for OpenFaaS Cloud to clone, build, and deploy your functions and make them available via a public HTTP endpoint.
 
+#### Acceptable use
+
 The system is monitored and will be subjected to fair use policies.
+
+You agree that you will:
+
+* Not misuse the cluster
+* Not attempt to gain access to other users' data or system services
+* Not carry out unauthorized load tests or Denial of Service attacks
+* Not publish statistics, reviews or social-media commentary about the cluster
+
+If you wish to do any of the above, then [deploy your own environment](https://github.com/openfaas-incubator/ofc-bootstrap/) where these terms and conditions would not apply.
+
+##### To report a vulnerability
+
+Do not report a vulnerability via Slack or GitHub. Please contact alex@openfaas.com directly. Give 5-10 working days for an initial response.
+
+##### Termination of access
 
 The operator of OpenFaaS Cloud reserves the right to remove or revoke individual accounts from the public trial or to end the trial and remove the hosted service.
 
@@ -52,8 +69,3 @@ The "Community Cluster" is hosted on servers owned and controlled by [DigitalOce
 
 To request your data or to have have all information removed contact alex@openfaas.com.
 
-### Misc
-
-#### Report a vulnerability
-
-Do not report a vulnerability via Slack or GitHub. Please contact alex@openfaas.com directly. Give 5-10 working days for an initial response.
