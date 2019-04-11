@@ -1,9 +1,9 @@
-FROM golang:1.10.4-alpine3.7 as build
+FROM golang:1.10.4-alpine3.8 as build
 
 RUN apk --no-cache add curl \ 
     && echo "Pulling watchdog binary from GitHub." \
-    && curl -sSL https://github.com/openfaas/faas/releases/download/0.9.5/fwatchdog > /usr/bin/fwatchdog \
-    && curl -sSL https://github.com/openfaas/faas-cli/releases/download/0.8.6/faas-cli > /usr/local/bin/faas-cli \
+    && curl -sSL https://github.com/openfaas/faas/releases/download/0.13.0/fwatchdog > /usr/bin/fwatchdog \
+    && curl -sSL https://github.com/openfaas/faas-cli/releases/download/0.8.8/faas-cli > /usr/local/bin/faas-cli \
     && chmod +x /usr/bin/fwatchdog \
     && chmod +x /usr/local/bin/faas-cli \
     && apk del curl --no-cache
@@ -19,7 +19,7 @@ RUN CGO_ENABLED=0 GOOS=linux \
     go build --ldflags "-s -w" -a -installsuffix cgo -o handler . && \
     go test $(go list ./... | grep -v /vendor/) -cover
 
-FROM alpine:3.8
+FROM alpine:3.9
 
 RUN apk --no-cache add \
     ca-certificates \
