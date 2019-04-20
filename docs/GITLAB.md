@@ -4,6 +4,10 @@ If you would like to set up OpenFaaS Cloud on GitLab follow the steps below.
 
 ## Intro
 
+Conceptual Diagram:
+
+![GitLab Event](./gitlab-event-conceptual.jpg)
+
 GitLab will work with the steps done in [README.md](/README.md) file and some additional requirements:
 
 * GitLab instance
