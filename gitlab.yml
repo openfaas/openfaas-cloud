@@ -24,7 +24,7 @@ functions:
     secrets:
       - gitlab-webhook-secret
       - payload-secret
-      - gitlab-api-token 
+      - gitlab-api-token
 
   gitlab-status:
     lang: go
@@ -41,8 +41,8 @@ functions:
       - gateway_config.yml
     secrets:
       - gitlab-api-token
-      - payload-secret 
-      
+      - payload-secret
+
   gitlab-push:
     lang: go
     handler: ./gitlab-push
@@ -54,8 +54,8 @@ functions:
     environment:
       write_debug: true
       read_debug: true
+      build_branch: "master"
     environment_file:
       - gateway_config.yml
     secrets:
       - payload-secret
- 
