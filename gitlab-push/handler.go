@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/alexellis/hmac"
 	"github.com/openfaas/openfaas-cloud/sdk"
@@ -80,10 +81,11 @@ func Handle(req []byte) string {
 	eventInfo := sdk.BuildEventFromPushEvent(pushEvent)
 	status := sdk.BuildStatus(eventInfo, sdk.EmptyAuthToken)
 
-	if pushEvent.Ref != "refs/heads/master" {
-		msg := "refusing to build non-master branch: " + pushEvent.Ref
+	branchErr := checkBranch(pushEvent.Ref)
+	if branchErr != nil {
+		branchErrorMessage := branchErr.Error()
 		auditEvent := sdk.AuditEvent{
-			Message: msg,
+			Message: branchErrorMessage,
 			Owner:   pushEvent.Repository.Owner.Login,
 			Repo:    pushEvent.Repository.Name,
 			Source:  Source,
@@ -91,9 +93,9 @@ func Handle(req []byte) string {
 
 		audit.Post(auditEvent)
 
-		status.AddStatus(sdk.StatusFailure, msg, sdk.StackContext)
+		status.AddStatus(sdk.StatusFailure, branchErrorMessage, sdk.StackContext)
 		reportGitLabStatus(status)
-		return msg
+		return branchErrorMessage
 	}
 
 	serviceValue := fmt.Sprintf("%s-%s", pushEvent.Repository.Owner.Login, pushEvent.Repository.Name)
@@ -220,4 +222,33 @@ func validateRequest(req []byte) (err error) {
 	}
 
 	return nil
+}
+
+func checkBranch(branchRef string) (branchErr error) {
+	buildBranch := getBranch()
+	branchFromRef := filterBranchRef(branchRef)
+	if buildBranch != branchFromRef {
+		msg := fmt.Sprintf("refusing to build target branch: %s, want branch: %s",
+			branchFromRef,
+			buildBranch)
+		branchErr = fmt.Errorf(msg)
+	}
+	return branchErr
+}
+
+func getBranch() string {
+	buildBranch := "master"
+	if environmentBranch, exists := os.LookupEnv("build_branch"); exists {
+		buildBranch = strings.TrimSpace(environmentBranch)
+	}
+	return buildBranch
+}
+
+func filterBranchRef(branchRef string) string {
+	stringParts := strings.Split(branchRef, "/")
+	branch := "master"
+	if len(stringParts) != 0 {
+		branch = stringParts[len(stringParts)-1]
+	}
+	return branch
 }
