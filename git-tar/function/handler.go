@@ -145,6 +145,17 @@ func Handle(req []byte) []byte {
 		os.Exit(-1)
 	}
 
+	err = checkCompatibleTemplates(stack, clonePath)
+	if err != nil {
+		log.Println("Error while checking available templates:", err.Error())
+		status.AddStatus(sdk.StatusFailure, "missing language template error : "+err.Error(), sdk.StackContext)
+		statusErr := reportStatus(status, pushEvent.SCM)
+		if statusErr != nil {
+			log.Printf(statusErr.Error())
+		}
+		os.Exit(-1)
+	}
+
 	var shrinkWrapPath string
 	shrinkWrapPath, err = shrinkwrap(pushEvent, clonePath)
 	if err != nil {

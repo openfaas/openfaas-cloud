@@ -2,11 +2,13 @@ package function
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
 
 	// internal dependencies
+	"github.com/openfaas/faas-cli/stack"
 	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
@@ -251,4 +253,92 @@ func Test_formatGitLabCloneURL(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_existingTemplates(t *testing.T) {
+	expectingTemplates := []string{"go", "python", "rust"}
+	templateDir, dirErr := mockTempTemplatesDir(expectingTemplates, "template")
+	if dirErr != nil {
+		t.Errorf("Error while mocking template dir: %s", dirErr)
+	}
+	defer os.RemoveAll(templateDir)
+	dir := os.TempDir()
+	templates, templatesError := existingTemplates(dir)
+	if templatesError != nil {
+		t.Errorf("Error while checking templates: %s", templatesError)
+	}
+	for _, template := range templates {
+		for lastTemplate, expectedTemplate := range expectingTemplates {
+			if template == expectedTemplate {
+				break
+			}
+			if lastTemplate == len(expectingTemplates)-1 &&
+				expectedTemplate != template {
+				t.Errorf("Error template: %s not found in: %v", template, expectingTemplates)
+			}
+		}
+	}
+}
+
+func Test_checkCompatibleTemplates(t *testing.T) {
+	tests := []struct {
+		title              string
+		functionDefinition *stack.Services
+		expectedError      error
+	}{
+		{
+			title: "Function language exists in the fetched templates",
+			functionDefinition: &stack.Services{Functions: map[string]stack.Function{
+				"fn1": stack.Function{Language: "go"},
+			},
+			},
+			expectedError: nil,
+		},
+		{
+			title: "Function language does not exist in the fetched templates",
+			functionDefinition: &stack.Services{Functions: map[string]stack.Function{
+				"fn1": stack.Function{Language: "smalltalk"},
+			},
+			},
+			expectedError: fmt.Errorf("Not supported language: `smalltalk` for function: `fn1`"),
+		},
+	}
+	existingTemplates := []string{"go", "python", "rust", "java"}
+	templateDir, dirErr := mockTempTemplatesDir(existingTemplates, "template")
+	if dirErr != nil {
+		t.Errorf("Error while createding template dir: %s", dirErr)
+	}
+	defer os.RemoveAll(templateDir)
+	tmpDir := os.TempDir()
+	for _, test := range tests {
+		compatibilityError := checkCompatibleTemplates(test.functionDefinition, tmpDir)
+		if compatibilityError != nil && compatibilityError != test.expectedError {
+			if compatibilityError.Error() != test.expectedError.Error() {
+				t.Errorf("Expected error: `%s`, got: `%s`",
+					test.expectedError.Error(),
+					compatibilityError.Error())
+			}
+		}
+	}
+}
+
+func mockTempTemplatesDir(files []string, directory string) (string, error) {
+	permissions := 0744
+	tmpDir := os.TempDir()
+	templatesDir := fmt.Sprintf("%s/%s", tmpDir, directory)
+	dirErr := os.MkdirAll(templatesDir, os.FileMode(permissions))
+	if dirErr != nil {
+		return templatesDir, dirErr
+	}
+	for _, file := range files {
+		dirErr := os.MkdirAll(templatesDir+"/"+file, os.FileMode(permissions))
+		if dirErr != nil {
+			return templatesDir, dirErr
+		}
+	}
+	fileErr := ioutil.WriteFile(templatesDir+"/some.txt", []byte{}, os.FileMode(permissions))
+	if dirErr != nil {
+		return templatesDir, fileErr
+	}
+	return templatesDir, nil
 }

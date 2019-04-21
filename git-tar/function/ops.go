@@ -647,3 +647,38 @@ func GitHubCloneURL(pushEvent sdk.PushEvent) (string, error) {
 
 	return cloneURL, nil
 }
+
+func checkCompatibleTemplates(stack *stack.Services, filePath string) (templatesErr error) {
+	templates, ioErr := existingTemplates(filePath)
+	if templatesErr != nil {
+		templatesErr = ioErr
+	}
+	for functionName, function := range stack.Functions {
+		for templateIndex, template := range templates {
+			if template == function.Language {
+				break
+			} else if templateIndex == len(templates)-1 && template != function.Language {
+				templatesErr = fmt.Errorf("Not supported language: `%s` for function: `%s`",
+					function.Language,
+					functionName,
+				)
+			}
+		}
+	}
+	return templatesErr
+}
+
+func existingTemplates(filePath string) ([]string, error) {
+	var existingTemplates []string
+	templatePath := fmt.Sprintf("%s/template", filePath)
+	files, ioErr := ioutil.ReadDir(templatePath)
+	if ioErr != nil {
+		return nil, fmt.Errorf("error while reading tempates directory: %s", ioErr)
+	}
+	for _, templateFolder := range files {
+		if templateFolder.IsDir() {
+			existingTemplates = append(existingTemplates, templateFolder.Name())
+		}
+	}
+	return existingTemplates, nil
+}
