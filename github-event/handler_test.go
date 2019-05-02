@@ -18,6 +18,8 @@ func (h HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func Test_validateCustomers_UserNotFound(t *testing.T) {
+	os.Unsetenv("Http_Query")
+
 	s := httptest.NewServer(HTTPHandler{})
 
 	customer := sdk.Customer{
@@ -35,6 +37,8 @@ func Test_validateCustomers_UserNotFound(t *testing.T) {
 }
 
 func Test_validateCustomers_UserFound(t *testing.T) {
+	os.Unsetenv("Http_Query")
+
 	s := httptest.NewServer(HTTPHandler{})
 
 	customer := sdk.Customer{
@@ -83,6 +87,8 @@ func Test_validCustomer_EmptyInput_Fails(t *testing.T) {
 }
 
 func Test_Handle_ValidateCustomersInvalid(t *testing.T) {
+	os.Unsetenv("Http_Query")
+
 	server := httptest.NewServer(&HTTPHandler{})
 	defer server.Close()
 
@@ -102,6 +108,8 @@ func Test_Handle_ValidateCustomersInvalid(t *testing.T) {
 }
 
 func Test_Handle_Event(t *testing.T) {
+	os.Unsetenv("Http_Query")
+
 	audit = sdk.NilLogger{}
 	os.Setenv("Http_X_Hub_Signature", "")
 	var events = []struct {
@@ -169,4 +177,14 @@ func Test_Handle_Event(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_RedirectSetupAction(t *testing.T) {
+	os.Setenv("Http_Query", "setup_action=install")
+	got := Handle([]byte(""))
+	want := "Installation completed, please return to the installation guide."
+	if got != want {
+		t.Errorf("want %s, got %s", want, got)
+	}
+
 }

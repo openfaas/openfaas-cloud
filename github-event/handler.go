@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
@@ -23,6 +24,14 @@ var audit sdk.Audit
 // Handle receives events from the GitHub app and checks the origin via
 // HMAC. Valid events are push or installation events.
 func Handle(req []byte) string {
+
+	queryVal := os.Getenv("Http_Query")
+	if values, err := url.ParseQuery(queryVal); err == nil {
+		setupAction := values.Get("setup_action")
+		if setupAction == "install" {
+			return "Installation completed, please return to the installation guide."
+		}
+	}
 
 	if audit == nil {
 		audit = sdk.AuditLogger{}
