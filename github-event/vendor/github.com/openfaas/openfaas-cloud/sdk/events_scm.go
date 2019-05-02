@@ -1,5 +1,14 @@
 package sdk
 
+// PushEvent is received from GitHub's push event subscription
+type PushEvent struct {
+	Ref           string `json:"ref"`
+	Repository    PushEventRepository
+	AfterCommitID string `json:"after"`
+	Installation  PushEventInstallation
+	SCM           string // SCM field is for internal use and not provided by GitHub
+}
+
 // PushEventRepository represents the repository from a push event
 type PushEventRepository struct {
 	Name          string `json:"name"`
@@ -10,15 +19,6 @@ type PushEventRepository struct {
 	RepositoryURL string `json:"url"`
 
 	Owner Owner `json:"owner"`
-}
-
-// PushEvent is received from GitHub's push event subscription
-type PushEvent struct {
-	Ref           string `json:"ref"`
-	Repository    PushEventRepository
-	AfterCommitID string `json:"after"`
-	Installation  PushEventInstallation
-	SCM           string // SCM field is for internal use and not provided by GitHub
 }
 
 // Owner is the owner of a GitHub repo
@@ -56,7 +56,8 @@ type GitLabRepository struct {
 }
 
 type Customer struct {
-	Sender Sender `json:"sender"`
+	Sender     Sender              `json:"sender"`
+	Repository PushEventRepository `json:"repository"`
 }
 
 type Sender struct {

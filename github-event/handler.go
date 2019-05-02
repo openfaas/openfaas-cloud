@@ -55,9 +55,17 @@ func Handle(req []byte) string {
 		return fmt.Sprintf("%s cannot handle event: %s", Source, eventHeader)
 	}
 
+	customer := sdk.PushEvent{}
+	unmarshalErr := json.Unmarshal(req, &customer)
+	if unmarshalErr != nil {
+		return fmt.Sprintf("Error while un-marshaling customers: %s, value: %s",
+			unmarshalErr.Error(),
+			string(req))
+	}
+
 	if sdk.ValidateCustomers() {
 		customersURL := os.Getenv("customers_url")
-		err := validateCustomers(req, customersURL)
+		err := validateCustomers(&customer, customersURL)
 		if err != nil {
 			return err.Error()
 		}
@@ -316,30 +324,27 @@ func readBool(key string) bool {
 	return false
 }
 
-func validateCustomers(req []byte, customersURL string) error {
+func validateCustomers(pushEvent *sdk.PushEvent, customersURL string) error {
 
 	customers, getErr := getCustomers(customersURL)
 	if getErr != nil {
 		return getErr
 	}
 
-	customer := sdk.Customer{}
-	unmarshalErr := json.Unmarshal(req, &customer)
-	if unmarshalErr != nil {
-		return fmt.Errorf("%s", fmt.Sprintf("Error while un-marshaling customers: %s, value: %s", unmarshalErr.Error(), string(req)))
-	}
-
-	if !validCustomer(customers, customer.Sender.Login) {
+	actor := pushEvent.Repository.Owner.Login
+	if !validCustomer(customers, actor) {
 
 		auditEvent := sdk.AuditEvent{
 			Message: "Customer not found",
-			Owner:   customer.Sender.Login,
+			Owner:   actor,
 			Source:  Source,
 		}
 
 		sdk.PostAudit(auditEvent)
 
-		return fmt.Errorf("%s", fmt.Sprintf("Customer: %s not found in CUSTOMERS file via %s", customer.Sender.Login, customersURL))
+		return fmt.Errorf("%s",
+			fmt.Sprintf("Customer: %s not found in CUSTOMERS file via %s", actor,
+				customersURL))
 	}
 	return nil
 }
