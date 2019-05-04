@@ -1,9 +1,9 @@
-FROM golang:1.10.4-alpine3.8 as build
+FROM golang:1.10-alpine3.9 as build
 
 RUN apk --no-cache add curl \ 
     && echo "Pulling watchdog binary from GitHub." \
     && curl -sSL https://github.com/openfaas/faas/releases/download/0.13.0/fwatchdog > /usr/bin/fwatchdog \
-    && curl -sSL https://github.com/openfaas/faas-cli/releases/download/0.8.8/faas-cli > /usr/local/bin/faas-cli \
+    && curl -sSL https://github.com/openfaas/faas-cli/releases/download/0.8.10/faas-cli > /usr/local/bin/faas-cli \
     && chmod +x /usr/bin/fwatchdog \
     && chmod +x /usr/local/bin/faas-cli \
     && apk del curl --no-cache
