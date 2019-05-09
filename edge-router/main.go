@@ -25,23 +25,21 @@ func main() {
 		log.Panicln("give an auth_url as an env-var")
 	}
 
-	c := makeProxy(cfg.Timeout)
+	maxIdleConns := 1024
+	maxIdleConnsPerHost := 1024
+
+	proxyClient := makeProxy(cfg.Timeout, maxIdleConns, maxIdleConnsPerHost)
 
 	log.Printf("Timeout set to: %s\n", cfg.Timeout)
 	log.Printf("Upstream URL: %s\n", cfg.UpstreamURL)
 
-	authClient := makeProxy(cfg.Timeout)
-	authClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-		return http.ErrUseLastResponse
-	}
-
 	authProxy1 := authProxy{
 		URL:    cfg.AuthURL,
-		Client: authClient,
+		Client: proxyClient,
 	}
 
 	router := http.NewServeMux()
-	router.HandleFunc("/", makeHandler(c, cfg.Timeout, cfg.UpstreamURL, &authProxy1))
+	router.HandleFunc("/", makeHandler(proxyClient, cfg.Timeout, cfg.UpstreamURL, &authProxy1))
 	router.HandleFunc("/healthz", makeHealthzHandler())
 
 	log.Printf("Using port %s\n", cfg.Port)
@@ -248,19 +246,26 @@ func copyHeaders(destination http.Header, source *http.Header) {
 	}
 }
 
-func makeProxy(timeout time.Duration) *http.Client {
-	proxyClient := http.Client{
-		Transport: &http.Transport{
-			Proxy: http.ProxyFromEnvironment,
-			DialContext: (&net.Dialer{
-				Timeout:   timeout,
-				KeepAlive: 1 * time.Second,
-			}).DialContext,
-			IdleConnTimeout:       120 * time.Millisecond,
-			ExpectContinueTimeout: 1500 * time.Millisecond,
-		},
+func makeProxy(timeout time.Duration, maxIdleConns, maxIdleConnsPerHost int) *http.Client {
+	client := http.DefaultClient
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
 	}
-	return &proxyClient
+	client.Transport = &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			Timeout:   timeout,
+			KeepAlive: timeout,
+			DualStack: true,
+		}).DialContext,
+		MaxIdleConns:          maxIdleConns,
+		MaxIdleConnsPerHost:   maxIdleConnsPerHost,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
+
+	return client
 }
 
 func makeHealthzHandler() func(w http.ResponseWriter, r *http.Request) {
