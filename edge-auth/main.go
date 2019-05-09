@@ -9,9 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/openfaas/openfaas-cloud/auth/provider"
-
-	"github.com/openfaas/openfaas-cloud/auth/handlers"
+	"github.com/openfaas/openfaas-cloud/edge-auth/handlers"
+	"github.com/openfaas/openfaas-cloud/edge-auth/provider"
 )
 
 const cookieExpiry = time.Hour * 48
@@ -88,11 +87,11 @@ func main() {
 		CookieExpiresIn:        cookieExpiry,
 		CookieRootDomain:       cookieRootDomain,
 		ExternalRedirectDomain: externalRedirectDomain,
-		Scope:                 "read:org,read:user,user:email",
-		PublicKeyPath:         publicKeyPath,
-		PrivateKeyPath:        privateKeyPath,
-		OAuthClientSecretPath: oauthClientSecretPath,
-		Debug: writeDebug,
+		Scope:                  "read:org,read:user,user:email",
+		PublicKeyPath:          publicKeyPath,
+		PrivateKeyPath:         privateKeyPath,
+		OAuthClientSecretPath:  oauthClientSecretPath,
+		Debug:                  writeDebug,
 	}
 
 	protected := []string{

@@ -1,4 +1,4 @@
-## Router for wildcard domain-name
+## edge-router for wildcard domain-name
 
 This is the single point of entry for all HTTP requests for OpenFaaS Cloud. When deployed it sits in front of the gateway to translate DNS entries to function paths.
 
@@ -37,36 +37,36 @@ curl -H "Host: alexellis.domain.io" localhost:8081/kubecon-tester
 ### Development
 
 ```sh
-TAG=0.6.0 make build push
+TAG=0.6.1 make build push
 ```
 
 > Note: on Kubernetes change `gateway:8080` to `gateway.openfaas:8080`.
 
 If you wish to bypass authentication you can run the router auth an auth_url of the `echo` function deployed via the `stack.yml`.
 
-``` sh
-TAG=0.6.0
+```sh
+TAG=0.6.1
 
 # As a container
 
-docker rm -f of-router
+docker rm -f edge-router
 
 docker run \
  -e upstream_url=http://gateway:8080 \
  -e auth_url=http://echo:8080 \
  -p 8081:8080 \
  --network=func_functions \
- --name of-router \
- -d openfaas/cloud-router:$TAG
+ --name edge-router \
+ -d openfaas/edge-router:$TAG
 
 # Or as a service
 
-docker service rm of-router
+docker service rm edge-router
 
 docker service create --network=func_functions \
  --env upstream_url=http://gateway:8080 \
  --env auth_url=http://echo:8080 \
  --publish 8081:8080 \
- --name of-router \
- -d openfaas/cloud-router:$TAG
+ --name edge-router \
+ -d openfaas/edge-router:$TAG
 ```

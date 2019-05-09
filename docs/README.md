@@ -472,6 +472,7 @@ kubectl get events --sort-by=.metadata.creationTimestamp -n openfaas-fn
 ```
 
 ##### Troubleshoot Network Policies
+
 The NetworkPolicy configuration is designed to work with a Kubernetes IngressController. If you are using a NodePort or LoadBalancer you have to deploy NetworkPolicy below.
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -507,13 +508,13 @@ docker service logs buildshiprun --tail 50
 
 ### Auth
 
-Auth is optional and protects the dashboard from users accessing the page.
+Auth is optional and protects the dashboard from users accessing the page. It is implemented by the edge-router contacting the edge-auth service to validate each HTTP request.
 
 To enable OAuth 2.0 we will need to set up a number of DNS entries or host file entries for local development.
 
 #### Disable auth for local development
 
-If you wish to disable Auth then you can change the router's URL from `http://auth:8080` (on Swarm) or `http://auth.openfaas:8080` (on Kubernetes) to `http://echo:8080` or `http://echo.openfaas:8080` which will by-pass any need for a Cookie or JWT to be established by allowing the "echo" service to act as the authorziation. This works because the echo service will always return "200 OK" to requests.
+If you wish to disable Auth then you can change the edge-router's URL from `http://edge-auth:8080` (on Swarm) or `http://edge-auth.openfaas:8080` (on Kubernetes) to `http://echo:8080` or `http://echo.openfaas:8080` which will by-pass any need for a Cookie or JWT to be established by allowing the "echo" service to act as the authorziation. This works because the echo service will always return "200 OK" to requests.
 
 #### Set host file entries for the router (Option A)
 
@@ -616,7 +617,7 @@ Set `public_url` to be the URL for the IP / DNS of the OpenFaaS Cloud.
 
 > Don't forget to pull the `node10-express-template`
 
-```
+```sh
 $ cd dashboard
 
 $ faas-cli template pull https://github.com/openfaas-incubator/node10-express-template
@@ -624,7 +625,7 @@ $ faas-cli template pull https://github.com/openfaas-incubator/node10-express-te
 
 > Note: if using dockerhub change the `function` prefix in `stack.yml` with your username
 
-```
+```sh
 $ faas-cli up
 ```
 
@@ -690,10 +691,7 @@ In order to do that follow the steps below:
   * Append your own template to the list.
 
 * Re-deploy `git-tar` function from your `stack.yml` with the changed configuration:
+
 ```sh
 $ faas-cli deploy --filter git-tar --gateway=<of_gateway_url>
 ```
-
-### Wildcard domains with of-router
-
-Coming soon

@@ -25,11 +25,11 @@ A builder daemon which exposes the GRPC of-buildkit service via HTTP.
 
 The buildkit GRPC daemon which builds the image and pushes it to the internal registry. The image is tagged with the SHA of the Git commit event.
 
-* Microservice: of-router
+* Microservice: edge-router
 
 The router component is the only ingress point for HTTP requests for serving functions and for enabling the GitHub/GitLab integration. It translates "pretty URLS" into URLs namespaced by a user prefix on the OpenFaaS API Gateway.
 
-* Microservice: of-auth
+* Microservice: edge-auth
 
 The auth service validates routes, can issue a JWT token and is called by the router component for every HTTP request.
 

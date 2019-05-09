@@ -12,7 +12,7 @@ import (
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/openfaas/openfaas-cloud/auth/provider"
+	"github.com/openfaas/openfaas-cloud/edge-auth/provider"
 )
 
 const profileFetchTimeout = time.Second * 5
