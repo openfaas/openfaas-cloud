@@ -1,14 +1,14 @@
-auth
+edge-auth
 =======
 
-The auth service can be used to evaluate whether access is available to a given resource
+The edge-auth service can be used to evaluate whether access is available to a given resource
 
 For example:
 
 Check access to resource (r) /function/system-dashboard:
 
 ```
-http://auth:8080/q/?r=/function/system-dashboard
+http://edge-auth:8080/q/?r=/function/system-dashboard
 ```
 
 Responses:
@@ -41,7 +41,7 @@ Contents (encoded JWT):
 ## Building
 
 ```
-export TAG=0.5.1
+export TAG=0.5.2
 make build push
 ```
 
@@ -99,8 +99,8 @@ echo -n "$CLIENT_SECRET" | docker secret create of-client-secret -
 ### As a local container:
 
 ```sh
-docker rm -f cloud-auth
-export TAG=0.4.0
+docker rm -f edge-auth
+export TAG=0.5.2
 
 docker run \
  -e client_secret="$CLIENT_SECRET" \
@@ -114,7 +114,7 @@ docker run \
  -e oauth_provider="github" \
  -v "`pwd`/key:/tmp/key" \
  -v "`pwd`/key.pub:/tmp/key.pub" \
- --name cloud-auth  -ti openfaas/cloud-auth:${TAG}
+ --name edge-auth -ti openfaas/edge-auth:${TAG}
 ```
 
 ### On Kubernetes
@@ -124,9 +124,9 @@ Edit `yaml/core/of-auth-dep.yml` as needed and apply that file.
 ### On Swarm:
 
 ```sh
-export TAG=0.4.0
-docker service rm auth
-docker service create --name auth \
+export TAG=0.5.2
+docker service rm edge-auth
+docker service create --name edge-auth \
  -e oauth_client_secret_path="/run/secrets/of-client-secret" \
  -e client_id="$CLIENT_ID" \
  -e PORT=8080 \
@@ -139,13 +139,15 @@ docker service create --name auth \
  --secret jwt-private-key \
  --secret jwt-public-key \
  --secret of-client-secret \
- openfaas/cloud-auth:$TAG
+ openfaas/edge-auth:$TAG
 ```
 
 ### GitLab integration
 
 If you want to integrate OpenFaaS Cloud with your self-managed GitLab you need to set env variables, where instead of ... you should put valid url to your self-hosted GitLab (for example: https://gitlab.domain.com):
+
 ```
 oauth_provider="gitlab"
 oauth_provider_base_url="https://gitlab.domain.com"
 ```
+

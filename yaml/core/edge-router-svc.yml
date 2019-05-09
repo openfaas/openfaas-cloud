@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: auth
+  name: edge-router
   namespace: openfaas
   labels:
-    app: of-auth
+    app: edge-router
 spec:
   type: ClusterIP
   ports:
@@ -13,4 +13,4 @@ spec:
       protocol: TCP
       targetPort: 8080
   selector:
-    app: of-auth
+    app: edge-router

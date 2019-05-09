@@ -1,7 +1,7 @@
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: of-router
+  name: edge-router
   namespace: openfaas
 spec:
   replicas: 1
@@ -10,11 +10,11 @@ spec:
       annotations:
         prometheus.io.scrape: "false"
       labels:
-        app: of-router
+        app: edge-router
     spec:
       containers:
-      - name: of-router
-        image: openfaas/cloud-router:0.6.0
+      - name: edge-router
+        image: openfaas/edge-router:0.6.1
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -32,7 +32,7 @@ spec:
             value: "60s"
 # For OAuth 2.0
           - name: auth_url
-            value: "http://auth.openfaas:8080"
+            value: "http://edge-auth.openfaas:8080"
 # For no OAuth 2.0
 # Use the echo function deployed as part of the stack
           # - name: auth_url
@@ -40,4 +40,3 @@ spec:
         ports:
         - containerPort: 8080
           protocol: TCP
-

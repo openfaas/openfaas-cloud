@@ -40,9 +40,9 @@ In your GitLab instance enter the `Admin area` then `System Hooks`.
 
 In the URL field add the URL of your entrypoint to `gitlab-event` function. Example would be:
 
-* `https://system.domain.xyz/gitlab-event` in case you have of-router running
+* `https://system.domain.xyz/gitlab-event` in case you have the edge-router running
 
-* `https://www.domain.xyz/function/system-gitlab-event` in case you have of-router turned off
+* `https://www.domain.xyz/function/system-gitlab-event` in case you have the edge-router turned off
 
 Set up Secret Token along with the URL.
 
