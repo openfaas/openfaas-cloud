@@ -568,7 +568,7 @@ Port 8081 corresponds to the port where you are running the router component.
 
 You will now be presented with your `client_id` and `client_secret` values for the GitHub OAuth 2.0 App. You need these to configure the auth service, which you can deploy in a container or run locally following the instructions in [the auth README](../auth/).
 
-If you are running the router via Kubernetes you may need to edit `core/yaml/of-auth-dep.yml` and update the `client_id` there. The `client_secret` can be created with a Kubernetes secret which is then mounted into the container at runtime.
+If you are running the router via Kubernetes you may need to edit `core/yaml/edge-auth-dep.yml` and update the `client_id` there. The `client_secret` can be created with a Kubernetes secret which is then mounted into the container at runtime.
 
 ## Appendix
 
