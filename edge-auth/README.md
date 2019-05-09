@@ -119,7 +119,7 @@ docker run \
 
 ### On Kubernetes
 
-Edit `yaml/core/of-auth-dep.yml` as needed and apply that file.
+Edit `yaml/core/edge-auth-dep.yml` as needed and apply that file.
 
 ### On Swarm:
 
