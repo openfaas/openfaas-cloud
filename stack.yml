@@ -47,7 +47,7 @@ functions:
   git-tar:
     lang: dockerfile
     handler: ./git-tar
-    image: functions/of-git-tar:0.12.1
+    image: functions/of-git-tar:0.12.2
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
