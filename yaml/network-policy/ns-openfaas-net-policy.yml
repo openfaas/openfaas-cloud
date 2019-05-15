@@ -8,7 +8,17 @@ spec:
     - Ingress
   podSelector: {}
   ingress:
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              role: openfaas-system
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          role: openfaas-system
+    - namespaceSelector:
+        matchLabels:
+          role: openfaas-fn
+      podSelector:
+        matchLabels:
+          role: openfaas-system
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          app: nginx-ingress

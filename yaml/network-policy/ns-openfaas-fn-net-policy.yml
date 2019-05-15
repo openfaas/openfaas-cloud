@@ -1,4 +1,3 @@
----
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -9,11 +8,10 @@ spec:
     - Ingress
   podSelector: {}
   ingress:
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              role: openfaas-system
-
-        - podSelector:
-            matchLabels:
-              role: openfaas-system
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          role: openfaas-system
+    - podSelector:
+        matchLabels:
+          role: openfaas-system
