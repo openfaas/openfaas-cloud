@@ -226,14 +226,12 @@ Create of-builder, of-buildkit:
 kubectl apply -f ./yaml/core
 ```
 
-(Optional) Deploy NetworkPolicy
+(Optional) Deploy NetworkPolicy. These policies set the following rules:
+* Pods in the `openfaas-fn` namespace only accept traffic from namespaces and pods that have the label `role: openfaas-system`
+* Pods in the `openfaas` namespace only accept traffic from all pods in namespaces with the label `role: openfaas-system`, pods that have the label `role: openfaas-system` in the `openfaas-fn` namespace and finally pods from any namespace that have the label `app: nginx-ingress`(this is to allow traffic from the nginx ingress controller).
+
 ```
 kubectl apply -f ./yaml/network-policy
-```
-
-(Optional) Add a role of "openfaas-system" using a label to the namespace where you deployed Ingress Controller. For example if Ingress Controller is deployed in the namespace `ingress-nginx`:
-```
-kubectl label namespace ingress-nginx role=openfaas-system
 ```
 
 If you don't have Ingress Controller installed in cluster. [Read this](#troubleshoot-network-policies)
