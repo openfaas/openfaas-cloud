@@ -28,8 +28,6 @@ func Handle(req []byte) string {
 	if key != payloadSecret {
 		fmt.Fprintf(os.Stderr, "unauthorized: key X-Cloud-Payload-Secret does not match payload-secret")
 		os.Exit(1)
-
-		return err.Error()
 	}
 
 	query := os.Getenv("Http_Query")
@@ -38,13 +36,13 @@ func Handle(req []byte) string {
 	config, err := rest.InClusterConfig()
 
 	if err != nil {
-		fmt.Println("couldn't get cluster config:", err)
+		fmt.Printf("couldn't get cluster config: %s\n", err)
 		os.Exit(-1)
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		fmt.Println("couldn't get clientset:", err)
+		fmt.Printf("couldn't get clientset: %s\n", err)
 		os.Exit(-1)
 	}
 
@@ -68,12 +66,10 @@ func Handle(req []byte) string {
 
 		ownerLabel := pod.Labels["com.openfaas.cloud.git-owner"]
 		if len(ownerLabel) == 0 {
-			fmt.Printf("couldn't get logs for non-user function: %s\n", functionName)
-			os.Exit(-1)
+			return fmt.Sprintf("couldn't get logs for non-user function: %s\n", functionName)
 		}
 
 		lines := int64(100)
-
 		podLogOpts := &corev1.PodLogOptions{
 			Follow:    false,
 			TailLines: &lines,

@@ -221,7 +221,7 @@ functions:
   system-logs:
     lang: go
     handler: ./system-logs
-    image: alexellisuk/system-logs:0.1
+    image: alexellisuk/system-logs:0.1.1
     annotations:
       com.openfaas.serviceaccount: function-logs-sa
     labels:
