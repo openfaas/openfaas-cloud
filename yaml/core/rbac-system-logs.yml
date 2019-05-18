@@ -1,0 +1,33 @@
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: function-logs-role
+  namespace: openfaas-fn
+rules:
+- apiGroups: [""]
+  resources: ["pods", "pods/log"]
+  verbs: ["get", "list", "create"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: function-logs-role-binding
+  namespace: openfaas-fn
+subjects:
+- kind: ServiceAccount
+  name: function-logs-sa
+  namespace: openfaas-fn
+roleRef:
+  kind: Role
+  name: function-logs-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: function-logs-sa
+  namespace: openfaas-fn
+  labels:
+    app: openfaas
+
+#kubectl patch -n openfaas-fn deploy import-secrets -p '{"spec":{"template":{"spec":{"serviceAccountName":"sealedsecrets-importer-rw"}}}}'

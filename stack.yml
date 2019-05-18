@@ -135,6 +135,8 @@ functions:
     lang: go
     handler: ./import-secrets
     image: functions/import-secrets:0.3.3
+    annotations:
+      com.openfaas.serviceaccount: sealedsecrets-importer-rw
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -215,3 +217,24 @@ functions:
       - gateway_config.yml
     environment:
       content_type: "application/json"
+
+  system-logs:
+    lang: go
+    handler: ./system-logs
+    image: alexellisuk/system-logs:0.1
+    annotations:
+      com.openfaas.serviceaccount: function-logs-sa
+    labels:
+      openfaas-cloud: "1"
+      role: openfaas-system
+      com.openfaas.scale.zero: false
+    environment:
+      write_debug: true
+      read_debug: true
+      validate_hmac: true
+      combined_output: false
+#    environment_file:
+#      - github.yml
+    secrets:
+      - payload-secret
+
