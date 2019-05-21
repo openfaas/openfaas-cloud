@@ -47,12 +47,14 @@ module.exports = (event, context) => {
     const gatewayUrl = process.env.gateway_url.replace(/\/$/, '');
     const proxyPath = path.replace(/^\/api\//, '');
     const url = `${gatewayUrl}/function/${proxyPath}`;
+    var reqHeaders = event.headers;
+    reqHeaders['host'] = gatewayUrl.replace('http://', '');
     console.log(`proxying request to: ${url}`);
     request(
       {
         url,
         method,
-        headers: event.headers,
+        headers: reqHeaders,
         qs: event.query,
       },
       (err, response, body) => {
