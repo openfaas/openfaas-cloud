@@ -209,6 +209,12 @@ func Handle(req []byte) string {
 			}
 		}
 
+		annotationWhitelist := []string{
+			"topic",
+		}
+		userAnnotations := buildAnnotations(annotationWhitelist, event.Annotations)
+		userAnnotations[sdk.FunctionLabelPrefix+"git-repo-url"] = event.RepoURL
+
 		deploy := deployment{
 			Service: serviceValue,
 			Image:   imageName,
@@ -230,9 +236,7 @@ func Handle(req []byte) string {
 				"com.openfaas.scale.factor": scalingFactor,
 				zeroScaleLabel:              strconv.FormatBool(scaleToZero),
 			},
-			Annotations: map[string]string{
-				sdk.FunctionLabelPrefix + "git-repo-url": event.RepoURL,
-			},
+			Annotations:            userAnnotations,
 			Requests:               &FunctionResources{},
 			Limits:                 &FunctionResources{},
 			EnvVars:                event.Environment,
@@ -287,6 +291,19 @@ func Handle(req []byte) string {
 		log.Printf(statusErr.Error())
 	}
 	return fmt.Sprintf("buildStatus %s %s", imageName, res.Status)
+}
+
+func buildAnnotations(whitelist []string, userValues map[string]string) map[string]string {
+	annotations := map[string]string{}
+	for k, v := range userValues {
+		for _, allowable := range whitelist {
+			if allowable == k {
+				annotations[k] = v
+			}
+		}
+	}
+
+	return annotations
 }
 
 func validateRequest(req *[]byte) (err error) {
@@ -410,6 +427,19 @@ func getEventFromEnv() (*sdk.Event, error) {
 		} else {
 			log.Printf("Error un-marshaling labels map for function %s, %s", info.Service, marshalErr)
 			info.Labels = make(map[string]string)
+		}
+	}
+
+	httpAnnotations := os.Getenv("Http_Annotations")
+	annotations := make(map[string]string)
+
+	if len(httpAnnotations) > 0 {
+		marshalErr := json.Unmarshal([]byte(httpAnnotations), &annotations)
+		if marshalErr == nil {
+			info.Annotations = annotations
+		} else {
+			log.Printf("Error un-marshaling annotations map for function %s, %s", info.Service, marshalErr)
+			info.Annotations = make(map[string]string)
 		}
 	}
 
