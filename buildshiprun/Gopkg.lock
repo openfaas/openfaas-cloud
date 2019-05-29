@@ -2,26 +2,35 @@
 
 
 [[projects]]
+  digest = "1:871b7cfa5fe18bfdbd4bf117c166c3cff8d3b61c8afe4e998b5b8ac0c160ca24"
   name = "github.com/alexellis/hmac"
   packages = ["."]
+  pruneopts = "UT"
   revision = "d5d71edd7bc74eb6ae4b99eccc6bda738435f43f"
   version = "1.2"
 
 [[projects]]
-  name = "github.com/openfaas/faas"
-  packages = ["gateway/types"]
-  revision = "91b6c244941c41b4750c9fcc90fc678d196d4619"
-  version = "0.8.12"
+  digest = "1:deb76da5396c9f641ddea9ca79e31a14bdb09c787cdfda90488768b7539b1fd6"
+  name = "github.com/openfaas/faas-provider"
+  packages = ["auth"]
+  pruneopts = "UT"
+  revision = "6a76a052deb12fd94b373c082963d8a8ad44d4d1"
+  version = "0.9.0"
 
 [[projects]]
+  digest = "1:bfeeed88d0e6fd0c674b2bf0db4f6da90eecac5e7f6f32d2afec1ddaef6cb6d3"
   name = "github.com/openfaas/openfaas-cloud"
   packages = ["sdk"]
-  revision = "1b8f104e563dc86ab4f0f92f02e44f02b0d54a13"
-  version = "0.5.9"
+  pruneopts = "UT"
+  revision = "ea76d3d154e50b4283436610911e96648104fe09"
+  version = "0.9.2"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "140b505227531aaffde1abcc0e3e2b4f74c94c256264bd780ec96df63a087918"
+  input-imports = [
+    "github.com/alexellis/hmac",
+    "github.com/openfaas/openfaas-cloud/sdk",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1

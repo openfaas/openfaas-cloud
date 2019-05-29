@@ -33,6 +33,33 @@ func TestGetEvent_ReadLabels(t *testing.T) {
 	}
 }
 
+func TestGetEvent_ReadAnnotations(t *testing.T) {
+
+	want := map[string]string{
+		"topic": "function.deployed",
+	}
+
+	val, _ := json.Marshal(want)
+	os.Setenv("Http_Annotations", string(val))
+
+	eventInfo, err := getEventFromEnv()
+	if err != nil {
+		t.Errorf(err.Error())
+		t.Fail()
+	}
+
+	for k, v := range want {
+		if _, ok := eventInfo.Annotations[k]; !ok {
+			t.Errorf("want %s to be present in event.Labels", k)
+			continue
+		}
+		if vv, _ := eventInfo.Annotations[k]; vv != v {
+			t.Errorf("value of %s, want: %s, got %s", k, v, vv)
+		}
+
+	}
+}
+
 func TestGetEvent_ReadSecrets(t *testing.T) {
 
 	valSt := []string{"s1", "s2"}
@@ -388,5 +415,40 @@ func Test_getConfig(t *testing.T) {
 				t.Errorf("want %s, but got %s", want, value)
 			}
 		})
+	}
+}
+
+func Test_buildAnnotations_RemovesNonWhitelisted(t *testing.T) {
+	whitelist := []string{"topic"}
+
+	userValues := map[string]string{
+		"com.url": "value",
+	}
+
+	out := buildAnnotations(whitelist, userValues)
+
+	if _, ok := out["com.url"]; ok {
+		t.Fail()
+	}
+
+}
+
+func Test_buildAnnotations_AllowsWhitelisted(t *testing.T) {
+	whitelist := []string{"topic"}
+
+	userValues := map[string]string{
+		"topic": "function.deployed",
+	}
+
+	out := buildAnnotations(whitelist, userValues)
+
+	val, ok := out["topic"]
+	if !ok {
+		t.Errorf("want user annotation: topic")
+		t.Fail()
+	}
+	if val != userValues["topic"] {
+		t.Errorf("want user annotation: topic - got %s, want %s", val, userValues["topic"])
+		t.Fail()
 	}
 }
