@@ -1,6 +1,6 @@
 ## OpenFaaS Cloud installation guide
 
-Installing OpenFaaS Cloud requires some initial setup with GitHub or GitLab and a working installation of OpenFaaS. If you'd like help please see below for how to join the Slack workspace.
+Installing OpenFaaS Cloud (aka OFC) requires some initial setup with GitHub or GitLab and a working installation of OpenFaaS (aka OF). If you'd like help please see below for how to join the Slack workspace.
 
 ### Pre-reqs
 
@@ -569,6 +569,18 @@ You will now be presented with your `client_id` and `client_secret` values for t
 If you are running the router via Kubernetes you may need to edit `core/yaml/edge-auth-dep.yml` and update the `client_id` there. The `client_secret` can be created with a Kubernetes secret which is then mounted into the container at runtime.
 
 ## Appendix
+
+### Custom labels
+
+Users can set the following custom labels:
+
+* `com.openfaas.scale.zero` - either to `true` or `false` to enable/disable scale to zero (where the feature is enabled)
+
+### Custom annotations
+
+Users can set the following custom annotations:
+
+* `topic` - the topic annotation is used with the event-connector pattern, if at least one event-connector is installed on the OFC installation.
 
 ### Dashboard
 
