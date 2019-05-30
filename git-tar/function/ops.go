@@ -407,12 +407,22 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, sta
 
 		// Marshal user labels
 		if stack.Functions[tarEntry.functionName].Labels != nil {
-			labelsJSON, marshalErr := json.Marshal(stack.Functions[tarEntry.functionName].Labels)
+			jsonBytes, marshalErr := json.Marshal(stack.Functions[tarEntry.functionName].Labels)
 			if marshalErr != nil {
 				log.Printf("Error marshaling labels for function %s, %s", tarEntry.functionName, marshalErr)
 			}
 
-			httpReq.Header.Add("Labels", string(labelsJSON))
+			httpReq.Header.Add("Labels", string(jsonBytes))
+		}
+
+		// Marshal annotations
+		if stack.Functions[tarEntry.functionName].Annotations != nil {
+			jsonBytes, marshalErr := json.Marshal(stack.Functions[tarEntry.functionName].Annotations)
+			if marshalErr != nil {
+				log.Printf("Error marshaling annotations for function %s, %s", tarEntry.functionName, marshalErr)
+			}
+
+			httpReq.Header.Add("Annotations", string(jsonBytes))
 		}
 
 		res, reqErr := c.Do(httpReq)
