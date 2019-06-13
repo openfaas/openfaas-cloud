@@ -63,15 +63,26 @@ func Handle(req []byte) string {
 			string(req))
 	}
 
-	if sdk.ValidateCustomers() {
-		customersURL := os.Getenv("customers_url")
-		err := validateCustomers(&customer, customersURL)
-		if err != nil {
-			return err.Error()
-		}
-	}
-
 	if eventHeader == "push" {
+		if sdk.ValidateCustomers() {
+			customersURL := os.Getenv("customers_url")
+			err := validateCustomers(&customer, customersURL)
+			if err != nil {
+				return err.Error()
+			}
+		}
+		if sdk.HmacEnabled() {
+			webhookSecretKey, secretErr := sdk.ReadSecret("github-webhook-secret")
+			if secretErr != nil {
+				return secretErr.Error()
+			}
+
+			validateErr := hmac.Validate(req, xHubSignature, webhookSecretKey)
+			if validateErr != nil {
+				log.Fatal(validateErr)
+			}
+		}
+
 		headers := map[string]string{
 			"X-Hub-Signature": xHubSignature,
 			"X-GitHub-Event":  eventHeader,
@@ -95,6 +106,27 @@ func Handle(req []byte) string {
 		eventHeader == "installation_repositories" ||
 		eventHeader == "integration_installation" {
 
+		event := InstallationRepositoriesEvent{}
+		err := json.Unmarshal(req, &event)
+		if err != nil {
+			return err.Error()
+		}
+
+		if sdk.ValidateCustomers() {
+			customersURL := os.Getenv("customers_url")
+			customer := sdk.PushEvent{
+				Repository: sdk.PushEventRepository{
+					Owner: sdk.Owner{
+						Login: event.Installation.Account.Login,
+					},
+				},
+			}
+
+			err := validateCustomers(&customer, customersURL)
+			if err != nil {
+				return err.Error()
+			}
+		}
 		if sdk.HmacEnabled() {
 			webhookSecretKey, secretErr := sdk.ReadSecret("github-webhook-secret")
 			if secretErr != nil {
@@ -105,12 +137,6 @@ func Handle(req []byte) string {
 			if validateErr != nil {
 				log.Fatal(validateErr)
 			}
-		}
-
-		event := InstallationRepositoriesEvent{}
-		err := json.Unmarshal(req, &event)
-		if err != nil {
-			return err.Error()
 		}
 
 		fmt.Printf("event.Action: %s\n", event.Action)

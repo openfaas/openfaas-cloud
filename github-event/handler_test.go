@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path"
 	"testing"
 
 	"github.com/openfaas/openfaas-cloud/sdk"
@@ -19,6 +20,7 @@ func (h HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func Test_validateCustomers_UserNotFound(t *testing.T) {
 	os.Unsetenv("Http_Query")
+	os.Setenv("Http_X_Github_Event", "push")
 
 	s := httptest.NewServer(HTTPHandler{})
 
@@ -40,6 +42,7 @@ func Test_validateCustomers_UserNotFound(t *testing.T) {
 
 func Test_validateCustomers_UserFound(t *testing.T) {
 	os.Unsetenv("Http_Query")
+	os.Setenv("Http_X_Github_Event", "push")
 
 	s := httptest.NewServer(HTTPHandler{})
 
@@ -92,6 +95,9 @@ func Test_validCustomer_EmptyInput_Fails(t *testing.T) {
 
 func Test_Handle_ValidateCustomersInvalid(t *testing.T) {
 	os.Unsetenv("Http_Query")
+
+	tmp := os.TempDir()
+	path.Join(tmp, "")
 
 	server := httptest.NewServer(&HTTPHandler{})
 	defer server.Close()
@@ -165,7 +171,7 @@ func Test_Handle_Event(t *testing.T) {
 			action:            "",
 			validateCustomers: "true",
 			validateHmac:      "false",
-			want:              "unable to read secret: /var/openfaas/secrets/payload-secret, error: open /var/openfaas/secrets/payload-secret: no such file or directory",
+			want:              "unable to read secret: /var/openfaas/secrets/github-webhook-secret, error: open /var/openfaas/secrets/github-webhook-secret: no such file or directory",
 			login:             "alexellis",
 		},
 		{
@@ -174,7 +180,7 @@ func Test_Handle_Event(t *testing.T) {
 			action:            "",
 			validateCustomers: "false",
 			validateHmac:      "false",
-			want:              "unable to read secret: /var/openfaas/secrets/payload-secret, error: open /var/openfaas/secrets/payload-secret: no such file or directory",
+			want:              "unable to read secret: /var/openfaas/secrets/github-webhook-secret, error: open /var/openfaas/secrets/github-webhook-secret: no such file or directory",
 		},
 	}
 
