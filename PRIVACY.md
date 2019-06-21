@@ -1,6 +1,6 @@
 ## OpenFaaS Cloud - Community Cluster (hosted version)
 
-This statement applies to the public, hosted version of OpenFaaS Cloud (aka the Community Cluster)which is operated by Alex Ellis.
+This statement applies to the public, hosted version of OpenFaaS Cloud (aka the Community Cluster) which is operated by OpenFaaS Ltd, registered company no: 11076587.
 
 > Note: These terms do not apply if you are running your own OpenFaaS Cloud cluster.
 
@@ -23,7 +23,7 @@ If you wish to do any of the above, then [deploy your own environment](https://g
 
 ##### To report a vulnerability
 
-Do not report a vulnerability via Slack or GitHub. Please contact alex@openfaas.com directly. Give 5-10 working days for an initial response.
+Do not report a vulnerability via Slack or GitHub. Please contact OpenFaaS Ltd via alex@openfaas.com directly. Give 5-10 working days for an initial response.
 
 ##### Termination of access
 
@@ -67,5 +67,5 @@ If you want to remove your endpoints from OpenFaaS Cloud please remove the GitHu
 
 The "Community Cluster" is hosted on servers owned and controlled by [DigitalOcean LCC](https://www.digitalocean.com/about/) in the the London region. The operator of the "Community Cluster" has no affiliation with DigitalOcean.
 
-To request your data or to have have all information removed contact alex@openfaas.com.
+To request your data or to have have all information removed contact OpenFaaS Ltd via alex@openfaas.com.
 
