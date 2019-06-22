@@ -215,6 +215,14 @@ func Handle(req []byte) string {
 		userAnnotations := buildAnnotations(annotationWhitelist, event.Annotations)
 		userAnnotations[sdk.FunctionLabelPrefix+"git-repo-url"] = event.RepoURL
 
+		if val, ok := os.LookupEnv("fn_write_timeout"); ok {
+			if _, err := time.ParseDuration(val); err != nil {
+				log.Printf("error parsing fn_write_timeout: %s", err)
+			} else {
+				event.Environment["write_timeout"] = val
+			}
+		}
+
 		deploy := deployment{
 			Service: serviceValue,
 			Image:   imageName,
@@ -231,10 +239,10 @@ func Handle(req []byte) string {
 				sdk.FunctionLabelPrefix + "git-branch":     buildBranch(),
 				"faas_function":                            serviceValue,
 				"app":                                      serviceValue,
-				"com.openfaas.scale.min":    scalingMinLimit,
-				"com.openfaas.scale.max":    scalingMaxLimit,
-				"com.openfaas.scale.factor": scalingFactor,
-				zeroScaleLabel:              strconv.FormatBool(scaleToZero),
+				"com.openfaas.scale.min":                   scalingMinLimit,
+				"com.openfaas.scale.max":                   scalingMaxLimit,
+				"com.openfaas.scale.factor":                scalingFactor,
+				zeroScaleLabel:                             strconv.FormatBool(scaleToZero),
 			},
 			Annotations:            userAnnotations,
 			Requests:               &FunctionResources{},

@@ -77,6 +77,7 @@ functions:
     environment:
       read_timeout: 5m
       write_timeout: 5m
+      fn_write_timeout: 5m
       write_debug: true
       read_debug: true
       scaling_factor: 50
