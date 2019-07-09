@@ -200,6 +200,7 @@ functions:
     image: functions/alpine:latest
     fprocess: cat
     labels:
+      openfaas-cloud: "1"
       com.openfaas.scale.zero: false
     environment:
       write_debug: true
@@ -210,8 +211,11 @@ functions:
     handler: ./system-metrics
     image: functions/system-metrics:0.1.1
     labels:
+      openfaas-cloud: "1"
+      role: openfaas-system
       com.openfaas.scale.zero: false
     environment_file:
       - gateway_config.yml
     environment:
       content_type: "application/json"
+
