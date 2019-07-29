@@ -582,6 +582,8 @@ Users can set the following custom annotations:
 
 * `topic` - the topic annotation is used with the event-connector pattern, if at least one event-connector is installed on the OFC installation.
 
+* `schedule` - the schedule annotation is used with the [cron-connector](https://github.com/zeerorg/cron-connector) function.
+
 ### Dashboard
 
 The Dashboard is optional and can be installed to visualise your functions.

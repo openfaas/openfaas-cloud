@@ -434,21 +434,35 @@ func Test_buildAnnotations_RemovesNonWhitelisted(t *testing.T) {
 }
 
 func Test_buildAnnotations_AllowsWhitelisted(t *testing.T) {
-	whitelist := []string{"topic"}
+	whitelist := []string{
+		"topic",
+		"schedule",
+	}
 
 	userValues := map[string]string{
-		"topic": "function.deployed",
+		"topic":    "function.deployed",
+		"schedule": "has schedule",
 	}
 
 	out := buildAnnotations(whitelist, userValues)
 
-	val, ok := out["topic"]
+	topicVal, ok := out["topic"]
 	if !ok {
 		t.Errorf("want user annotation: topic")
 		t.Fail()
 	}
-	if val != userValues["topic"] {
-		t.Errorf("want user annotation: topic - got %s, want %s", val, userValues["topic"])
+	if topicVal != userValues["topic"] {
+		t.Errorf("want user annotation: topic - got %s, want %s", topicVal, userValues["topic"])
+		t.Fail()
+	}
+
+	scheduleVal, ok := out["schedule"]
+	if !ok {
+		t.Errorf("want user annotation: schedule")
+		t.Fail()
+	}
+	if scheduleVal != userValues["schedule"] {
+		t.Errorf("want user annotation: schedule - got %s, want %s", scheduleVal, userValues["schedule"])
 		t.Fail()
 	}
 }

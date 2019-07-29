@@ -211,6 +211,7 @@ func Handle(req []byte) string {
 
 		annotationWhitelist := []string{
 			"topic",
+			"schedule",
 		}
 		userAnnotations := buildAnnotations(annotationWhitelist, event.Annotations)
 		userAnnotations[sdk.FunctionLabelPrefix+"git-repo-url"] = event.RepoURL
