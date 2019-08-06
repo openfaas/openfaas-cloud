@@ -215,12 +215,8 @@ func Handle(req []byte) string {
 		userAnnotations := buildAnnotations(annotationWhitelist, event.Annotations)
 		userAnnotations[sdk.FunctionLabelPrefix+"git-repo-url"] = event.RepoURL
 
-		if val, ok := os.LookupEnv("fn_write_timeout"); ok {
-			if _, err := time.ParseDuration(val); err != nil {
-				log.Printf("error parsing fn_write_timeout: %s", err)
-			} else {
-				event.Environment["write_timeout"] = val
-			}
+		if fwt := fnWriteTimeout(); fwt != "" {
+			event.Environment["write_timeout"] = fwt
 		}
 
 		deploy := deployment{
@@ -742,4 +738,16 @@ func buildBranch() string {
 		return "master"
 	}
 	return branch
+}
+
+func fnWriteTimeout() string {
+	val, ok := os.LookupEnv("fn_write_timeout")
+	if !ok {
+		return ""
+	}
+	if _, err := time.ParseDuration(val); err != nil {
+		log.Printf("error parsing fn_write_timeout: %s", err)
+		return ""
+	}
+	return val
 }

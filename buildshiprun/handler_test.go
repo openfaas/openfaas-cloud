@@ -452,3 +452,32 @@ func Test_buildAnnotations_AllowsWhitelisted(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func Test_fnWriteTimeout(t *testing.T) {
+	cases := []struct {
+		name         string
+		writeTimeout string
+		expected     string
+	}{
+		{
+			name:         "invalid write timeout",
+			writeTimeout: "invalid",
+			expected:     "",
+		},
+		{
+			name:         "valid write timeout",
+			writeTimeout: "5s",
+			expected:     "5s",
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			os.Setenv("fn_write_timeout", c.writeTimeout)
+
+			if result := fnWriteTimeout(); result != c.expected {
+				t.Errorf("want %s, but got %s", c.expected, result)
+			}
+		})
+	}
+}
