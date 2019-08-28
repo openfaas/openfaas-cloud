@@ -1,4 +1,6 @@
-FROM golang:1.10-alpine3.9 as build
+FROM golang:1.11-alpine3.10 as build
+
+ENV CGO_ENABLED=0
 
 RUN apk --no-cache add curl \ 
     && echo "Pulling watchdog binary from GitHub." \
@@ -19,7 +21,7 @@ RUN CGO_ENABLED=0 GOOS=linux \
     go build --ldflags "-s -w" -a -installsuffix cgo -o handler . && \
     go test $(go list ./... | grep -v /vendor/) -cover
 
-FROM alpine:3.9
+FROM alpine:3.10
 
 RUN apk --no-cache add \
     ca-certificates \
