@@ -1,6 +1,8 @@
-FROM golang:1.10-alpine AS builder
+FROM golang:1.11-alpine AS builder
 
 WORKDIR /go/src/github.com/openfaas/openfaas-cloud/edge-router
+
+ENV CGO_ENABLED=0
 
 COPY main.go            .
 COPY main_test.go       .
@@ -10,7 +12,7 @@ COPY config_test.go     .
 RUN go test -v \
     && go build -o /usr/bin/edge-router .
 
-FROM alpine:3.9
+FROM alpine:3.10
 
 RUN apk add --no-cache ca-certificates
 

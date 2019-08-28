@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: edge-router
-        image: openfaas/edge-router:0.6.1
+        image: openfaas/edge-router:0.6.2
         imagePullPolicy: Always
         livenessProbe:
           httpGet:

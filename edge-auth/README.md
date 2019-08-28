@@ -41,7 +41,7 @@ Contents (encoded JWT):
 ## Building
 
 ```
-export TAG=0.5.2
+export TAG=0.5.3
 make build push
 ```
 

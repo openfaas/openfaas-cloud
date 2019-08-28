@@ -1,12 +1,17 @@
-FROM golang:1.10-alpine AS builder
+FROM golang:1.11-alpine AS builder
+
+ENV CGO_ENABLED=0
+
 RUN apk add --no-cache git g++ linux-headers
+
 WORKDIR /go/src/github.com/openfaas/openfaas-cloud/of-builder
+
 ADD main.go .
 ADD vendor  vendor
 
 RUN go build -o /usr/bin/of-builder .
 
-FROM alpine:3.9
+FROM alpine:3.10
 
 # Setting the group prevented access to /tmp at runtime
 # lchown started to fail

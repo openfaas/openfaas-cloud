@@ -1,6 +1,8 @@
-FROM golang:1.10-alpine AS builder
+FROM golang:1.11-alpine AS builder
 
 WORKDIR /go/src/github.com/openfaas/openfaas-cloud/edge-auth
+
+ENV CGO_ENABLED=0
 
 COPY vendor     vendor
 COPY handlers   handlers
@@ -12,7 +14,7 @@ COPY main.go    .
 RUN go test -v \
     && go build -o /usr/bin/edge-auth .
 
-FROM alpine:3.9
+FROM alpine:3.10
 RUN apk add --no-cache ca-certificates
 
 WORKDIR /root/
