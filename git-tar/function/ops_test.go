@@ -289,7 +289,7 @@ func Test_checkCompatibleTemplates(t *testing.T) {
 		{
 			title: "Function language exists in the fetched templates",
 			functionDefinition: &stack.Services{Functions: map[string]stack.Function{
-				"fn1": stack.Function{Language: "go"},
+				"fn1": {Language: "go"},
 			},
 			},
 			expectedError: nil,
@@ -297,7 +297,7 @@ func Test_checkCompatibleTemplates(t *testing.T) {
 		{
 			title: "Function language does not exist in the fetched templates",
 			functionDefinition: &stack.Services{Functions: map[string]stack.Function{
-				"fn1": stack.Function{Language: "smalltalk"},
+				"fn1": {Language: "smalltalk"},
 			},
 			},
 			expectedError: fmt.Errorf("Not supported language: `smalltalk` for function: `fn1`"),

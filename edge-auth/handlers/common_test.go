@@ -73,11 +73,11 @@ func Test_GetOrganizations(t *testing.T) {
 		ExpectedOrganizations []string
 	}{
 		{
-			Title: "Example with properly separated organizations with comma",
+			Title:                 "Example with properly separated organizations with comma",
 			ExistingOrganizations: OpenFaaSCloudClaims{Organizations: "openfaas,openfaas-incubator,openfaas-cloud"},
 			ExpectedOrganizations: []string{"openfaas", "openfaas-incubator", "openfaas-cloud"},
 		}, {
-			Title: "Example with un-proper separation of organizations with space",
+			Title:                 "Example with un-proper separation of organizations with space",
 			ExistingOrganizations: OpenFaaSCloudClaims{Organizations: "openfaas openfaas-incubator openfaas-cloud"},
 			ExpectedOrganizations: []string{"openfaas openfaas-incubator openfaas-cloud"},
 		},

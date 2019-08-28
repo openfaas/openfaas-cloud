@@ -63,7 +63,7 @@ func Test_hasDockerfileFunction(t *testing.T) {
 		{
 			title: "no dockerfile function",
 			input: map[string]stack.Function{
-				"test": stack.Function{
+				"test": {
 					Language: "go",
 				},
 			},
@@ -72,7 +72,7 @@ func Test_hasDockerfileFunction(t *testing.T) {
 		{
 			title: "with a dockerfile function",
 			input: map[string]stack.Function{
-				"test": stack.Function{
+				"test": {
 					Language: "Dockerfile",
 				},
 			},

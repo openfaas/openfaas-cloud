@@ -156,12 +156,12 @@ func Test_ValidImage(t *testing.T) {
 		// error cases
 		"failed to solve: rpc error: code = Unknown desc = exit code 2":   false,
 		"failed to solve: rpc error: code = Unknown desc = exit status 2": false,
-		"failed to solve:":                                                false,
-		"error:":                                                          false,
-		"code =":                                                          false,
-		"-1":                                                              false,
-		"":                                                                false,
-		" ":                                                               false,
+		"failed to solve:": false,
+		"error:":           false,
+		"code =":           false,
+		"-1":               false,
+		"":                 false,
+		" ":                false,
 
 		// "docker-registry:5000/admin/alexellis-sofia-test1-go-world:0.1-374448ba4d75bcf49611525a5b2448d9c3d0bf28": true,
 		// url (with/without tag)
@@ -190,13 +190,13 @@ func Test_ValidImage(t *testing.T) {
 		"someuser/repo-name-function_name:latest-7f7ec13d12b1397408e54b79686d43e41974bfa0": true,
 
 		// open faas cloud function name (with/without tag)
-		"repo-name-function_name":                                                 true,
-		"repo-name-function_name:latest":                                          true,
+		"repo-name-function_name":        true,
+		"repo-name-function_name:latest": true,
 		"repo-name-function_name:latest-7f7ec13d12b1397408e54b79686d43e41974bfa0": true,
 
 		// simple function name (with/without tag)
-		"function_name":                                                 true,
-		"function_name:latest":                                          true,
+		"function_name":        true,
+		"function_name:latest": true,
 		"function_name:latest-7f7ec13d12b1397408e54b79686d43e41974bfa0": true,
 	}
 
