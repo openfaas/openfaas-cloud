@@ -6,7 +6,7 @@ functions:
   system-gitlab-event:
     lang: go
     handler: ./gitlab-event
-    image: functions/gitlab-event:0.1.2
+    image: functions/gitlab-event:0.1.3
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -29,7 +29,7 @@ functions:
   gitlab-status:
     lang: go
     handler: ./gitlab-status
-    image: functions/gitlab-status:0.1.1
+    image: functions/gitlab-status:0.1.2
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -46,7 +46,7 @@ functions:
   gitlab-push:
     lang: go
     handler: ./gitlab-push
-    image: functions/gitlab-push:0.2.1
+    image: functions/gitlab-push:0.2.2
     labels:
       openfaas-cloud: "1"
       role: openfaas-system

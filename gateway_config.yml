@@ -34,7 +34,7 @@ environment:
   prometheus_port: 9090
   metrics_window: 60m
 
-  # Enable support for the dockerfile template
+# Dockerfile language support
   enable_dockerfile_lang: false
 
   # Set the build branch to be used by ofc
