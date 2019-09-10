@@ -27,6 +27,9 @@ import (
 	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
+// ConfigFileName for Docker bundle
+const ConfigFileName = "com.openfaas.docker.config"
+
 type tarEntry struct {
 	fileName     string
 	functionName string
@@ -108,7 +111,7 @@ func makeTar(pushEvent sdk.PushEvent, filePath string, services *stack.Services)
 		}
 
 		configBytes, _ := json.Marshal(config)
-		configErr := ioutil.WriteFile(path.Join(base, "config"), configBytes, 0600)
+		configErr := ioutil.WriteFile(path.Join(base, ConfigFileName), configBytes, 0600)
 		if configErr != nil {
 			return nil, configErr
 		}
@@ -135,7 +138,7 @@ func makeTar(pushEvent sdk.PushEvent, filePath string, services *stack.Services)
 			}
 
 			header.Name = strings.TrimPrefix(path, base)
-			if header.Name != "/config" {
+			if header.Name != fmt.Sprintf("/%s", ConfigFileName) {
 				header.Name = filepath.Join("context", header.Name)
 			}
 

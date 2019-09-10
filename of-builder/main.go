@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -25,6 +26,9 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 )
+
+// ConfigFileName for Docker bundle
+const ConfigFileName = "com.openfaas.docker.config"
 
 var (
 	lchownEnabled bool
@@ -63,8 +67,11 @@ func main() {
 	router.HandleFunc("/build", buildHandler)
 	router.HandleFunc("/healthz", healthzHandler)
 
+	addr := "0.0.0.0:8080"
+	log.Printf("of-builder serving traffic on: %s\n", addr)
+
 	server := &http.Server{
-		Addr:    "0.0.0.0:8080",
+		Addr:    addr,
 		Handler: router,
 	}
 
@@ -142,7 +149,7 @@ func build(w http.ResponseWriter, r *http.Request, buildArgs map[string]string) 
 		return nil, err
 	}
 
-	dt, err := ioutil.ReadFile(filepath.Join(tmpdir, "config"))
+	dt, err := ioutil.ReadFile(filepath.Join(tmpdir, ConfigFileName))
 	if err != nil {
 		return nil, err
 	}
