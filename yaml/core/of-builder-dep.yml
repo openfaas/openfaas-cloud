@@ -21,7 +21,7 @@ spec:
             secretName: payload-secret
       containers:
       - name: of-builder
-        image: openfaas/of-builder:0.6.2
+        image: openfaas/of-builder:0.7.0
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
