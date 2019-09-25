@@ -8,6 +8,8 @@ COPY main.go            .
 COPY main_test.go       .
 COPY config.go          .
 COPY config_test.go     .
+COPY health.go          .
+COPY auth_proxy.go      .
 
 RUN go test -v \
     && go build -o /usr/bin/edge-router .

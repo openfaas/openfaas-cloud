@@ -5,7 +5,7 @@ This is the single point of entry for all HTTP requests for OpenFaaS Cloud. When
 ### Roadmap
 
 - [x] sub-domain mapping
-- [ ] [authz via OAuth 2.0 for protected URL routes via #145](https://github.com/openfaas/openfaas-cloud/issues/145)
+- [x] [authz via OAuth 2.0 for protected URL routes via #145](https://github.com/openfaas/openfaas-cloud/issues/145)
 
 ### Example of host-to-URL translations:
 
@@ -37,7 +37,7 @@ curl -H "Host: alexellis.domain.io" localhost:8081/kubecon-tester
 ### Development
 
 ```sh
-TAG=0.7.1 make build push
+TAG=0.7.2 make build push
 ```
 
 > Note: on Kubernetes change `gateway:8080` to `gateway.openfaas:8080`.
@@ -45,7 +45,7 @@ TAG=0.7.1 make build push
 If you wish to bypass authentication you can run the router auth an auth_url of the `echo` function deployed via the `stack.yml`.
 
 ```sh
-TAG=0.7.1
+TAG=0.7.2
 
 # As a container
 
