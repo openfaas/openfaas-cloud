@@ -14,13 +14,13 @@ spec:
     spec:
       containers:
       - name: edge-router
-        image: openfaas/edge-router:0.6.2
+        image: openfaas/edge-router:0.7.3
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
             path: /healthz
             port: 8080
-          initialDelaySeconds: 2
+          initialDelaySeconds: 3
           periodSeconds: 10
           timeoutSeconds: 2
         env:
