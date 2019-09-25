@@ -183,6 +183,7 @@ func makeHandler(c *http.Client, timeout time.Duration, upstreamURL string, auth
 		fmt.Printf("Upstream %s status: %d\n", upstreamFullURL, res.StatusCode)
 
 		w.WriteHeader(res.StatusCode)
+
 		if res.Body != nil {
 			defer res.Body.Close()
 
@@ -201,13 +202,12 @@ func copyHeaders(destination http.Header, source *http.Header) {
 }
 
 func makeProxy(timeout time.Duration, maxIdleConns, maxIdleConnsPerHost int) *http.Client {
-	client := http.DefaultClient
 
-	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+	http.DefaultClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		return http.ErrUseLastResponse
 	}
 
-	client.Transport = &http.Transport{
+	http.DefaultClient.Transport = &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 		DialContext: (&net.Dialer{
 			Timeout:   timeout,
@@ -221,5 +221,5 @@ func makeProxy(timeout time.Duration, maxIdleConns, maxIdleConnsPerHost int) *ht
 		ExpectContinueTimeout: 1 * time.Second,
 	}
 
-	return client
+	return http.DefaultClient
 }
