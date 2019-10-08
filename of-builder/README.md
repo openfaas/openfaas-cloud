@@ -8,6 +8,10 @@ of-builder is an image builder for OpenFaaS images, it needs to be deployed with
 
 For Kubernetes skip this section, it is documented in the developer guide with YAML files.
 
+## Test of-builder on Kubernetes
+
+See also: [local testing of of-builder on Kubernetes](local.md)
+
 ## Installation-only (Swarm)
 
 If you are using a remote Docker registry you need to edit `./deploy_swarm.sh`
@@ -171,5 +175,3 @@ Test:
 docker rm -f dind; docker run --name dind --privileged --net=builder -d docker:dind dockerd --insecure-registry registry:5000
 docker exec -ti dind docker pull registry:5000/jmkhael/figlet:latest-99745ca9f5a1a914384686e0e928a10854cc87d5
 ```
-
-See also: [local testing](LOCAL.md)
