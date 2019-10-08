@@ -7,6 +7,7 @@ RUN apk add --no-cache git g++ linux-headers
 WORKDIR /go/src/github.com/openfaas/openfaas-cloud/of-builder
 
 ADD main.go .
+ADD healthz.go .
 ADD vendor  vendor
 
 RUN go build -o /usr/bin/of-builder .

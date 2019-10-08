@@ -133,10 +133,16 @@ func build(w http.ResponseWriter, r *http.Request, buildArgs map[string]string) 
 		return nil, bodyErr
 	}
 
-	hmacErr := validateRequest(&tarBytes, r)
+	enforceHMAC := true
+	if val, ok := os.LookupEnv("disable_hmac"); ok && val == "true" {
+		enforceHMAC = false
+	}
 
-	if hmacErr != nil {
-		return nil, hmacErr
+	if enforceHMAC {
+		hmacErr := validateRequest(&tarBytes, r)
+		if hmacErr != nil {
+			return nil, hmacErr
+		}
 	}
 
 	defer os.RemoveAll(tmpdir)
@@ -319,17 +325,4 @@ func validateRequest(req *[]byte, r *http.Request) (err error) {
 	}
 
 	return nil
-}
-
-func healthzHandler(w http.ResponseWriter, r *http.Request) {
-
-	switch r.Method {
-	case http.MethodGet:
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
-		break
-
-	default:
-		w.WriteHeader(http.StatusMethodNotAllowed)
-	}
 }

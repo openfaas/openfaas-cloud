@@ -90,7 +90,7 @@ The builder service calls into the buildkit daemon to build an OpenFaaS function
 ### Build
 
 ```sh
-export OF_BUILDER_TAG=0.7.0
+export OF_BUILDER_TAG=0.7.1
 
 make build push
 ```
@@ -98,7 +98,7 @@ make build push
 ### Deploy
 
 ```sh
-export OF_BUILDER_TAG=0.7.0
+export OF_BUILDER_TAG=0.7.1
 
 docker service create \
  --network func_functions \
@@ -171,3 +171,5 @@ Test:
 docker rm -f dind; docker run --name dind --privileged --net=builder -d docker:dind dockerd --insecure-registry registry:5000
 docker exec -ti dind docker pull registry:5000/jmkhael/figlet:latest-99745ca9f5a1a914384686e0e928a10854cc87d5
 ```
+
+See also: [local testing](LOCAL.md)
