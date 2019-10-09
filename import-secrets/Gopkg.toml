@@ -4,14 +4,14 @@
 
 [[constraint]]
   name = "gopkg.in/yaml.v2"
-  version = "2.2.1"
+  version = "v2.2.3"
 
 [[constraint]]
   branch = "master"
   name = "k8s.io/apimachinery"
 
 [[constraint]]
-  version = "0.8.8"
+  version = "0.9.11"
   name = "github.com/openfaas/openfaas-cloud"
 
 [prune]
@@ -149,9 +149,9 @@
   name = "gopkg.in/inf.v0"
   revision = "3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4"
 
-[[override]]
-  name = "gopkg.in/yaml.v2"
-  revision = "670d4cfef0544295bc27a114dbac37980d83185a"
+#[[override]]
+#  name = "gopkg.in/yaml.v2"
+#  revision = "670d4cfef0544295bc27a114dbac37980d83185a"
 
 [[override]]
   name = "k8s.io/api"
