@@ -42,7 +42,8 @@ type cfg struct {
 }
 
 func parseYAML(pushEvent sdk.PushEvent, filePath string) (*stack.Services, error) {
-	parsed, err := stack.ParseYAMLFile(path.Join(filePath, "stack.yml"), "", "")
+	envVarSubst := false
+	parsed, err := stack.ParseYAMLFile(path.Join(filePath, "stack.yml"), "", "", envVarSubst)
 	return parsed, err
 }
 

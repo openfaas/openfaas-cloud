@@ -4,6 +4,7 @@ package sdk
 type Event struct {
 	Service        string            `json:"service"`
 	Owner          string            `json:"owner"`
+	OwnerID        int               `json:"owner-id"`
 	Repository     string            `json:"repository"`
 	Image          string            `json:"image"`
 	SHA            string            `json:"sha"`
@@ -14,7 +15,8 @@ type Event struct {
 	Private        bool              `json:"private"`
 	SCM            string            `json:"scm"`
 	RepoURL        string            `json:"repourl"`
-	OwnerID        int               `json:"owner-id"`
+	Labels         map[string]string `json:"labels"`
+	Annotations    map[string]string `json:"annotations"`
 }
 
 // BuildEventFromPushEvent function to build Event from PushEvent

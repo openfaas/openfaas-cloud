@@ -3,9 +3,9 @@ FROM golang:1.11-alpine3.10 as build
 ENV CGO_ENABLED=0
 
 RUN apk --no-cache add curl \ 
-    && echo "Pulling watchdog binary from GitHub." \
-    && curl -sSL https://github.com/openfaas/faas/releases/download/0.13.0/fwatchdog > /usr/bin/fwatchdog \
-    && curl -sSL https://github.com/openfaas/faas-cli/releases/download/0.8.10/faas-cli > /usr/local/bin/faas-cli \
+    && echo "Pulling binaries from GitHub." \
+    && curl -sSLf https://github.com/openfaas/faas/releases/download/0.18.1/fwatchdog > /usr/bin/fwatchdog \
+    && curl -sSLf https://github.com/openfaas/faas-cli/releases/download/0.9.3/faas-cli > /usr/local/bin/faas-cli \
     && chmod +x /usr/bin/fwatchdog \
     && chmod +x /usr/local/bin/faas-cli \
     && apk del curl --no-cache
@@ -39,9 +39,9 @@ ENV combine_output=true
 WORKDIR /home/app
 
 COPY --from=build /go/src/handler/handler    .
-COPY --from=build /usr/bin/fwatchdog         .
-
+COPY --from=build /usr/bin/fwatchdog         /usr/bin/fwatchdog
 COPY --from=build /usr/local/bin/faas-cli    /usr/local/bin/faas-cli
+
 RUN chmod 777 /tmp
 
 USER app
@@ -50,4 +50,4 @@ ENV fprocess="./handler"
 
 HEALTHCHECK --interval=5s CMD [ -e /tmp/.lock ] || exit 1
 
-CMD ["./fwatchdog"]
+CMD ["fwatchdog"]

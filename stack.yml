@@ -47,7 +47,7 @@ functions:
   git-tar:
     lang: dockerfile
     handler: ./git-tar
-    image: functions/of-git-tar:0.14.0
+    image: functions/of-git-tar:0.15.0
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -134,7 +134,7 @@ functions:
   import-secrets:
     lang: go
     handler: ./import-secrets
-    image: functions/import-secrets:0.3.3
+    image: functions/import-secrets:0.4.0
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
