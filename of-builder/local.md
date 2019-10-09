@@ -46,6 +46,8 @@ git clone https://github.com/openfaas/openfaas-cloud
 cd openfaas-cloud/yaml/core/
 ```
 
+Open `of-builder-dep.yml` in a text editor.
+
 * Edit `disable_hmac`, set the value to `false`
 * Edit `enable_lchown`, set the value to `false`
 
