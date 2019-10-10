@@ -23,4 +23,4 @@ functions:
       AWS_SHARED_CREDENTIALS_FILE: "/var/openfaas/secrets/credentials"
     secrets:
       - payload-secret
-      - aws-ecr-credentials # kubectl create secret generic aws-ecr-credentials --from-file ~/.aws/credentials -n openfaas-fn
+      - aws-ecr-createrepo-credentials # kubectl create secret generic aws-ecr-createrepo-credentials --from-file ~/.aws/credentials -n openfaas-fn
