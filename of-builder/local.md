@@ -29,6 +29,9 @@ cat $HOME/.docker/config.json
 ## Create a registry secret
 
 ```sh
+# Delete if you already have one
+kubectl delete secret -n openfaas registry-secret
+
 export SERVER="https://index.docker.io/v1/"
 export DOCKER_USERNAME="your-username"
 export DOCKER_PASSWORD="your-pass"
@@ -77,6 +80,10 @@ kubectl rollout status -n openfaas deployment.apps/of-builder
 ## Create a new function
 
 ```sh
+# Work in a temporary directory
+mkdir -p /tmp/builder
+cd /tmp/builder
+
 export FN="go-tester"
 
 faas-cli new --lang go $FN
@@ -90,7 +97,7 @@ Edit it if you wish.
 Build the function:
 
 ```sh
-export DOCKER_USERNAME=""
+export DOCKER_USERNAME="your-username"
 export SERVER="docker.io/"
 
 rm -fr tmp
