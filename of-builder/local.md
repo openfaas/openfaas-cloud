@@ -18,6 +18,8 @@ docker login $DOCKER_USERNAME
 cat $HOME/.docker/config.json
 ```
 
+> Note: If you are having issues with your config.json file, then try [these instructions](https://github.com/openfaas-incubator/ofc-bootstrap#prepare-your-docker-registry).
+
 ## Create a registry secret
 
 ```sh
@@ -48,7 +50,10 @@ cd openfaas-cloud/yaml/core/
 
 Open `of-builder-dep.yml` in a text editor.
 
-* Edit `disable_hmac`, set the value to `false`
+* Edit `disable_hmac`, set the value to `true`
+
+  This prevents the need to sign the payload, do not run with this configuration outside of dev/test.
+
 * Edit `enable_lchown`, set the value to `false`
 
 ## Deploy
