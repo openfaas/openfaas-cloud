@@ -69,7 +69,7 @@ functions:
   buildshiprun:
     lang: go
     handler: ./buildshiprun
-    image: functions/of-buildshiprun:0.11.3
+    image: functions/of-buildshiprun:0.12.0
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -218,23 +218,3 @@ functions:
       - gateway_config.yml
     environment:
       content_type: "application/json"
-
-  register-image:
-    lang: go
-    handler: ./register-image
-    image: functions/register-image:latest
-    labels:
-    labels:
-      openfaas-cloud: "1"
-      role: openfaas-system
-      com.openfaas.scale.zero: false
-    environment:
-      validate_hmac: false  # MUST CHANGE, DO NOT MERGE
-      write_debug: true
-      read_debug: true
-      content_type: "application/json"
-      AWS_DEFAULT_REGION: "eu-central-1"
-      AWS_SHARED_CREDENTIALS_FILE: "/var/openfaas/secrets/credentials"
-    secrets:
-      - payload-secret
-      - aws-ecr-credentials # kubectl create secret generic aws-ecr-credentials --from-file ~/.aws/credentials -n openfaas-fn
