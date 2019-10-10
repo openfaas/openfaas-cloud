@@ -323,6 +323,39 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, sta
 
 	failedFunctions := []string{}
 	owner := pushEvent.Repository.Owner.Login
+
+	for _, tarEntry := range tars {
+
+		if isAWSECR(tarEntry.imageName) {
+			log.Printf("Registering image for %s: ", tarEntry.imageName)
+
+			err := registerImage(tarEntry.imageName, payloadSecret)
+			if err != nil {
+				// This may be error due to already existing.
+				log.Printf("register-image failed: %s\n", err.Error())
+			}
+		}
+
+		err := deployFunction(tarEntry, pushEvent, stack, status, payloadSecret)
+
+		if err != nil {
+			log.Printf("%s\n", err.Error())
+
+			failedFunctions = append(failedFunctions, tarEntry.functionName)
+		} else {
+			log.Printf("Service deployed: %s, owner: %s\n", tarEntry.functionName, owner)
+		}
+	}
+
+	if len(failedFunctions) > 0 {
+		return fmt.Errorf("%s failed to be deployed via buildshiprun", strings.Join(failedFunctions, ","))
+	}
+
+	return nil
+}
+
+func deployFunction(tarEntry tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, status *sdk.Status, payloadSecret string) error {
+	owner := pushEvent.Repository.Owner.Login
 	repoName := pushEvent.Repository.Name
 	url := pushEvent.Repository.CloneURL
 	afterCommitID := pushEvent.AfterCommitID
@@ -330,123 +363,113 @@ func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, sta
 	sourceManagement := pushEvent.SCM
 	privateRepo := pushEvent.Repository.Private
 	repositoryURL := pushEvent.Repository.RepositoryURL
-
 	ownerID := pushEvent.Repository.Owner.ID
 
-	c := http.Client{}
 	gatewayURL := os.Getenv("gateway_url")
 
-	for _, tarEntry := range tars {
-		fmt.Println("Deploying service - " + tarEntry.functionName)
-		status.AddStatus(sdk.StatusPending, fmt.Sprintf("%s function build started", tarEntry.functionName),
-			sdk.BuildFunctionContext(tarEntry.functionName))
-		statusErr := reportStatus(status, pushEvent.SCM)
-		if statusErr != nil {
-			log.Printf(statusErr.Error())
-		}
+	log.Printf("Deploying: %s, image: %s\n", tarEntry.functionName, tarEntry.imageName)
 
-		fileOpen, err := os.Open(tarEntry.fileName)
+	status.AddStatus(sdk.StatusPending, fmt.Sprintf("%s function build started, image: %s", tarEntry.functionName,
+		tarEntry.imageName),
+		sdk.BuildFunctionContext(tarEntry.functionName))
 
-		if err != nil {
-			return err
-		}
-
-		defer fileOpen.Close()
-
-		fileInfo, statErr := fileOpen.Stat()
-		if statErr == nil {
-			msg := fmt.Sprintf("Building %s. Tar: %s",
-				tarEntry.functionName,
-				bytefmt.ByteSize(uint64(fileInfo.Size())))
-
-			log.Printf("%s\n", msg)
-
-			auditEvent := sdk.AuditEvent{
-				Message: msg,
-				Owner:   pushEvent.Repository.Owner.Login,
-				Repo:    pushEvent.Repository.Name,
-				Source:  Source,
-			}
-			sdk.PostAudit(auditEvent)
-		}
-
-		tarFileBytes, tarReadErr := ioutil.ReadAll(fileOpen)
-		if tarReadErr != nil {
-			return tarReadErr
-		}
-
-		digest := hmac.Sign(tarFileBytes, []byte(payloadSecret))
-
-		postBodyReader := bytes.NewReader(tarFileBytes)
-
-		httpReq, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/buildshiprun", postBodyReader)
-
-		httpReq.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
-
-		httpReq.Header.Add("Repo", repoName)
-		httpReq.Header.Add("Owner", owner)
-		httpReq.Header.Add("Url", url)
-		httpReq.Header.Add("Installation_id", fmt.Sprintf("%d", installationID))
-		httpReq.Header.Add("Service", tarEntry.functionName)
-		httpReq.Header.Add("Image", tarEntry.imageName)
-		httpReq.Header.Add("Sha", afterCommitID)
-		httpReq.Header.Add("Scm", sourceManagement)
-		httpReq.Header.Add("Private", strconv.FormatBool(privateRepo))
-		httpReq.Header.Add("Repo-URL", repositoryURL)
-		httpReq.Header.Add("Owner-ID", fmt.Sprintf("%d,", ownerID))
-
-		envJSON, marshalErr := json.Marshal(stack.Functions[tarEntry.functionName].Environment)
-		if marshalErr != nil {
-			log.Printf("Error marshaling %d env-vars for function %s, %s", len(stack.Functions[tarEntry.functionName].Environment), tarEntry.functionName, marshalErr)
-		}
-
-		httpReq.Header.Add("Env", string(envJSON))
-
-		secretsJSON, marshalErr := json.Marshal(stack.Functions[tarEntry.functionName].Secrets)
-		if marshalErr != nil {
-			log.Printf("Error marshaling secrets for function %s, %s", tarEntry.functionName, marshalErr)
-		}
-
-		httpReq.Header.Add("Secrets", string(secretsJSON))
-
-		// Marshal user labels
-		if stack.Functions[tarEntry.functionName].Labels != nil {
-			jsonBytes, marshalErr := json.Marshal(stack.Functions[tarEntry.functionName].Labels)
-			if marshalErr != nil {
-				log.Printf("Error marshaling labels for function %s, %s", tarEntry.functionName, marshalErr)
-			}
-
-			httpReq.Header.Add("Labels", string(jsonBytes))
-		}
-
-		// Marshal annotations
-		if stack.Functions[tarEntry.functionName].Annotations != nil {
-			jsonBytes, marshalErr := json.Marshal(stack.Functions[tarEntry.functionName].Annotations)
-			if marshalErr != nil {
-				log.Printf("Error marshaling annotations for function %s, %s", tarEntry.functionName, marshalErr)
-			}
-
-			httpReq.Header.Add("Annotations", string(jsonBytes))
-		}
-
-		res, reqErr := c.Do(httpReq)
-		if reqErr != nil {
-			failedFunctions = append(failedFunctions, tarEntry.functionName)
-			fmt.Fprintf(os.Stderr, fmt.Errorf("unable to deploy function via buildshiprun: %s", reqErr.Error()).Error())
-			continue
-		}
-
-		if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusAccepted {
-			failedFunctions = append(failedFunctions, tarEntry.functionName)
-			fmt.Fprintf(os.Stderr, fmt.Errorf("unable to deploy function via buildshiprun: invalid status code %d for %s",
-				res.StatusCode, tarEntry.functionName).Error())
-		} else {
-			fmt.Println("Service deployed ", tarEntry.functionName, res.Status, owner)
-		}
+	statusErr := reportStatus(status, pushEvent.SCM)
+	if statusErr != nil {
+		log.Printf(statusErr.Error())
 	}
 
-	if len(failedFunctions) > 0 {
-		return fmt.Errorf("%s failed to be deployed via buildshiprun", strings.Join(failedFunctions, ","))
+	fileOpen, err := os.Open(tarEntry.fileName)
+
+	if err != nil {
+		return err
+	}
+
+	defer fileOpen.Close()
+
+	fileInfo, statErr := fileOpen.Stat()
+	if statErr == nil {
+		msg := fmt.Sprintf("Building: %s, tar: %s\n",
+			tarEntry.functionName,
+			bytefmt.ByteSize(uint64(fileInfo.Size())))
+
+		log.Printf("%s\n", msg)
+
+		auditEvent := sdk.AuditEvent{
+			Message: msg,
+			Owner:   pushEvent.Repository.Owner.Login,
+			Repo:    pushEvent.Repository.Name,
+			Source:  Source,
+		}
+		sdk.PostAudit(auditEvent)
+	}
+
+	tarFileBytes, tarReadErr := ioutil.ReadAll(fileOpen)
+	if tarReadErr != nil {
+		return tarReadErr
+	}
+
+	digest := hmac.Sign(tarFileBytes, []byte(payloadSecret))
+
+	postBodyReader := bytes.NewReader(tarFileBytes)
+
+	httpReq, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/buildshiprun", postBodyReader)
+
+	httpReq.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
+
+	httpReq.Header.Add("Repo", repoName)
+	httpReq.Header.Add("Owner", owner)
+	httpReq.Header.Add("Url", url)
+	httpReq.Header.Add("Installation_id", fmt.Sprintf("%d", installationID))
+	httpReq.Header.Add("Service", tarEntry.functionName)
+	httpReq.Header.Add("Image", tarEntry.imageName)
+	httpReq.Header.Add("Sha", afterCommitID)
+	httpReq.Header.Add("Scm", sourceManagement)
+	httpReq.Header.Add("Private", strconv.FormatBool(privateRepo))
+	httpReq.Header.Add("Repo-URL", repositoryURL)
+	httpReq.Header.Add("Owner-ID", fmt.Sprintf("%d,", ownerID))
+
+	envJSON, marshalErr := json.Marshal(stack.Functions[tarEntry.functionName].Environment)
+	if marshalErr != nil {
+		log.Printf("Error marshaling %d env-vars for function: %s, error: %s", len(stack.Functions[tarEntry.functionName].Environment), tarEntry.functionName, marshalErr)
+	}
+
+	httpReq.Header.Add("Env", string(envJSON))
+
+	secretsJSON, marshalErr := json.Marshal(stack.Functions[tarEntry.functionName].Secrets)
+	if marshalErr != nil {
+		log.Printf("Error marshaling secrets for function: %s, error: %s", tarEntry.functionName, marshalErr)
+	}
+
+	httpReq.Header.Add("Secrets", string(secretsJSON))
+
+	// Marshal user labels
+	if stack.Functions[tarEntry.functionName].Labels != nil {
+		jsonBytes, marshalErr := json.Marshal(stack.Functions[tarEntry.functionName].Labels)
+		if marshalErr != nil {
+			log.Printf("Error marshaling labels for function: %s, error: %s", tarEntry.functionName, marshalErr)
+		}
+
+		httpReq.Header.Add("Labels", string(jsonBytes))
+	}
+
+	// Marshal annotations
+	if stack.Functions[tarEntry.functionName].Annotations != nil {
+		jsonBytes, marshalErr := json.Marshal(stack.Functions[tarEntry.functionName].Annotations)
+		if marshalErr != nil {
+			log.Printf("Error marshaling annotations for function: %s, error: %s", tarEntry.functionName, marshalErr)
+		}
+
+		httpReq.Header.Add("Annotations", string(jsonBytes))
+	}
+
+	res, reqErr := http.DefaultClient.Do(httpReq)
+
+	if reqErr != nil {
+		return fmt.Errorf("unable to deploy function via buildshiprun: %s", reqErr.Error())
+	}
+
+	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusAccepted {
+		return fmt.Errorf("unable to deploy function via buildshiprun: invalid status code: %d for %s", res.StatusCode, tarEntry.functionName)
 	}
 
 	return nil
@@ -479,8 +502,6 @@ func importSecrets(pushEvent sdk.PushEvent, stack *stack.Services, clonePath str
 		return secretErr
 	}
 
-	c := http.Client{}
-
 	reader := bytes.NewReader(bytesOut)
 	httpReq, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/import-secrets", reader)
 
@@ -489,7 +510,7 @@ func importSecrets(pushEvent sdk.PushEvent, stack *stack.Services, clonePath str
 	digest := hmac.Sign(bytesOut, []byte(payloadSecret))
 	httpReq.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
 
-	res, reqErr := c.Do(httpReq)
+	res, reqErr := http.DefaultClient.Do(httpReq)
 
 	if reqErr != nil {
 		fmt.Fprintf(os.Stderr, fmt.Errorf("error reaching import-secrets function: %s", reqErr.Error()).Error())
@@ -579,9 +600,7 @@ func reportGitLabStatus(status *sdk.Status) {
 	digest := hmac.Sign(statusBytes, []byte(payloadSecret))
 	req.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
 
-	client := http.Client{}
-
-	res, resErr := client.Do(req)
+	res, resErr := http.DefaultClient.Do(req)
 	if resErr != nil {
 		log.Printf("unexpected error while retrieving response: %s", resErr.Error())
 	}
@@ -628,6 +647,9 @@ func formatGitLabCloneURL(pushEvent sdk.PushEvent, tokenAPI string) (string, err
 	}
 	return fmt.Sprintf("https://%s:%s@%s%s", pushEvent.Repository.Owner.Login, tokenAPI, url.Host, url.Path), nil
 }
+
+// GitLabCloneURL builds a URL from an sdk.PushEvent on how to clone a
+// GitLab repository
 func GitLabCloneURL(pushEvent sdk.PushEvent) (string, error) {
 	tokenAPI, tokenErr := sdk.ReadSecret("gitlab-api-token")
 	if tokenErr != nil {
@@ -642,6 +664,8 @@ func GitLabCloneURL(pushEvent sdk.PushEvent) (string, error) {
 	return cloneURL, nil
 }
 
+// GitHubCloneURL builds a URL from an sdk.PushEvent on how to clone a
+// GitHub repository
 func GitHubCloneURL(pushEvent sdk.PushEvent) (string, error) {
 	at := &githubAuthToken{
 		appID:          os.Getenv("github_app_id"),
@@ -690,4 +714,76 @@ func existingTemplates(filePath string) ([]string, error) {
 		}
 	}
 	return existingTemplates, nil
+}
+
+func isAWSECR(image string) bool {
+	return strings.Contains(image, "amazonaws.com")
+}
+
+func registerImage(image, payloadSecret string) error {
+
+	payloadBytes, marshalErr := json.Marshal(struct {
+		Image string `json:"image"`
+	}{
+		image})
+
+	if marshalErr != nil {
+		log.Printf("error while marshalling request: %s", marshalErr.Error())
+	}
+
+	gatewayURL := os.Getenv("gateway_url")
+
+	_, body, err := invokeWithHMAC(gatewayURL+"function/register-image",
+		payloadBytes,
+		payloadSecret,
+		make(map[string]string))
+
+	if err != nil {
+		return err
+	}
+
+	log.Println(body)
+
+	return err
+}
+
+func invokeWithHMAC(uri string, payload []byte, payloadSecret string, headers map[string]string) (int, []byte, error) {
+
+	statusReader := bytes.NewReader(payload)
+	req, reqErr := http.NewRequest(http.MethodPost, uri, statusReader)
+	if reqErr != nil {
+		log.Printf("error while making request to gitlab-status: `%s`", reqErr.Error())
+	}
+
+	if headers != nil {
+		for k, v := range headers {
+			req.Header.Add(k, v)
+		}
+	}
+
+	if len(payloadSecret) > 0 {
+		digest := hmac.Sign(payload, []byte(payloadSecret))
+		req.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
+	}
+
+	res, resErr := http.DefaultClient.Do(req)
+	if resErr != nil {
+		log.Printf("unexpected error while retrieving response: %s", resErr.Error())
+		return http.StatusServiceUnavailable, nil, resErr
+	}
+
+	if res.Body != nil {
+		defer res.Body.Close()
+	}
+
+	resOut, bodyErr := ioutil.ReadAll(res.Body)
+	if bodyErr != nil {
+		log.Printf("unexpected error while reading response body: %s", bodyErr.Error())
+	}
+
+	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusAccepted {
+		return res.StatusCode, resOut, fmt.Errorf("bad code: %d, message: %s", res.StatusCode, string(resOut))
+	}
+
+	return res.StatusCode, resOut, nil
 }
