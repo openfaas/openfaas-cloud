@@ -3,7 +3,7 @@
 
 This tutorial allows you to test the OpenFaaS Cloud Builder (of-builder) without having OpenFaaS Cloud installed or deployed.
 
-## Log into `docker`
+## Log into `docker`  (Normal registry)
 
 Make sure keychain access is disabled, then force a regeneration of your `config.json` file
 
@@ -18,15 +18,39 @@ docker login $DOCKER_USERNAME
 cat $HOME/.docker/config.json
 ```
 
-## Create a registry secret
+Now create the secret:
 
 ```sh
-export SERVER="https://index.docker.io/v1/"
-export DOCKER_USERNAME="your-username"
-export DOCKER_PASSWORD="your-pass"
-
 kubectl create secret generic registry-secret \
+  -n openfaas \
  --from-file $HOME/.docker/config.json
+```
+
+## (Or) Create a registry secret for ECR
+
+```sh
+export DOCKER_USERNAME=""
+export REGION="eu-central-1"
+export ACCOUNT_ID="012345678900"
+
+export SERVER="$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/"
+
+cat <<EOF > docker.config
+{
+  "credsStore": "ecr-login",
+  "credHelpers": {
+    "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com": "ecr-login"
+  }
+}
+EOF
+```
+
+Now create the secret:
+
+```sh
+kubectl create secret generic registry-secret \
+  -n openfaas \
+ --from-file config.json
 ```
 
 ## Create a dummy payload secret
@@ -65,21 +89,26 @@ kubectl rollout status -n openfaas deployment.apps/of-builder
 ## Create a new function
 
 ```sh
+# Work in a temporary directory
+mkdir -p /tmp/builder
+cd /tmp/builder
+
 export FN="go-tester"
 
 faas-cli new --lang go $FN
-faas-cli build --shrinkwrap -f $FN.yml
 ```
 
 Edit it if you wish.
 
-## Create your build context
+## Create your build context (for a normal registry)
 
 Build the function:
 
 ```sh
 export DOCKER_USERNAME=""
 export SERVER="docker.io/"
+
+faas-cli build --shrinkwrap -f $FN.yml
 
 rm -fr tmp
 mkdir -p tmp/context
@@ -89,6 +118,39 @@ echo '{"Ref": "'${SERVER}${DOCKER_USERNAME}'/'${FN}':latest"}' > tmp/com.openfaa
 cp -r build/$FN/* tmp/context
 tar -C ./tmp -cvf $FN-context.tar .
 ```
+
+## (Or) Create your build context  (for ECR)
+
+Build the function:
+
+```sh
+export DOCKER_USERNAME=""
+export REGION="eu-central-1"
+export ACCOUNT_ID="012345678900"
+
+export SERVER="$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/"
+
+faas-cli build --shrinkwrap -f $FN.yml
+
+rm -fr tmp
+mkdir -p tmp/context
+
+echo '{"Ref": "'${SERVER}''${FN}':latest"}' > tmp/com.openfaas.docker.config
+
+cp -r build/$FN/* tmp/context
+tar -C ./tmp -cvf $FN-context.tar .
+```
+
+Now find the Pod and copy in your `.aws/credentials` file
+
+```
+kubectl get pod -n openfaas | grep of-builder
+of-builder-8678c95d6f-fnblk
+
+kubectl cp ~/.aws/credentials -n openfaas of-builder-8678c95d6f-fnblk:/home/app/.aws/credentialss
+```
+
+Alternatively, you could create a Kubernetes secret and update the of-builder's Deployment to mount it.
 
 ## Run the build
 
