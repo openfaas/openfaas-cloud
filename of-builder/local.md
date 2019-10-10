@@ -3,6 +3,12 @@
 
 This tutorial allows you to test the OpenFaaS Cloud Builder (of-builder) without having OpenFaaS Cloud installed or deployed.
 
+## Create a namespace
+
+```sh
+kubectl create ns openfaas
+```
+
 ## Log into `docker`
 
 Make sure keychain access is disabled, then force a regeneration of your `config.json` file
