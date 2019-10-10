@@ -245,10 +245,6 @@ func collect(pushEvent sdk.PushEvent, stack *stack.Services) error {
 		garbageReq.Functions = append(garbageReq.Functions, k)
 	}
 
-	c := http.Client{
-		Timeout: time.Second * 3,
-	}
-
 	bytesReq, _ := json.Marshal(garbageReq)
 	bufferReader := bytes.NewBuffer(bytesReq)
 
@@ -264,7 +260,7 @@ func collect(pushEvent sdk.PushEvent, stack *stack.Services) error {
 
 	request.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
 
-	response, err := c.Do(request)
+	response, err := http.DefaultClient.Do(request)
 
 	if err == nil {
 		if response.Body != nil {

@@ -13,3 +13,5 @@ basic-auth-password
 basic-auth-user
 key
 key.pub
+
+template
