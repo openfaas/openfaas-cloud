@@ -28,6 +28,7 @@ export DOCKER_USERNAME="your-username"
 export DOCKER_PASSWORD="your-pass"
 
 kubectl create secret generic registry-secret \
+ -n openfaas \
  --from-file $HOME/.docker/config.json
 ```
 
