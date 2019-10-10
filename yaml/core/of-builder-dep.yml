@@ -15,9 +15,11 @@ spec:
       volumes:
         - name: registry-secret
           secret:
+            defaultMode: 420
             secretName: registry-secret
         - name: payload-secret
           secret:
+            defaultMode: 420
             secretName: payload-secret
       containers:
       - name: of-builder
@@ -35,7 +37,6 @@ spec:
             value: "true"
           - name: insecure
             value: "false"
-# For Swarm, use tcp://of-buildkit:1234
           - name: buildkit_url  
             value: "tcp://127.0.0.1:1234"
           - name: "disable_hmac"
@@ -50,7 +51,6 @@ spec:
         - name: payload-secret
           readOnly: true
           mountPath: "/var/openfaas/secrets/"
-
       - name: of-buildkit
         args: ["--addr", "tcp://0.0.0.0:1234"]
         image: moby/buildkit:v0.3.3
