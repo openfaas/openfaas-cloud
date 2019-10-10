@@ -3,6 +3,8 @@ provider:
   gateway: http://127.0.0.1:8080
 
 functions:
+  # register-image creates a repo in a hosted/managed registry, which is needed 
+  # for AWS ECR before any image can be pushed.
   register-image:
     lang: go
     handler: ./register-image
@@ -13,7 +15,7 @@ functions:
       role: openfaas-system
       com.openfaas.scale.zero: false
     environment:
-      validate_hmac: false  # MUST CHANGE, DO NOT MERGE
+      validate_hmac: true
       write_debug: true
       read_debug: true
       content_type: "application/json"
