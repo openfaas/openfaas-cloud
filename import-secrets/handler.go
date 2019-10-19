@@ -67,7 +67,7 @@ func Handle(req []byte) string {
 		return fmt.Sprintf("invalid owner name %s", event.owner)
 	}
 
-	name := strings.ToLower(fmt.Sprintf("%s", userSecret.Metadata.Name))
+	name := strings.ToLower(userSecret.Metadata.Name)
 
 	if strings.HasPrefix(name, strings.ToLower(event.owner)) == false {
 		return fmt.Errorf("unable to bind a secret which does not start with owner name: %s", event.owner).Error()
