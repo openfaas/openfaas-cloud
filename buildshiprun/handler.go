@@ -457,8 +457,9 @@ func getEventFromEnv() (*sdk.Event, error) {
 
 	info.Secrets = secretVars
 
+	owner := strings.ToLower(info.Owner)
 	for i := 0; i < len(info.Secrets); i++ {
-		info.Secrets[i] = strings.ToLower(info.Owner) + "-" + info.Secrets[i]
+		info.Secrets[i] = owner + "-" + info.Secrets[i]
 	}
 
 	log.Printf("%d env-vars for %s", len(info.Environment), info.Service)
