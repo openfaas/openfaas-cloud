@@ -68,9 +68,10 @@ func Handle(req []byte) string {
 	}
 
 	name := strings.ToLower(userSecret.Metadata.Name)
+	ownerNormalized := strings.ToLower(event.owner)
 
-	if strings.HasPrefix(name, strings.ToLower(event.owner)) == false {
-		return fmt.Errorf("unable to bind a secret which does not start with owner name: %s", event.owner).Error()
+	if !strings.HasPrefix(name, ownerNormalized) {
+		return fmt.Errorf("unable to bind a secret which does not start with owner name: %s", ownerNormalized).Error()
 	}
 
 	existingSS, err := ssc.SealedSecrets(userSecret.Metadata.Namespace).Get(name, metav1.GetOptions{})
