@@ -69,7 +69,7 @@ functions:
   buildshiprun:
     lang: go
     handler: ./buildshiprun
-    image: functions/of-buildshiprun:0.11.3
+    image: functions/of-buildshiprun:0.12.0
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -134,7 +134,7 @@ functions:
   import-secrets:
     lang: go
     handler: ./import-secrets
-    image: functions/import-secrets:0.4.0
+    image: functions/import-secrets:0.5.0
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
