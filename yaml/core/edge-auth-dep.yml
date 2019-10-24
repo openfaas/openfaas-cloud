@@ -1,10 +1,15 @@
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: edge-auth
   namespace: openfaas
+  labels:
+    app: edge-auth
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: edge-auth
   template:
     metadata:
       annotations:
