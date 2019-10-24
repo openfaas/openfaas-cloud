@@ -166,7 +166,7 @@
     "admissionregistration/v1alpha1",
     "admissionregistration/v1beta1",
     "apps/v1",
-    "apps/v1beta1",
+    "apps/v1",
     "apps/v1beta2",
     "authentication/v1",
     "authentication/v1beta1",

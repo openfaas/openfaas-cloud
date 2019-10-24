@@ -1,10 +1,15 @@
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: of-builder
   namespace: openfaas
+  labels:
+    app: of-builder
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: of-builder
   template:
     metadata:
       annotations:
