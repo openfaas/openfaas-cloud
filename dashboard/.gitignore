@@ -11,7 +11,7 @@ node_modules
 
 # production
 /build
-
+of-cloud-dashboard/dist
 # misc
 .DS_Store
 .env.local
