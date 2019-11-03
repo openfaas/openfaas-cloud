@@ -70,7 +70,7 @@ const FunctionEmptyState = () => {
           xs={genSize(12, 4)}
           md={genSize(6, 7)}
         >
-          <Button tag="a" href="https://gist.github.com/alexellis/d648d927c34c082bb5d965f06b818026" target="_blank">
+          <Button tag="a" href="https://docs.openfaas.com/openfaas-cloud/user-guide/" target="_blank">
             CREATE A FUNCTION
           </Button>
         </Col>
