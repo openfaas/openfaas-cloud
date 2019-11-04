@@ -88,6 +88,22 @@ func makeHandler(c *http.Client, timeout time.Duration, upstreamURL string, auth
 		requestURI = strings.TrimLeft(requestURI, "/")
 
 		if len(requestURI) == 0 {
+			if host == "system" {
+				scheme := "http"
+				if r.TLS != nil {
+					scheme = "https"
+				}
+				redirectUrl, urlErr := url.Parse(fmt.Sprintf("%s://%s/dashboard/", scheme, r.Host))
+
+				if urlErr != nil {
+					http.Error(w, urlErr.Error(), http.StatusInternalServerError)
+					log.Printf("Could not build dashboard redirect url %s", urlErr.Error())
+					return
+				}
+				log.Printf("Redirecting to %q\n", redirectUrl.String())
+				http.Redirect(w, r, redirectUrl.String(), http.StatusTemporaryRedirect)
+				return
+			}
 			log.Printf("requestURI not set\n")
 			w.WriteHeader(http.StatusNotFound)
 			return

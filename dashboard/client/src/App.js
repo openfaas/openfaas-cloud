@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { BrowserRouter, Route, Switch } from 'react-router-dom';
+import {BrowserRouter, Route, Switch} from 'react-router-dom';
 
 import { NavBar } from './components/NavBar';
 import { FunctionsOverviewPage } from './pages/FunctionsOverviewPage';
@@ -35,7 +35,7 @@ export class App extends Component {
                 path="/:user/:functionName/log"
                 component={FunctionLogPage}
               />
-              <Route component={NotFoundPage} />
+              return  <Route component={NotFoundPage} />
             </Switch>
           </div>
           <Footer />
@@ -44,3 +44,4 @@ export class App extends Component {
     );
   }
 }
+

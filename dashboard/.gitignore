@@ -22,3 +22,5 @@ of-cloud-dashboard/dist
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+of-cloud-dashboard/dist/
+dashboard/of-cloud-dashboard/dist/

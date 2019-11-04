@@ -8,6 +8,8 @@ import {
   CardBody,
   CardText,
 } from 'reactstrap';
+import {faExclamationTriangle} from "@fortawesome/free-solid-svg-icons";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 
 export class FunctionsOverviewPage extends Component {
   constructor(props) {
@@ -17,6 +19,7 @@ export class FunctionsOverviewPage extends Component {
     this.state = {
       isLoading: true,
       fns: [],
+      authError: false,
       user,
     };
   }
@@ -29,7 +32,7 @@ export class FunctionsOverviewPage extends Component {
     .then(res => {
       let functions = [];
       res.forEach( (set) => {
-        set.forEach(  (item) => {
+        set.forEach((item) => {
           functions.push(item);
         });
       });
@@ -37,12 +40,26 @@ export class FunctionsOverviewPage extends Component {
       this.setState({ isLoading: false, fns: functions });
     })
     .catch((e) => {
-      console.error(e);
+      if (e.response.status === 403) {
+        this.setState({isLoading: false, fns: [], authError: true})
+      } else {
+        console.error(e);
+      }
     });
   }
 
   renderContentView() {
-    const { user, isLoading, fns } = this.state;
+    const { user, isLoading, fns, authError } = this.state;
+
+    if (!isLoading && authError) {
+      return (
+          <Card>
+            <CardHeader className="color-failure">
+              <FontAwesomeIcon icon={faExclamationTriangle} /> Error: You do not have valid permissions for <span id="username">{ user }</span>
+            </CardHeader>
+          </Card>
+      )
+    }
 
     if (!isLoading && fns.length === 0) {
       return (

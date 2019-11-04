@@ -86,5 +86,5 @@ const FunctionTableItem = ({ onClick, fn, user }) => {
 };
 
 export {
-  FunctionTableItem
+    FunctionTableItem
 };

@@ -29,6 +29,7 @@ Contents (encoded JWT):
 {
   "name": "Alex Ellis",
   "access_token": "token-value",
+  "organizations": "som-org",
   "aud": ".system.gw.io",
   "exp": 1537957152,
   "jti": "integer-value-here",
@@ -37,6 +38,9 @@ Contents (encoded JWT):
   "sub": "alexellis"
 }
 ```
+
+Please note - You need to be a public member of any Organisation that you wish to be able to see the dashboard and functions for.
+
 
 ## Building
 

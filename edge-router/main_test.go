@@ -30,7 +30,9 @@ func Test_makeHandler(t *testing.T) {
 	gateway := httptest.NewServer(gatewayHandler)
 	defer gateway.Close()
 
-	c := http.Client{}
+	http.DefaultClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
 
 	tests := []struct {
 		Scenario           string
@@ -60,12 +62,12 @@ func Test_makeHandler(t *testing.T) {
 			Scenario:           "missing function name",
 			RequestURL:         "http://system.example.xyz/",
 			UpstreamURL:        "",
-			ExpectedStatusCode: http.StatusNotFound,
+			ExpectedStatusCode: http.StatusTemporaryRedirect,
 		},
 	}
 
 	router := httptest.NewServer(passHandler{
-		Next: makeHandler(&c, time.Second*10, gateway.URL, nil),
+		Next: makeHandler(http.DefaultClient, time.Second*10, gateway.URL, nil),
 	})
 
 	defer router.Close()
@@ -79,21 +81,23 @@ func Test_makeHandler(t *testing.T) {
 			req, _ := http.NewRequest(http.MethodGet, router.URL+u.Path, nil)
 			req.Host = u.Host
 
-			res, err := c.Do(req)
+			res, err := http.DefaultClient.Do(req)
 			if err != nil {
 				t.Error(err)
 				t.Fail()
+				return
 			}
-
 			if res.StatusCode != testCase.ExpectedStatusCode {
 				t.Errorf("Status code want: %d, got %d", testCase.ExpectedStatusCode, res.StatusCode)
 				t.Fail()
+				return
 			}
 
 			if gatewayHandler.RequestURI != testCase.UpstreamURL {
 
 				t.Errorf("RequestURI want: %s, got: %s", testCase.UpstreamURL, gatewayHandler.RequestURI)
 				t.Fail()
+				return
 			}
 		})
 	}

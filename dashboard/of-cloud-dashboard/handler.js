@@ -31,11 +31,13 @@ const handleLogout = (context) => {
 };
 
 module.exports = (event, context) => {
-  const { method, path } = event;
+  const { method, path , query} = event;
 
-  parseOrganizations: parseOrganizations;
+  parseOrganiations: parseOrganizations;
   decodeCookie: decodeCookie;
   getCookie: getCookie;
+  getRequestedEntityFromPath: getRequestedEntityFromPath;
+  isPathInTokenClaims: isPathInTokenClaims;
 
   if (method !== 'GET') {
     context.status(400).fail('Bad Request');
@@ -45,8 +47,19 @@ module.exports = (event, context) => {
   if (/^\/logout\/?$/.test(path)) {
     return handleLogout(context);
   }
+  let cookie = getCookie(event);
+  let decodedCookie = decodeCookie(cookie);
+  let organizations = parseOrganizations(decodedCookie);
 
   if (/^\/api\/(list-functions|system-metrics|pipeline-log).*/.test(path)) {
+
+    // See if a user is trying to query functions they do not have permissions to view
+    if (!isPathInTokenClaims(query, decodedCookie["sub"], organizations)) {
+      console.log("the user '" + decodedCookie["sub"] + "' tried to access a dashboard they are not entitled to")
+      context.status(403).succeed('Forbidden');
+      return;
+    }
+
     // proxy api requests to the gateway
     const gatewayUrl = process.env.gateway_url.replace(/\/$/, '');
     const proxyPath = path.replace(/^\/api\//, '');
@@ -76,6 +89,11 @@ module.exports = (event, context) => {
     );
     return;
   }
+
+  if (path === 'dashboard') {
+
+  }
+
 
   let headers = {
     'Content-Type': '',
@@ -115,8 +133,15 @@ module.exports = (event, context) => {
 
       const isSignedIn = /openfaas_cloud_token=.*\s*/.test(event.headers.cookie);
 
-      let cookie = getCookie(event);
-      let organizations = parseOrganizations(cookie);
+      console.log(path);
+      if (path === "/" && isSignedIn) {
+        headers["Location"] =   "/dashboard/"+ decodedCookie["sub"];
+        context
+            .headers(headers)
+            .status(307)
+            .succeed();
+            return;
+      }
 
       const { base_href, public_url, pretty_url, query_pretty_url } = process.env;
       content = content.replace(/__BASE_HREF__/g, base_href);
@@ -135,22 +160,20 @@ module.exports = (event, context) => {
   });
 };
 
-var parseOrganizations = function (cookie) {
-  var decodedCookie = decodeCookie(cookie);
-  console.log("decodedCookie -> ", decodedCookie);
+var parseOrganizations = function (decodedCookie) {
   if (decodedCookie && 'organizations' in decodedCookie) {
     return decodedCookie.organizations;
   }
   return '';
 }
 
-var atob = function atob(str) {
+var base64Decode = function base64Decode(str) {
   return Buffer.from(str, 'base64').toString('binary');
 }
 
 var decodeCookie = function (token) {
   try {
-    return JSON.parse(atob(token.split('.')[1]));
+      return JSON.parse(base64Decode(token.split('.')[1]));
   } catch (e) {
     return null;
   }
@@ -162,4 +185,18 @@ var getCookie = function (event = {}) {
     return null;
   }
   return event.headers.cookie;
+}
+
+var getRequestedEntityFromPath = function (path) {
+  var params = new URLSearchParams(path)
+
+  return params.get('user')
+}
+
+var isPathInTokenClaims = function (queryString, user, organisations) {
+  if (user === queryString["user"]) {
+
+    return true
+  }
+  return organisations.indexOf(queryString["user"]) >= 0
 }
