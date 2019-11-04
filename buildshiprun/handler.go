@@ -212,6 +212,8 @@ func Handle(req []byte) string {
 		annotationWhitelist := []string{
 			"topic",
 			"schedule",
+			"com.openfaas.health.http.path",
+			"com.openfaas.health.http.initialDelay",
 		}
 
 		userAnnotations := buildAnnotations(annotationWhitelist, event.Annotations)
