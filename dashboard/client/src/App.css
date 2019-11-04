@@ -118,8 +118,13 @@ a {
     background-color: #dff0d8 !important;
 }
 
+
 .color-success {
     color: #3c763d !important;
+}
+
+.color-failure {
+    color: red;
 }
 
 .color-white {

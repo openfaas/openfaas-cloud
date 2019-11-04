@@ -98,9 +98,12 @@ class FunctionsApi {
   fetchFunctions(user, organizations) {
     var orgs = [];
     orgs.push(user);
-    if (organizations) {
-      orgs = orgs.concat(organizations.split(',')).filter(item => item);
-    }
+
+    // When we want to get the functions a user is able to see through being a member of an org, uncomment this.
+    // This needs to be a unique set - as we add the "user" above, which might be the org
+    // if (organizations) {
+    //   orgs = orgs.concat(organizations.split(',')).filter(item => item);
+    // }
 
     var fetchPromises = [];
     orgs.forEach((org)=> {
