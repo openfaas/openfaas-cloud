@@ -18,7 +18,7 @@ export class FunctionLogPage extends Component {
   constructor(props) {
     super(props);
     const { commitSHA, repoPath } = queryString.parse(props.location.search);
-    const { functionName } = props.match.params;
+    const { functionName, user} = props.match.params;
 
     this.state = {
       isLoading: true,
@@ -26,15 +26,16 @@ export class FunctionLogPage extends Component {
       commitSHA,
       repoPath,
       functionName,
+      user
     };
   }
 
   componentDidMount() {
-    const { commitSHA, repoPath, functionName } = this.state;
+    const { commitSHA, repoPath, functionName, user } = this.state;
 
     this.setState({ isLoading: true });
 
-    functionsApi.fetchFunctionLog({ commitSHA, repoPath, functionName }).then(res => {
+    functionsApi.fetchFunctionLog({ commitSHA, repoPath, functionName, user }).then(res => {
       this.setState({ isLoading: false, log: res });
     });
   }
