@@ -154,7 +154,7 @@ class FunctionsApi {
       timePeriod
     } = params;
     try {
-      const url = `${this.apiBaseUrl}/system-metrics?function=${user.toLowerCase()}-${functionName}&metrics_window=${timePeriod}`;
+      const url = `${this.apiBaseUrl}/system-metrics?function=${user.toLowerCase()}-${functionName}&metrics_window=${timePeriod}&user=${user}`;
       const result = await axios
         .get(url);
       return result.data;
@@ -167,11 +167,12 @@ class FunctionsApi {
   fetchFunctionLog({
     commitSHA,
     repoPath,
-    functionName
+    functionName,
+    user
   }) {
     const url = `${
       this.apiBaseUrl
-    }/pipeline-log?commitSHA=${commitSHA}&repoPath=${repoPath}&function=${functionName}`;
+    }/pipeline-log?commitSHA=${commitSHA}&repoPath=${repoPath}&function=${functionName}&user=${user}`;
     return axios.get(url).then(res => {
       return res.data;
     });
