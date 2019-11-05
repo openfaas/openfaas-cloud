@@ -90,11 +90,6 @@ module.exports = (event, context) => {
     return;
   }
 
-  if (path === 'dashboard') {
-
-  }
-
-
   let headers = {
     'Content-Type': '',
   };
@@ -136,11 +131,10 @@ module.exports = (event, context) => {
       console.log(path);
       if (path === "/" && isSignedIn) {
         headers["Location"] =   "/dashboard/"+ decodedCookie["sub"];
-        context
+        return context
             .headers(headers)
             .status(307)
             .succeed();
-            return;
       }
 
       const { base_href, public_url, pretty_url, query_pretty_url } = process.env;

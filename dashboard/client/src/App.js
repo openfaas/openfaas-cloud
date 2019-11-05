@@ -35,7 +35,7 @@ export class App extends Component {
                 path="/:user/:functionName/log"
                 component={FunctionLogPage}
               />
-              return  <Route component={NotFoundPage} />
+              <Route component={NotFoundPage} />
             </Switch>
           </div>
           <Footer />
