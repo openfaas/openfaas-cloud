@@ -1,13 +1,15 @@
 OpenFaaS Cloud
 ==============
 
-OpenFaaS Cloud: multi-user serverless functions managed with git
+OpenFaaS Cloud: multi-user PaaS managed through git
 
 ![https://pbs.twimg.com/media/DacWCtZVMAAJQ-u.jpg](https://pbs.twimg.com/media/DacWCtZVMAAJQ-u.jpg)
 
 *Announcement from Cisco's DevNet Create in Mountain View*
 
 ## Description
+
+[![Build Status](https://travis-ci.org/openfaas/openfaas-cloud.svg?branch=master)](https://travis-ci.org/openfaas/openfaas-cloud)
 
 OpenFaaS Cloud introduces an automated build and management system for your Serverless functions with native integrations into your source-control management system whether that is GitHub or GitLab.
 
