@@ -412,7 +412,7 @@ func deployFunction(tarEntry tarEntry, pushEvent sdk.PushEvent, stack *stack.Ser
 
 	postBodyReader := bytes.NewReader(tarFileBytes)
 
-	httpReq, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/buildshiprun", postBodyReader)
+	httpReq, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/ofc-buildshiprun", postBodyReader)
 
 	httpReq.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
 
@@ -503,7 +503,7 @@ func importSecrets(pushEvent sdk.PushEvent, stack *stack.Services, clonePath str
 	}
 
 	reader := bytes.NewReader(bytesOut)
-	httpReq, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/import-secrets", reader)
+	httpReq, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/ofc-import-secrets", reader)
 
 	httpReq.Header.Add("Owner", owner)
 
@@ -592,7 +592,7 @@ func reportGitLabStatus(status *sdk.Status) {
 	}
 
 	statusReader := bytes.NewReader(statusBytes)
-	req, reqErr := http.NewRequest(http.MethodPost, gatewayURL+"function/gitlab-status", statusReader)
+	req, reqErr := http.NewRequest(http.MethodPost, gatewayURL+"function/ofc-gitlab-status", statusReader)
 	if reqErr != nil {
 		log.Printf("error while making request to gitlab-status: `%s`", reqErr.Error())
 	}
@@ -733,7 +733,7 @@ func registerImage(image, payloadSecret string) error {
 
 	gatewayURL := os.Getenv("gateway_url")
 
-	_, body, err := invokeWithHMAC(gatewayURL+"function/register-image",
+	_, body, err := invokeWithHMAC(gatewayURL+"function/ofc-register-image",
 		payloadBytes,
 		payloadSecret,
 		make(map[string]string))

@@ -128,7 +128,7 @@ func (status *Status) Report(gateway string, payloadSecret string) (string, erro
 
 	c := http.Client{}
 	bodyReader := bytes.NewBuffer(body)
-	httpReq, _ := http.NewRequest(http.MethodPost, gateway+"function/github-status", bodyReader)
+	httpReq, _ := http.NewRequest(http.MethodPost, gateway+"function/ofc-github-status", bodyReader)
 
 	if len(payloadSecret) > 0 {
 		digest := hmac.Sign(body, []byte(payloadSecret))

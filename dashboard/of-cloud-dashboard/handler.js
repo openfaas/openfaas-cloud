@@ -63,7 +63,7 @@ module.exports = (event, context) => {
     // proxy api requests to the gateway
     const gatewayUrl = process.env.gateway_url.replace(/\/$/, '');
     const proxyPath = path.replace(/^\/api\//, '');
-    const url = `${gatewayUrl}/function/${proxyPath}`;
+    const url = `${gatewayUrl}/function/ofc-${proxyPath}`;
     var reqHeaders = event.headers;
     reqHeaders['host'] = gatewayUrl.replace('http://', '');
     console.log(`proxying request to: ${url}`);

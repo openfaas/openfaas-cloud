@@ -214,7 +214,7 @@ func garbageCollect(garbageRequests []GarbageRequest) error {
 		}
 
 		bodyReader := bytes.NewReader(body)
-		req, reqErr := http.NewRequest(http.MethodPost, gatewayURL+"async-function/garbage-collect", bodyReader)
+		req, reqErr := http.NewRequest(http.MethodPost, gatewayURL+"async-function/ofc-garbage-collect", bodyReader)
 		if reqErr != nil {
 			return fmt.Errorf("error while creating request to garbage-collect: %s", reqErr.Error())
 		}

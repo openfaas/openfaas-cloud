@@ -352,7 +352,7 @@ func createPipelineLog(result sdk.BuildResult, event *sdk.Event, gatewayURL stri
 
 	reader := bytes.NewReader(bytesOut)
 
-	req, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/pipeline-log", reader)
+	req, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/ofc-pipeline-log", reader)
 
 	digest := hmac.Sign(bytesOut, []byte(payloadSecret))
 	req.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))
@@ -706,7 +706,7 @@ func reportGitLabStatus(status *sdk.Status) {
 	}
 
 	statusReader := bytes.NewReader(statusBytes)
-	req, reqErr := http.NewRequest(http.MethodPost, gatewayURL+"function/gitlab-status", statusReader)
+	req, reqErr := http.NewRequest(http.MethodPost, gatewayURL+"function/ofc-gitlab-status", statusReader)
 	if reqErr != nil {
 		log.Printf("error while making request to gitlab-status: `%s`", reqErr.Error())
 	}

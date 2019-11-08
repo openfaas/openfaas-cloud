@@ -101,7 +101,7 @@ func getLogs(status *sdk.CommitStatus, event *sdk.Event) (string, error) {
 	var err error
 	gatewayURL := os.Getenv("gateway_url")
 	// TODO: support logs for different commit status contexts
-	url := fmt.Sprintf("%s/function/pipeline-log?repoPath=%s/%s&commitSHA=%s&function=%s", gatewayURL, event.Owner, event.Repository, event.SHA, event.Service)
+	url := fmt.Sprintf("%s/function/ofc-pipeline-log?repoPath=%s/%s&commitSHA=%s&function=%s", gatewayURL, event.Owner, event.Repository, event.SHA, event.Service)
 	log.Println(url)
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {

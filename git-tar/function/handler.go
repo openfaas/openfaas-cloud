@@ -254,7 +254,7 @@ func collect(pushEvent sdk.PushEvent, stack *stack.Services) error {
 		return fmt.Errorf("failed to load payload secret, error %t", err)
 	}
 
-	request, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/garbage-collect", bufferReader)
+	request, _ := http.NewRequest(http.MethodPost, gatewayURL+"function/ofc-garbage-collect", bufferReader)
 
 	digest := hmac.Sign(bytesReq, []byte(payloadSecret))
 

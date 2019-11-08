@@ -30,7 +30,7 @@ func Handle(req []byte) string {
 			repoPath := qs.Get("repoPath")
 			function := qs.Get("function")
 
-			path := os.Getenv("gateway_url") + fmt.Sprintf("/function/pipeline-log?commitSHA=%s&repoPath=%s&function=%s", sha, repoPath, function)
+			path := os.Getenv("gateway_url") + fmt.Sprintf("/function/ofc-pipeline-log?commitSHA=%s&repoPath=%s&function=%s", sha, repoPath, function)
 			res, err := http.Get(path)
 
 			if err != nil {

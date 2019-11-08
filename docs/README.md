@@ -258,7 +258,7 @@ In gateway_config.yml
 environment:
   gateway_url: http://gateway.openfaas:8080/
   gateway_public_url: http://of-cloud.public-facing-url.com:8080/
-  audit_url: http://gateway.openfaas:8080/function/audit-event
+  audit_url: http://gateway.openfaas:8080/function/ofc-audit-event
   repository_url: docker.io/ofcommunity/
   push_repository_url: docker.io/ofcommunity/
   build_branch: master

@@ -45,7 +45,7 @@ Please note - You need to be a public member of any Organisation that you wish t
 ## Building
 
 ```
-export TAG=0.5.3
+export TAG=0.6.0
 make build push
 ```
 
@@ -53,6 +53,8 @@ make build push
 
 All environmental variables must be set and configured for the service whether running locally as a container, via Swarm or on Kubernetes.
 
+* `/system-dashboard` is a protected URL which requires oauth
+* `/function/ofc-*` is a restricted URL that no requestor can access
 
 ### Generate a key/pair
 
@@ -104,7 +106,7 @@ echo -n "$CLIENT_SECRET" | docker secret create of-client-secret -
 
 ```sh
 docker rm -f edge-auth
-export TAG=0.5.2
+export TAG=0.6.0
 
 docker run \
  -e client_secret="$CLIENT_SECRET" \
@@ -128,7 +130,7 @@ Edit `yaml/core/edge-auth-dep.yml` as needed and apply that file.
 ### On Swarm:
 
 ```sh
-export TAG=0.5.2
+export TAG=0.6.0
 docker service rm edge-auth
 docker service create --name edge-auth \
  -e oauth_client_secret_path="/run/secrets/of-client-secret" \

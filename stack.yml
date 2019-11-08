@@ -6,7 +6,7 @@ functions:
   system-github-event:
     lang: go
     handler: ./github-event
-    image: functions/github-event:0.8.1
+    image: functions/github-event:0.9.0
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -23,10 +23,10 @@ functions:
       - github-webhook-secret
       - payload-secret
 
-  github-push:
+  ofc-github-push:
     lang: go
     handler: ./github-push
-    image: functions/github-push:0.7.3
+    image: functions/github-push:0.8.0
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -44,10 +44,10 @@ functions:
       - github-webhook-secret
       - payload-secret
 
-  git-tar:
+  ofc-git-tar:
     lang: dockerfile
     handler: ./git-tar
-    image: functions/of-git-tar:0.16.0
+    image: functions/of-git-tar:0.17.0
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -66,10 +66,10 @@ functions:
   # Uncomment this for GitLab
   #      - gitlab-api-token
 
-  buildshiprun:
+  ofc-buildshiprun:
     lang: go
     handler: ./buildshiprun
-    image: functions/of-buildshiprun:0.13.0
+    image: functions/of-buildshiprun:0.14.0
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -90,10 +90,10 @@ functions:
       - payload-secret
   #      - swarm-pull-secret
 
-  garbage-collect:
+  ofc-garbage-collect:
     lang: go
     handler: ./garbage-collect
-    image: functions/garbage-collect:0.4.4
+    image: functions/garbage-collect:0.5.0
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -110,10 +110,10 @@ functions:
       - basic-auth-password
       - payload-secret
 
-  github-status:
+  ofc-github-status:
     lang: go
     handler: ./github-status
-    image: functions/github-status:0.3.6
+    image: functions/github-status:0.4.0
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -131,10 +131,10 @@ functions:
       - private-key
       - payload-secret
 
-  import-secrets:
+  ofc-import-secrets:
     lang: go
     handler: ./import-secrets
-    image: functions/import-secrets:0.5.0
+    image: functions/import-secrets:0.6.0
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -149,10 +149,10 @@ functions:
     secrets:
       - payload-secret
 
-  pipeline-log:
+  ofc-pipeline-log:
     lang: go
     handler: ./pipeline-log
-    image: functions/pipeline-log:0.3.4
+    image: functions/pipeline-log:0.4.0
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -168,10 +168,10 @@ functions:
       - s3-secret-key
       - payload-secret
 
-  list-functions:
+  ofc-list-functions:
     lang: go
     handler: ./list-functions
-    image: functions/list-functions:0.5.0
+    image: functions/list-functions:0.6.0
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -184,17 +184,17 @@ functions:
       - basic-auth-user
       - basic-auth-password
 
-  audit-event:
+  ofc-audit-event:
     lang: go
     handler: ./audit-event
-    image: functions/audit-event:0.1.2
+    image: functions/audit-event:0.2.0
     labels:
       openfaas-cloud: "1"
       com.openfaas.scale.zero: false
     environment_file:
       - slack.yml
 
-  echo:
+  ofc-echo:
     skip_build: true
     image: functions/alpine:latest
     fprocess: cat
@@ -205,10 +205,10 @@ functions:
       write_debug: true
       read_debug: true
 
-  metrics:
+  ofc-metrics:
     lang: go
     handler: ./metrics
-    image: functions/metrics:0.2.0
+    image: functions/metrics:0.3.0
     labels:
       openfaas-cloud: "1"
       role: openfaas-system

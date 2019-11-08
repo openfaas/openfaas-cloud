@@ -137,7 +137,7 @@ func postEvent(pushEvent sdk.PushEvent) (int, error) {
 	}
 
 	bodyReader := bytes.NewBuffer(body)
-	httpReq, httpErr := http.NewRequest(http.MethodPost, gatewayURL+"async-function/git-tar", bodyReader)
+	httpReq, httpErr := http.NewRequest(http.MethodPost, gatewayURL+"async-function/ofc-git-tar", bodyReader)
 	if httpErr != nil {
 		return http.StatusBadRequest, fmt.Errorf("error while creating request to git-tar: %s", httpErr.Error())
 	}
@@ -177,7 +177,7 @@ func reportGitLabStatus(status *sdk.Status) {
 	}
 
 	statusReader := bytes.NewReader(statusBytes)
-	req, reqErr := http.NewRequest(http.MethodPost, gatewayURL+"function/gitlab-status", statusReader)
+	req, reqErr := http.NewRequest(http.MethodPost, gatewayURL+"function/ofc-gitlab-status", statusReader)
 	if reqErr != nil {
 		log.Printf("error while making request to gitlab-status: `%s`", reqErr.Error())
 	}

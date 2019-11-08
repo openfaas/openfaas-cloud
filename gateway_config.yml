@@ -3,7 +3,7 @@ environment:
 # URLs
   gateway_url:  http://gateway.openfaas:8080/
   gateway_public_url: https://cloud.o6s.io/
-  audit_url: http://gateway.openfaas:8080/function/audit-event
+  audit_url: http://gateway.openfaas:8080/function/ofc-audit-event
   # Remove gateway_pretty_url if not using pretty URL
   gateway_pretty_url: https://user.o6s.io/function
   # Add your custom templates by adding a coma separated URL, i.e. extend the current value with:

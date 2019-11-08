@@ -29,7 +29,7 @@ spec:
             secretName: of-client-secret
       containers:
       - name: edge-auth
-        image: openfaas/edge-auth:0.5.3
+        image: openfaas/edge-auth:0.6.0
         imagePullPolicy: Always
         livenessProbe:
           httpGet:

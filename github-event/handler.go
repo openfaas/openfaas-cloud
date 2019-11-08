@@ -214,7 +214,7 @@ func garbageCollect(garbageRequests []GarbageRequest) error {
 
 		body, _ := json.Marshal(garbageRequest)
 		bodyReader := bytes.NewReader(body)
-		req, _ := http.NewRequest(http.MethodPost, gatewayURL+"async-function/garbage-collect", bodyReader)
+		req, _ := http.NewRequest(http.MethodPost, gatewayURL+"async-function/ofc-garbage-collect", bodyReader)
 
 		digest := hmac.Sign(body, []byte(payloadSecret))
 		req.Header.Add(sdk.CloudSignatureHeader, "sha1="+hex.EncodeToString(digest))

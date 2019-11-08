@@ -12,7 +12,7 @@ It queries Prometheus for a function's 2xx and non-2xx invocations count and ret
 ```
 
 It takes function's name (i.e. `myFunction` \[required\]) and metrics_window (i.e. `24h` \[default: 60m\] from a query and is invoked by GET request to
-http://gateway-url:8080/function/metrics?function=myFunction&metrics_window=24h
+http://gateway-url:8080/function/ofc-metrics?function=myFunction&metrics_window=24h
 
 > Note: If you're running the function on Swarm, you should update `prometheus_host` in `gateway_config.yml` to `prometheus`, i.e. removing the namespace suffix for Kubernetes.
 

@@ -97,7 +97,7 @@
 
             $("#username").text(user);
 
-            var queryURL = "/function/list-functions?user="+user;
+            var queryURL = "/function/ofc-list-functions?user="+user;
             if(queryPrettyURL.length) {
               queryURL = prettyDomain.replace("user", "system").replace("function", "list-functions?user="+user);
             }

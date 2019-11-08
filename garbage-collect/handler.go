@@ -154,7 +154,7 @@ func listFunctions(owner, gatewayURL string) ([]openFaaSFunction, error) {
 		Timeout: time.Second * 3,
 	}
 
-	request, _ := http.NewRequest(http.MethodGet, gatewayURL+"/function/list-functions?user="+owner, nil)
+	request, _ := http.NewRequest(http.MethodGet, gatewayURL+"/function/ofc-list-functions?user="+owner, nil)
 
 	response, err := c.Do(request)
 
