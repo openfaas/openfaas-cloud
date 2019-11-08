@@ -96,8 +96,30 @@ func main() {
 
 	protected := []string{
 		"/function/system-dashboard",
-		"/function/system-list-functions",
-		"/function/system-metrics",
+	}
+
+	// Functions which make up the pipeline and which should not
+	// be exposed via public ingress.
+	restrictedPrefix := []string{
+		"/function/ofc-",
+		"/function/github-push",
+		"/function/git-tar",
+		"/function/buildshiprun",
+		"/function/garbage-collect",
+		"/function/github-status",
+		"/function/import-secrets",
+		"/function/pipeline-log",
+		"/function/list-functions",
+		"/function/audit-event",
+		"/function/echo",
+		"/function/metrics",
+
+		//AWS
+		"/function/register-image",
+
+		// GitLab
+		"/function/gitlab-status",
+		"/function/gitlab-push",
 	}
 
 	fs := http.FileServer(http.Dir("static"))
@@ -107,7 +129,7 @@ func main() {
 
 	router.HandleFunc("/", handlers.MakeHomepageHandler(config))
 
-	router.HandleFunc("/q/", handlers.MakeQueryHandler(config, protected))
+	router.HandleFunc("/q/", handlers.MakeQueryHandler(config, protected, restrictedPrefix))
 	router.HandleFunc("/login/", handlers.MakeLoginHandler(config))
 	router.HandleFunc("/oauth2/", handlers.MakeOAuth2Handler(config))
 	router.HandleFunc("/healthz/", func(w http.ResponseWriter, r *http.Request) {
