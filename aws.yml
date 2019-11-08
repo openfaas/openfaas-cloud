@@ -5,10 +5,10 @@ provider:
 functions:
   # register-image creates a repo in a hosted/managed registry, which is needed 
   # for AWS ECR before any image can be pushed.
-  register-image:
+  ofc-register-image:
     lang: go
     handler: ./register-image
-    image: functions/register-image:0.1.0
+    image: functions/register-image:0.2.0
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
