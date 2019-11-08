@@ -13,7 +13,7 @@ import (
 )
 
 // MakeQueryHandler returns whether a client can access a resource
-func MakeQueryHandler(config *Config, protected []string) func(http.ResponseWriter, *http.Request) {
+func MakeQueryHandler(config *Config, protected []string, restrictedPrefix []string) func(http.ResponseWriter, *http.Request) {
 	keydata, err := ioutil.ReadFile(config.PublicKeyPath)
 	if err != nil {
 		log.Fatalf("unable to read path: %s, error: %s", config.PublicKeyPath, err.Error())
@@ -35,6 +35,8 @@ func MakeQueryHandler(config *Config, protected []string) func(http.ResponseWrit
 		status := http.StatusOK
 		if len(resource) == 0 {
 			status = http.StatusBadRequest
+		} else if isProtected(resource, restrictedPrefix) {
+			status = http.StatusUnauthorized
 		} else if isProtected(resource, protected) {
 			started := time.Now()
 			cookieStatus := validCookie(r, cookieName, publicKey, customers, config.Debug)
