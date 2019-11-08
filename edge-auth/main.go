@@ -97,8 +97,22 @@ func main() {
 	protected := []string{
 		"/function/system-dashboard",
 	}
+
+	// Functions which make up the pipeline and which should not
+	// be exposed via public ingress.
 	restrictedPrefix := []string{
 		"/function/ofc-",
+		"/function/github-push",
+		"/function/git-tar",
+		"/function/buildshiprun",
+		"/function/garbage-collect",
+		"/function/github-status",
+		"/function/import-secrets",
+		"/function/pipeline-log",
+		"/function/list-functions",
+		"/function/audit-event",
+		"/function/echo",
+		"/function/metrics",
 	}
 
 	fs := http.FileServer(http.Dir("static"))
