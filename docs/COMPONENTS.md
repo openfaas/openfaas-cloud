@@ -79,6 +79,6 @@ Removes functions which were removed or renamed within the repo for the given us
 
 Collects events from other functions for auditing. These can be connected to a Slack webhook URL or the function can be swapped for the echo function for storage in container logs.
 
-* Function: system-metrics
+* Function: metrics
 
 Handler folder should be renamed to just `metrics`. Function can provide stats on invocations for function over given time period split by success/error.

@@ -12,20 +12,3 @@ functions:
       role: openfaas-system
     environment_file:
       - dashboard_config.yml
-
-  system-list-functions:
-    skip_build: true
-    image: functions/list-functions:0.5.0
-    fprocess: ./handler
-    labels:
-      openfaas-cloud: "1"
-      role: openfaas-system
-    environment:
-      gateway_url: http://gateway.openfaas:8080/
-      secret_mount_path: /var/openfaas/secrets
-      basic_auth: true
-      write_debug: true
-    secrets:
-      - basic-auth-user
-      - basic-auth-password
-

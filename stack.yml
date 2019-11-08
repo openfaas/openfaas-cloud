@@ -171,14 +171,13 @@ functions:
   list-functions:
     lang: go
     handler: ./list-functions
-    image: functions/list-functions:0.4.8
+    image: functions/list-functions:0.5.0
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
       com.openfaas.scale.zero: false
     environment:
       write_debug: true
-      read_debug: true
     environment_file:
       - gateway_config.yml
     secrets:
@@ -206,10 +205,10 @@ functions:
       write_debug: true
       read_debug: true
 
-  system-metrics:
+  metrics:
     lang: go
-    handler: ./system-metrics
-    image: functions/system-metrics:0.1.1
+    handler: ./metrics
+    image: functions/metrics:0.2.0
     labels:
       openfaas-cloud: "1"
       role: openfaas-system

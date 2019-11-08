@@ -51,7 +51,7 @@ module.exports = (event, context) => {
   let decodedCookie = decodeCookie(cookie);
   let organizations = parseOrganizations(decodedCookie);
 
-  if (/^\/api\/(list-functions|system-metrics|pipeline-log).*/.test(path)) {
+  if (/^\/api\/(list-functions|metrics|pipeline-log).*/.test(path)) {
 
     // See if a user is trying to query functions they do not have permissions to view
     if (!isPathInTokenClaims(query, decodedCookie["sub"], organizations)) {
