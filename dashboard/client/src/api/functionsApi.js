@@ -164,7 +164,7 @@ class FunctionsApi {
     }
   }
 
-  fetchFunctionLog({
+  fetchBuildLog({
     commitSHA,
     repoPath,
     functionName,
@@ -173,6 +173,18 @@ class FunctionsApi {
     const url = `${
       this.apiBaseUrl
     }/pipeline-log?commitSHA=${commitSHA}&repoPath=${repoPath}&function=${functionName}&user=${user}`;
+    return axios.get(url).then(res => {
+      return res.data;
+    });
+  }
+
+  fetchFunctionLog({
+                  longFnName,
+                  user
+                }) {
+    const url = `${
+        this.apiBaseUrl
+    }/function-logs?function=${longFnName}&user=${user}`;
     return axios.get(url).then(res => {
       return res.data;
     });

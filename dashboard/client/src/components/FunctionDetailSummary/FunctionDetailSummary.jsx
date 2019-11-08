@@ -13,6 +13,7 @@ import { FunctionOverviewPanel } from '../FunctionOverviewPanel';
 import { ReplicasProgress } from '../ReplicasProgress';
 
 import { Button } from 'reactstrap';
+import {BuildLogPage} from "../../pages/BuildLogPage";
 
 const renderContainerImage = image => {
   const imageWithoutTag = image.split(':')[0];
@@ -40,9 +41,13 @@ const FunctionDetailSummary = ({
   handleShowRunOnMyOFModal
 }) => {
   console.log('functionInvocation', functionInvocationData);
-  const to = `${fn.shortName}/log?repoPath=${fn.gitOwner}/${
+  const toBuildLogs = `${fn.shortName}/build-log?repoPath=${fn.gitOwner}/${
     fn.gitRepo
   }&commitSHA=${fn.gitSha}`;
+
+  const toFnLogs = `${fn.shortName}/function-log?repoPath=${fn.gitOwner}/${
+      fn.gitRepo
+  }`;
   const repo = `${fn.gitOwner}/${fn.gitRepo}`;
 
   const deployMeta = [
@@ -131,7 +136,7 @@ const FunctionDetailSummary = ({
     />
   );
   const deployButton = (
-    <Button outline color="secondary" size="xs" tag={Link} to={to}>
+    <Button outline color="secondary" size="xs" tag={Link} to={toBuildLogs}>
       <FontAwesomeIcon icon="folder-open" className="mr-2" />
       <span>Build Logs</span>
     </Button>
@@ -141,6 +146,13 @@ const FunctionDetailSummary = ({
       <FontAwesomeIcon icon={faAward} className="mr-2" />
       <span>Get Badge</span>
     </Button>
+  );
+
+  const fnLogsButton = (
+      <Button outline color="secondary" size="xs" tag={Link} to={toFnLogs}>
+        <FontAwesomeIcon icon="folder-open" className="mr-2" />
+        <span>Invocation Logs</span>
+      </Button>
   );
 
   return (
@@ -170,6 +182,7 @@ const FunctionDetailSummary = ({
         <FunctionOverviewPanel
           headerText="Invocations"
           headerIcon={invocationsIcon}
+          button={fnLogsButton}
         >
           {functionInvocationData ? (
             <FunctionInvocation

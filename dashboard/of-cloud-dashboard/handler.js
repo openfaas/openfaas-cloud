@@ -37,7 +37,7 @@ module.exports = (event, context) => {
   decodeCookie: decodeCookie;
   getCookie: getCookie;
   getRequestedEntityFromPath: getRequestedEntityFromPath;
-  isPathInTokenClaims: isPathInTokenClaims;
+  isResourceInTokenClaims: isResourceInTokenClaims;
 
   if (method !== 'GET') {
     context.status(400).fail('Bad Request');
@@ -51,11 +51,12 @@ module.exports = (event, context) => {
   let decodedCookie = decodeCookie(cookie);
   let organizations = parseOrganizations(decodedCookie);
 
-  if (/^\/api\/(list-functions|system-metrics|pipeline-log).*/.test(path)) {
+  if (/^\/api\/(list-functions|system-metrics|pipeline-log|function-logs).*/.test(path)) {
+    //TODO check in here if the thing they are trying to get to on backend is in their claims
 
     // See if a user is trying to query functions they do not have permissions to view
-    if (!isPathInTokenClaims(query, decodedCookie["sub"], organizations)) {
-      console.log("the user '" + decodedCookie["sub"] + "' tried to access a dashboard they are not entitled to")
+    if (!isResourceInTokenClaims(path, query, decodedCookie["sub"], organizations)) {
+      console.log("the user '" + decodedCookie["sub"] + "' tried to access a resource they are not entitled to")
       context.status(403).succeed('Forbidden');
       return;
     }
@@ -187,10 +188,33 @@ var getRequestedEntityFromPath = function (path) {
   return params.get('user')
 }
 
-var isPathInTokenClaims = function (queryString, user, organisations) {
-  if (user === queryString["user"]) {
+var isResourceInTokenClaims = function (path, queryString, user, organisations) {
+  // check if the user is trying to access the fn logs or fn stats for one of their functions
+  if(/^\/api\/(system-metrics|function-logs).*/.test(path)) {
+    if (!isRepoOwnedByUser(queryString, user, organisations)) {
+      return false
+    }
+  }
 
+  if (user === queryString["user"]) {
     return true
   }
   return organisations.indexOf(queryString["user"]) >= 0
+}
+
+function isRepoOwnedByUser(query, user, organisations) {
+  let functionName = query["function"];
+
+  if (functionName.startsWith(user.toLowerCase())) {
+    return true
+  }
+
+  let lowercaseOrgs = organisations.map[organisations.toLowerCase()];
+
+  for (let elem in lowercaseOrgs) {
+    if (functionName.startsWith(lowercaseOrgs[elem].toLowerCase())) {
+      return true
+    }
+  }
+  return false;
 }

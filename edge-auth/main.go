@@ -113,6 +113,7 @@ func main() {
 		"/function/audit-event",
 		"/function/echo",
 		"/function/metrics",
+		"/function/function-logs",
 
 		//AWS
 		"/function/register-image",

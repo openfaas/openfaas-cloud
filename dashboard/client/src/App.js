@@ -3,8 +3,9 @@ import {BrowserRouter, Route, Switch} from 'react-router-dom';
 
 import { NavBar } from './components/NavBar';
 import { FunctionsOverviewPage } from './pages/FunctionsOverviewPage';
+import { FunctionLogPage } from "./pages/FunctionLogPage";
 import { FunctionDetailPage } from './pages/FunctionDetailPage';
-import { FunctionLogPage } from './pages/FunctionLogPage';
+import { BuildLogPage } from './pages/BuildLogPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { Breadcrumbs } from './components/Breadcrumbs';
 import { Footer } from './components/Footer';
@@ -32,9 +33,13 @@ export class App extends Component {
                 component={FunctionDetailPage}
               />
               <Route
-                path="/:user/:functionName/log"
-                component={FunctionLogPage}
+                path="/:user/:functionName/build-log"
+                component={BuildLogPage}
               />
+              <Route
+                  path="/:user/:functionName/function-log"
+                  component={FunctionLogPage}
+                />
               <Route component={NotFoundPage} />
             </Switch>
           </div>
