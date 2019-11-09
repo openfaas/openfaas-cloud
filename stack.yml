@@ -1,5 +1,5 @@
 provider:
-  name: faas
+  name: openfaas
   gateway: http://127.0.0.1:8080
 
 functions:
@@ -171,7 +171,7 @@ functions:
   list-functions:
     lang: go
     handler: ./list-functions
-    image: functions/list-functions:0.4.8
+    image: functions/list-functions:0.4.9
     labels:
       openfaas-cloud: "1"
       role: openfaas-system

@@ -47,13 +47,14 @@ func Handle(req []byte) string {
 	}
 
 	response, err := c.Do(httpReq)
-	filtered := []function{}
+	filtered := []sdk.Function{}
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	defer response.Body.Close()
+
 	bodyBytes, bErr := ioutil.ReadAll(response.Body)
 	if bErr != nil {
 		log.Fatal(bErr)
@@ -63,7 +64,7 @@ func Handle(req []byte) string {
 		log.Fatalf("unable to query functions, status: %d, message: %s", response.StatusCode, string(bodyBytes))
 	}
 
-	functions := []function{}
+	functions := []sdk.Function{}
 	mErr := json.Unmarshal(bodyBytes, &functions)
 	if mErr != nil {
 		log.Fatal(mErr)
@@ -81,13 +82,4 @@ func Handle(req []byte) string {
 
 	bytesOut, _ := json.Marshal(filtered)
 	return string(bytesOut)
-}
-
-type function struct {
-	Name            string            `json:"name"`
-	Image           string            `json:"image"`
-	InvocationCount float64           `json:"invocationCount"`
-	Replicas        uint64            `json:"replicas"`
-	Labels          map[string]string `json:"labels"`
-	Annotations     map[string]string `json:"annotations"`
 }
