@@ -2,6 +2,7 @@ package function
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -14,7 +15,7 @@ import (
 	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
-// Handle grabs the logs for the fns that are named in the input
+// Handle grabs the logs for the fn that is named in the input
 func Handle(req []byte) string {
 
 	user := string(req)
@@ -31,25 +32,122 @@ func Handle(req []byte) string {
 	}
 
 	if len(user) == 0 {
-		return "User is required as POST or querystring i.e. ?user=alexellis."
-	}
-
-	c := http.Client{
-		Timeout: time.Second * 3,
+		log.Fatalf("User is required as POST or querystring i.e. ?user=alexellis.")
 	}
 
 	gatewayURL := os.Getenv("gateway_url")
 
-	httpReq, _ := http.NewRequest(http.MethodGet, gatewayURL+"system/logs", nil)
+	allowed, err := isUserFunction(function, gatewayURL, user)
+
+	if err != nil {
+		log.Fatalf("there was an error requesting the function %q", function)
+	}
+
+	if !allowed {
+		log.Fatalf("requested function %q could not be found or you are not allowed to access it", function)
+	}
+
+	formattedLogs, fmtErr := getFormattedLogs(gatewayURL, function)
+
+	if fmtErr != nil {
+		log.Fatalf("there was an error formatting logs for the function %q, %s", function, fmtErr)
+	}
+	return formattedLogs
+}
+
+func getFormattedLogs(gatewayURL string, function string) (string, error) {
+
+	if len(function) == 0 {
+		return "", errors.New("function name was empty, please provide a valid function name")
+	}
+	queryParams := make(map[string]string)
+
+	queryParams["name"] = function
+	queryParams["follow"] = "false"
+
+	response, bodyBytes := makeGatewayHttpReq(gatewayURL+"/system/logs", queryParams)
+
+	if response.StatusCode != http.StatusOK {
+		return "", errors.New(fmt.Sprintf("unable to query logs, status: %d, message: %s", response.StatusCode, string(bodyBytes)))
+	}
+
+	formattedLogs, formatErr := formatLogs(bodyBytes)
+
+	if formatErr != nil {
+		return "", formatErr
+	}
+	return formattedLogs, nil
+}
+
+func isUserFunction(function string, gatewayURL string, user string) (bool, error) {
+	queryParams := make(map[string]string)
+	queryParams["user"] = user
+
+	if len(user) == 0 {
+		return false, errors.New("user is not set, user must be set for us to find logs")
+	}
+
+	response, bodyBytes := makeGatewayHttpReq(gatewayURL+"/function/list-functions", queryParams)
+
+	if response.StatusCode != http.StatusOK {
+		return false, errors.New(fmt.Sprintf("unable to query functions list, status: %d, message: %s", response.StatusCode, string(bodyBytes)))
+	}
+
+	res, err := functionInResponse(bodyBytes, function, user)
+	if err != nil {
+		return false, err
+	}
+
+	return res, nil
+}
+
+func formatLogs(msgBody []byte) (string, error) {
+	if len(msgBody) == 0 {
+		return "", nil
+	}
+	var b strings.Builder
+	for _, line := range strings.Split(strings.TrimSuffix(string(msgBody), "\n"), "\n") {
+		data := Message{}
+		if err := json.Unmarshal([]byte(line), &data); err != nil {
+			return "", err
+		}
+		b.WriteString(data.Text)
+	}
+
+	return strings.TrimRight(b.String(), "\n"), nil
+}
+
+func functionInResponse(bodyBytes []byte, function string, owner string) (bool, error) {
+	functions := []sdk.Function{}
+	mErr := json.Unmarshal(bodyBytes, &functions)
+	if mErr != nil {
+		return false, mErr
+	}
+
+	for _, fn := range functions {
+		if fn.Name == function {
+			return fn.Labels["com.openfaas.cloud.git-owner"] == owner, nil
+		}
+	}
+	return false, nil
+}
+
+func makeGatewayHttpReq(URL string, queryParams map[string]string) (*http.Response, []byte) {
+	c := http.Client{
+		Timeout: time.Second * 3,
+	}
+
+	httpReq, _ := http.NewRequest(http.MethodGet, URL, nil)
 
 	query := url.Values{}
-	query.Add("name", function)
-	query.Add("follow", "false")
-	query.Add("verify_label", fmt.Sprintf("com.openfaas.cloud.git-owner=%s", user))
+
+	for key, value := range queryParams {
+		query.Add(key, value)
+	}
 
 	addAuthErr := sdk.AddBasicAuth(httpReq)
 	if addAuthErr != nil {
-		log.Printf("Basic auth error %s", addAuthErr)
+		log.Fatalf("Basic auth error %s", addAuthErr)
 	}
 
 	httpReq.URL.RawQuery = query.Encode()
@@ -59,36 +157,13 @@ func Handle(req []byte) string {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	defer response.Body.Close()
 	bodyBytes, bErr := ioutil.ReadAll(response.Body)
 	if bErr != nil {
 		log.Fatal(bErr)
 	}
 
-	if response.StatusCode != http.StatusOK {
-		log.Fatalf("unable to query logs, status: %d, message: %s", response.StatusCode, string(bodyBytes))
-	}
-
-	formattedLogs := formatLogs(bodyBytes)
-
-	return formattedLogs
-}
-
-func formatLogs(msgBody []byte) string {
-	if len(msgBody) == 0 {
-		return ""
-	}
-	var b strings.Builder
-	for _, line := range strings.Split(strings.TrimSuffix(string(msgBody), "\n"), "\n") {
-		data := Message{}
-		if err := json.Unmarshal([]byte(line), &data); err != nil {
-			log.Fatal(err)
-		}
-		b.WriteString(data.Text)
-	}
-
-	return strings.TrimRight(b.String(), "\n")
+	return response, bodyBytes
 }
 
 type Message struct {
