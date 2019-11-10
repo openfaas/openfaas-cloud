@@ -52,7 +52,6 @@ module.exports = (event, context) => {
   let organizations = parseOrganizations(decodedCookie);
 
   if (/^\/api\/(list-functions|system-metrics|pipeline-log|function-logs).*/.test(path)) {
-    //TODO check in here if the thing they are trying to get to on backend is in their claims
 
     // See if a user is trying to query functions they do not have permissions to view
     if (!isResourceInTokenClaims(path, query, decodedCookie["sub"], organizations)) {
@@ -209,10 +208,8 @@ function isRepoOwnedByUser(query, user, organisations) {
     return true
   }
 
-  let lowercaseOrgs = organisations.map[organisations.toLowerCase()];
-
-  for (let elem in lowercaseOrgs) {
-    if (functionName.startsWith(lowercaseOrgs[elem].toLowerCase())) {
+  for (let orgName in organisations) {
+    if (functionName.startsWith(organisations[orgName].toLowerCase())) {
       return true
     }
   }
