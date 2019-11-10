@@ -12,6 +12,7 @@ spec:
       labels:
         app: edge-auth
     spec:
+      serviceAccountName: edge
       volumes:
         - name: jwt-private-key
           secret:

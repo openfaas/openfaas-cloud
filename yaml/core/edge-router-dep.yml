@@ -12,6 +12,7 @@ spec:
       labels:
         app: edge-router
     spec:
+      serviceAccountName: edge
       containers:
       - name: edge-router
         image: openfaas/edge-router:0.6.1

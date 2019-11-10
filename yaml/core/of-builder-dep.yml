@@ -12,6 +12,7 @@ spec:
       labels:
         app: of-builder
     spec:
+      serviceAccountName: of-builder
       volumes:
         - name: registry-secret
           secret:
