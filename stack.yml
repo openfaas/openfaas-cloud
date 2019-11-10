@@ -93,7 +93,7 @@ functions:
   garbage-collect:
     lang: go
     handler: ./garbage-collect
-    image: functions/garbage-collect:0.4.4
+    image: functions/garbage-collect:0.4.5
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -140,8 +140,8 @@ functions:
       role: openfaas-system
       com.openfaas.scale.zero: false
     environment:
-      write_debug: true
-      read_debug: true
+      write_debug: false
+      read_debug: false
       validate_hmac: true
       combined_output: false
     environment_file:
@@ -158,8 +158,8 @@ functions:
       role: openfaas-system
       com.openfaas.scale.zero: false
     environment:
-      write_debug: true
-      read_debug: true
+      write_debug: false
+      read_debug: false
       combine_output: false
     environment_file:
       - gateway_config.yml
@@ -177,8 +177,8 @@ functions:
       role: openfaas-system
       com.openfaas.scale.zero: false
     environment:
-      write_debug: true
-      read_debug: true
+      write_debug: false
+      read_debug: false
     environment_file:
       - gateway_config.yml
     secrets:

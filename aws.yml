@@ -8,13 +8,12 @@ functions:
   register-image:
     lang: go
     handler: ./register-image
-    image: functions/register-image:0.1.0
+    image: functions/register-image:0.1.1
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
       com.openfaas.scale.zero: false
     environment:
-      validate_hmac: true
       write_debug: true
       read_debug: true
       content_type: "application/json"

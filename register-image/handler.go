@@ -33,10 +33,7 @@ func (r ImageRequest) GetRepository() string {
 // in a container registry such as ECR using secrets made available through
 // the function.
 func Handle(req []byte) string {
-	validate := true
-	if val, ok := os.LookupEnv("validate_hmac"); ok && val == "false" {
-		validate = false
-	}
+	validate := sdk.HmacEnabled()
 
 	if validate {
 		hmacErr := sdk.ValidHMAC(&req, "payload-secret", os.Getenv("Http_X_Cloud_Signature"))

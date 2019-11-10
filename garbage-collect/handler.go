@@ -20,7 +20,7 @@ const Source = "garbage-collect"
 // Handle function cleans up functions which were removed or renamed
 // within the repo for the given user.
 func Handle(req []byte) string {
-	validateErr := validateRequest(req)
+	validateErr := validateRequestSigning(req)
 
 	if validateErr != nil {
 		log.Fatal(validateErr)
@@ -75,7 +75,7 @@ func Handle(req []byte) string {
 	return fmt.Sprintf("Garbage collection ran for %s/%s - %d functions deleted.", garbageReq.Owner, garbageReq.Repo, deleted)
 }
 
-func validateRequest(req []byte) (err error) {
+func validateRequestSigning(req []byte) (err error) {
 	payloadSecret, err := sdk.ReadSecret("payload-secret")
 
 	if err != nil {
