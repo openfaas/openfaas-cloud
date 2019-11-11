@@ -64,6 +64,7 @@ func getFormattedLogs(gatewayURL string, function string) (string, error) {
 
 	queryParams["name"] = function
 	queryParams["follow"] = "false"
+	queryParams["since"] = time.Now().Add(-1 * time.Minute * 30).Format(time.RFC3339)
 
 	response, bodyBytes := makeGatewayHttpReq(gatewayURL+"/system/logs", queryParams)
 

@@ -87,10 +87,10 @@ export class FunctionLogPage extends Component {
 
       try {
           functionsApi.fetchFunctionLog({longFnName, user}).then(res => {
-              this.setState({log: res});
+              this.setState({log: res, isLoading: false});
           })
       } catch (e) {
-          this.setState({fetchError: e})
+          this.setState({fetchError: e, isLoading: false})
       }
     }
 

@@ -6,7 +6,7 @@ import { faUserSecret } from "@fortawesome/free-solid-svg-icons";
 import { ReplicasProgress } from "../ReplicasProgress";
 
 const genLogPath = ({ shortName, gitOwner, gitRepo, gitSha }, user) => (
-  `${user}/${shortName}/log?repoPath=${gitOwner}/${gitRepo}&commitSHA=${gitSha}`
+  `${user}/${shortName}/build-log?repoPath=${gitOwner}/${gitRepo}&commitSHA=${gitSha}`
 );
 
 const genFnDetailPath = ({ shortName, gitOwner, gitRepo }, user) => (
