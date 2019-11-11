@@ -29,3 +29,7 @@ functions:
       - basic-auth-user
       - basic-auth-password
 
+configuration:
+  templates:
+    - name: node10-express
+      source: https://github.com/openfaas-incubator/node10-express-template

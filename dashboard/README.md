@@ -89,11 +89,10 @@ cookie_root_domain: ".system.o6s.io"
 
 **Deploy**
 
-> Don't forget to pull the `node10-express-template`
+Don't forget to pull the custom templates such as: `node10-express`:
 
 ```
-$ faas-cli template pull https://github.com/openfaas-incubator/node10-express-template
-$ faas-cli up
+$ faas-cli template pull stack
 ```
 
 ## Development
