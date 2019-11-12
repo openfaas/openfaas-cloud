@@ -222,7 +222,7 @@ functions:
   function-logs:
     lang: go
     handler: ./function-logs
-    image: functions/function-logs:0.1.0
+    image: functions/function-logs:0.1.1
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
