@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: edge-auth
+  labels:
+    app.kubernetes.io/name: openfaas-cloud
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    app.kubernetes.io/component: edge-auth
+spec:
+  replicas: {{ .Values.edgeAuth.replicaCount }}
+  selector:
+    matchLabels:
+      app: edge-auth
+  template:
+    metadata:
+      annotations:
+        prometheus.io.scrape: {{ .Values.global.prometheusScrape | quote }}
+      labels:
+        app: edge-auth
+    spec:
+      volumes:
+        - name: jwt-private-key
+          secret:
+            secretName: jwt-private-key
+        - name: jwt-public-key
+          secret:
+            secretName: jwt-public-key
+        - name: of-client-secret
+          secret:
+            secretName: of-client-secret
+      containers:
+        - name: edge-auth
+          image: {{ .Values.edgeAuth.image }}
+          imagePullPolicy: Always
+          readinessProbe:
+            {{- if .Values.global.httpProbe }}
+            httpGet:
+              path: /healthz
+              port: 8080
+            {{- else }}
+            exec:
+              command:
+                - wget
+                - --quiet
+                - --tries=1
+                - --timeout=5
+                - --spider
+                - http://localhost:8080/healthz
+            {{- end }}
+            timeoutSeconds: 5
+          env:
+            - name: port
+              value: "8080"
+            - name: oauth_client_secret_path
+              value: "/var/secrets/of-client-secret/of-client-secret"
+            - name: public_key_path
+              value: "/var/secrets/public/key.pub"
+            - name: private_key_path
+              value: "/var/secrets/private/key"
+            - name: client_secret
+              value: {{ required "A valid .Values.edgeAuth.clientSecret entry required!" .Values.edgeAuth.clientSecret | quote }}
+            - name: client_id
+              value: {{ required "A valid .Values.edgeAuth.clientId entry required!" .Values.edgeAuth.clientId | quote }}
+            - name: oauth_provider_base_url
+              value: {{ .Values.edgeAuth.oauthProviderBaseURL | quote }}
+            - name: oauth_provider
+              value: {{ .Values.edgeAuth.oauthProvider | quote }}
+            - name: external_redirect_domain
+              value: {{ printf "%s://auth.system.%s" .Values.global.scheme .Values.global.rootDomain | quote }}
+            - name: cookie_root_domain
+              value: {{ printf ".system.%s" .Values.global.rootDomain | quote }}
+            - name: customers_url
+              value: {{ required "A valid .Values.global.customersURL entry required!" .Values.global.customersURL | quote }}
+            - name: write_debug
+              value: {{ .Values.edgeAuth.writeDebug | quote }}
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - name: jwt-private-key
+              readOnly: true
+              mountPath: "/var/secrets/private/"
+            - name: jwt-public-key
+              readOnly: true
+              mountPath: "/var/secrets/public"
+            - name: of-client-secret
+              readOnly: true
+              mountPath: "/var/secrets/of-client-secret"

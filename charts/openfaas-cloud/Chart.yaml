@@ -1,0 +1,5 @@
+apiVersion: v1
+appVersion: "0.11.9"
+description: A Helm chart for some OpenFaaS Cloud components
+name: openfaas-cloud
+version: 0.11.9
