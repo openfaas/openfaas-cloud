@@ -1,0 +1,26 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: openfaas-auth-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/limit-connections: "20"
+    nginx.ingress.kubernetes.io/limit-rpm: "600"
+  labels:
+    app: faas-netesd
+spec:
+  {{- if .Values.tls.enabled }}
+  tls:
+  - hosts:
+    - auth.system.{{ .Values.global.rootDomain }}
+    secretName: auth-system-{{ .Values.global.rootDomain }}-cert
+  {{- end }}
+  rules:
+  - host: auth.system.{{ .Values.global.rootDomain }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: edge-router
+          servicePort: 8080

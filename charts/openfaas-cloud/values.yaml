@@ -26,7 +26,7 @@ ofBuilder:
 edgeAuth:
 
   ## image is the container image and tag that is used for the deployment of edge-auth
-  image: openfaas/edge-auth:0.6.2
+  image: openfaas/edge-auth:0.6.3
 
   ## replicaCount is the number of pod replicas for the the deployment
   replicaCount: 1
@@ -51,6 +51,42 @@ edgeRouter:
 
   ## container is the edge-router container and its tag
   container: openfaas/edge-router:0.7.4
+
+
+## tls config
+tls:
+
+  ## this is the status of tls, if not enabled we dont create a load of the cert stuff
+  enabled: true
+
+  ## email is used to send cert-renewal emails, it is required bt LetsEncrypt
+  email:
+
+  ## Default to using the staging issuer, theres a limit to 5 certs per domain on the prod issuer, so only when ur happy
+  ## should you swap this to prod
+  issuerType: staging
+
+  ## dnsService, one of "route53", "digitalocean" or "clouddns"
+  dnsService: ""
+
+  ## route53 specific conofig, required if dnsService is set t route53
+  route53:
+
+    ## aws region
+    region:
+
+    ## aws access key from your acocunt
+    accessKeyID:
+
+    ## ambientCredentials this should be set to try if you are using an AWS ambient credentials provider, such as kube2iam
+    ambientCredentials: false
+
+
+  ## config for when clouddns is enabled
+  clouddns:
+
+    ## projectID from clouddns
+    projectID:
 
 ## global values that are re-used across multiple components
 global:

@@ -44,3 +44,26 @@ app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
 
+{{- define "openfaas-cloud.tls.dns" -}}
+{{- if eq .Values.tls.dnsService "clouddns" }}
+          clouddns:
+            project: {{ .Values.tls.clouddns.projectID | quote }}
+            serviceAccountSecretRef:
+              name: "{{ .Values.tls.clouddns.dnsService}}-service-account"
+              key: service-account.json
+{{- else if eq .Values.tls.dnsService "route53" }}
+          route53:
+            region: {{ required "A .Values.tls.route53.region is required!" .Values.tls.route53.region }}
+  {{- if not .Values.tls.route53.ambientCredentials }}
+            accessKeyID: {{ required "A .Values.tls.route53.accessKeyID is required!" .Values.tls.route53.accessKeyID }}
+            secretAccessKeySecretRef:
+              name: "{{ .Values.tls.dnsService}}-credentials-secret"
+              key: secret-access-key
+  {{- end }}
+{{- else if eq .Values.tls.dnsService "digitalocean" }}
+          digitalocean:
+            tokenSecretRef:
+              name: digitalocean-dns
+              key: access-token
+{{- end }}
+{{- end -}}
