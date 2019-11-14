@@ -1,0 +1,24 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.global.openfaasNamespace }}
+spec:
+  policyTypes:
+    - Ingress
+  podSelector: {}
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          role: openfaas-system
+    - namespaceSelector:
+        matchLabels:
+          role: {{ .Values.global.openfaasFunctionsNamespace }}
+      podSelector:
+        matchLabels:
+          role: openfaas-system
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          app: nginx-ingress

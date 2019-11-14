@@ -1,0 +1,17 @@
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+  namespace: {{ .Values.global.openfaasNamespace }}
+  annotations:
+    dnsProvider: {{ required "A .Values.tls.dnsService is required!" .Values.tls.dnsService }}
+spec:
+  acme:
+    email: {{ required "A .Values.tls.email is required!" .Values.tls.email | quote }}
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+      - dns01:
+          {{- template "openfaas-cloud.tls.dns" . }}
