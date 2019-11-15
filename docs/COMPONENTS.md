@@ -12,7 +12,7 @@ Main flows:
 2. User removes GitHub/GitLab app from one or more repos - garbage collection is invoked removing 1-many functions
 3. User accesses function via router using "pretty URL" format and request is routed to function via API Gateway
 
-![](./docs/conceptual-overview.png)
+![](https://github.com/openfaas/openfaas-cloud/blob/master/docs/conceptual-overview.png?raw=true)
 
 
 ### Microservices
