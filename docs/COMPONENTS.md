@@ -82,3 +82,7 @@ Collects events from other functions for auditing. These can be connected to a S
 * Function: system-metrics
 
 Handler folder should be renamed to just `metrics`. Function can provide stats on invocations for function over given time period split by success/error.
+
+* Function: function-logs
+
+Fetches logs from the gateway to serve to the caller, there are checks that the barer has the permissions to view those logs based on the labels on the function that they request logs for

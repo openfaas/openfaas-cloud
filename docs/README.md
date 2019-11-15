@@ -680,7 +680,7 @@ sudo install -m 755 kubeseal-$GOOS-$GOARCH /usr/local/bin/kubeseal
 Now export the public key from Kubernetes cluster
 
 ```sh
-kubeseal --fetch-cert > pub-cert.pem
+kubeseal  --controller-name=ofc-sealedsecrets-sealed-secrets  --controller-namespace=kube-system --fetch-cert > pub-cert.pem
 ```
 
 You will need to distribute or share pub-cert.pem so that people can use this with the OpenFaaS CLI `faas-cli cloud seal` command to seal secrets.
