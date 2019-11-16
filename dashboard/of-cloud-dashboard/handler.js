@@ -54,7 +54,7 @@ module.exports = (event, context) => {
   if (/^\/api\/(list-functions|system-metrics|pipeline-log|function-logs).*/.test(path)) {
 
     // See if a user is trying to query functions they do not have permissions to view
-    if (!isResourceInTokenClaims(path, query, decodedCookie["sub"], organizations)) {
+    if (!isResourceInTokenClaims(path, query, decodedCookie, organizations)) {
       console.log("the user '" + decodedCookie["sub"] + "' tried to access a resource they are not entitled to")
       context.status(403).succeed('Forbidden');
       return;
@@ -187,24 +187,34 @@ var getRequestedEntityFromPath = function (path) {
   return params.get('user')
 }
 
-var isResourceInTokenClaims = function (path, queryString, user, organisations) {
+var isResourceInTokenClaims = function (path, queryString, decodedCookie, organisations) {
+  if (!decodedCookie) {
+    // Auth is disabled - we cant get to the dashboard without going through auth.
+    return true;
+  }
   // check if the user is trying to access the fn logs or fn stats for one of their functions
   if(/^\/api\/(system-metrics|function-logs).*/.test(path)) {
-    if (!isRepoOwnedByUser(queryString, user, organisations)) {
+    if (!isRepoOwnedByUser(queryString, decodedCookie, organisations)) {
       return false
     }
   }
 
-  if (user === queryString["user"]) {
+  if (decodedCookie["sub"] === queryString["user"]) {
     return true
   }
-  return organisations.indexOf(queryString["user"]) >= 0
+
+  let orgs = organisations.split(",")
+  return orgs.indexOf(queryString["user"]) >= 0
 }
 
-function isRepoOwnedByUser(query, user, organisations) {
+function isRepoOwnedByUser(query, decodedCookie, organisations) {
+  if (!decodedCookie) {
+    // Auth is disabled - we cant get to the dashboard without going through auth.
+    return true;
+  }
   let functionName = query["function"];
 
-  if (functionName.startsWith(user.toLowerCase())) {
+  if (functionName.startsWith(decodedCookie["sub"].toLowerCase())) {
     return true
   }
 
