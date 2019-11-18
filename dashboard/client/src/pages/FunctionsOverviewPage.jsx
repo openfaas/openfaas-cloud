@@ -10,6 +10,7 @@ import {
 } from 'reactstrap';
 import {faExclamationTriangle} from "@fortawesome/free-solid-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {DashboardDropDownLinks} from "../components/Dropdown";
 
 export class FunctionsOverviewPage extends Component {
   constructor(props) {
@@ -28,7 +29,7 @@ export class FunctionsOverviewPage extends Component {
     this.setState({ isLoading: true });
 
 
-    functionsApi.fetchFunctions(this.state.user, window.ORGANIZATIONS)
+    functionsApi.fetchFunctions(this.state.user)
     .then(res => {
       let functions = [];
       res.forEach( (set) => {
@@ -46,6 +47,10 @@ export class FunctionsOverviewPage extends Component {
         console.error(e);
       }
     });
+  }
+
+  linkBuilder(location) {
+      return `/dashboard/${location}`
   }
 
   renderContentView() {
@@ -83,7 +88,7 @@ export class FunctionsOverviewPage extends Component {
     return (
       <Card outline color="success">
         <CardHeader className="bg-success color-success">
-          Functions for <span id="username">{ user }</span>
+              {window.ALL_CLAIMS === "" ? (`Functions for ${user}`) :  (<DashboardDropDownLinks linkBuilder={this.linkBuilder} linkList={window.ALL_CLAIMS} currentUser={user} />)}
         </CardHeader>
 
         { this.renderContentView() }

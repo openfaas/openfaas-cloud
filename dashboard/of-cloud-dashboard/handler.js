@@ -123,6 +123,13 @@ module.exports = (event, context) => {
 
     let content = data.toString();
 
+    function get_all_claims(organizations, decodedCookie) {
+      if (decodedCookie && organizations.length > 0) {
+        return  organizations + "," + decodedCookie["sub"];
+      }
+      return ""
+    }
+
     if (!headers['Content-Type']) {
       headers['Content-Type'] = 'text/html';
 
@@ -137,13 +144,15 @@ module.exports = (event, context) => {
             .succeed();
       }
 
+      let claims = get_all_claims(organizations, decodedCookie);
+
       const { base_href, public_url, pretty_url, query_pretty_url } = process.env;
       content = content.replace(/__BASE_HREF__/g, base_href);
       content = content.replace(/__PUBLIC_URL__/g, public_url);
       content = content.replace(/__PRETTY_URL__/g, pretty_url);
       content = content.replace(/__QUERY_PRETTY_URL__/g, query_pretty_url);
       content = content.replace(/__IS_SIGNED_IN__/g, isSignedIn);
-      content = content.replace(/__ORGANIZATIONS__/g, organizations);
+      content = content.replace(/__ALL_CLAIMS__/g, claims);
 
     }
 

@@ -95,8 +95,10 @@ class FunctionsApi {
     });
   }
 
-  fetchFunctions(user, organizations) {
-    var orgs = [];
+  fetchFunctions(user) {
+
+    let all_claims = window.ALL_CLAIMS; // TOOD when we implement dashboards with all fns, set this to the list of pulled
+    let orgs = [];
     orgs.push(user);
 
     // When we want to get the functions a user is able to see through being a member of an org, uncomment this.
@@ -105,7 +107,7 @@ class FunctionsApi {
     //   orgs = orgs.concat(organizations.split(',')).filter(item => item);
     // }
 
-    var fetchPromises = [];
+    let fetchPromises = [];
     orgs.forEach((org)=> {
       fetchPromises.push(this.fetchFunctionsByUser(org));
     });
