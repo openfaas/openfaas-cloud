@@ -206,9 +206,9 @@ functions:
       write_debug: true
       read_debug: true
 
-  system-metrics:
+  metrics:
     lang: go
-    handler: ./system-metrics
+    handler: ./metrics
     image: functions/system-metrics:0.1.1
     labels:
       openfaas-cloud: "1"

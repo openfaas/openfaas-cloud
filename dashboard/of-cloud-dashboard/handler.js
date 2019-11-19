@@ -51,7 +51,7 @@ module.exports = (event, context) => {
   let decodedCookie = decodeCookie(cookie);
   let organizations = parseOrganizations(decodedCookie);
 
-  if (/^\/api\/(list-functions|system-metrics|pipeline-log|function-logs).*/.test(path)) {
+  if (/^\/api\/(list-functions|metrics|pipeline-log|function-logs).*/.test(path)) {
 
     // See if a user is trying to query functions they do not have permissions to view
     if (!isResourceInTokenClaims(path, query, decodedCookie["sub"], organizations)) {
@@ -189,7 +189,7 @@ var getRequestedEntityFromPath = function (path) {
 
 var isResourceInTokenClaims = function (path, queryString, user, organisations) {
   // check if the user is trying to access the fn logs or fn stats for one of their functions
-  if(/^\/api\/(system-metrics|function-logs).*/.test(path)) {
+  if(/^\/api\/(metrics|function-logs).*/.test(path)) {
     if (!isRepoOwnedByUser(queryString, user, organisations)) {
       return false
     }
