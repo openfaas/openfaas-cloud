@@ -159,7 +159,7 @@ class FunctionsApi {
       timePeriod
     } = params;
     try {
-      const url = `${this.apiBaseUrl}/system-metrics?function=${user.toLowerCase()}-${functionName}&metrics_window=${timePeriod}&user=${user}`;
+      const url = `${this.apiBaseUrl}/metrics?function=${user.toLowerCase()}-${functionName}&metrics_window=${timePeriod}&user=${user}`;
       const result = await axios
         .get(url);
       return result.data;
