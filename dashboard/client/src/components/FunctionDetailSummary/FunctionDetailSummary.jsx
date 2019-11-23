@@ -98,7 +98,7 @@ const FunctionDetailSummary = ({
       label: 'Repository:',
       renderValue() {
         return (
-          <a href={`https://github.com/${repo}`} target="_blank">
+          <a href={fn.gitRepoURL} target="_blank">
             {repo}
           </a>
         );
