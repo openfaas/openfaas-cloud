@@ -95,17 +95,19 @@ class FunctionsApi {
     });
   }
 
-  fetchFunctions(user) {
-
-    let all_claims = window.ALL_CLAIMS; // TOOD when we implement dashboards with all fns, set this to the list of pulled
+  fetchFunctions(user, fetchOrgs= true) {
     let orgs = [];
     orgs.push(user);
 
-    // When we want to get the functions a user is able to see through being a member of an org, uncomment this.
+    // if we are fetching orgs too (only for dashboard) then add them here
+    if (fetchOrgs) {
+      let organizations = window.ALL_CLAIMS;
+      if (organizations.length > 0 ) {
+        orgs = orgs.concat(organizations.split(',')).filter(item => item);
+      }
+    }
     // This needs to be a unique set - as we add the "user" above, which might be the org
-    // if (organizations) {
-    //   orgs = orgs.concat(organizations.split(',')).filter(item => item);
-    // }
+    orgs = [...new Set(orgs)];
 
     let fetchPromises = [];
     orgs.forEach((org)=> {
@@ -140,7 +142,8 @@ class FunctionsApi {
       }
 
       // fetch functions if cache not found
-      this.fetchFunctions(user).then(() => {
+
+      this.fetchFunctions(user, false).then(() => {
         const fn = this.cachedFunctions[key];
         fn !== undefined ?
           resolve(fn) :
