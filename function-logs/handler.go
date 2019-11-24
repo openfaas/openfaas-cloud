@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -20,6 +21,9 @@ func Handle(req []byte) string {
 
 	user := string(req)
 	var function string
+	var numLines string
+	var since int
+
 	if len(user) == 0 {
 		if query, exists := os.LookupEnv("Http_Query"); exists {
 			vals, _ := url.ParseQuery(query)
@@ -28,6 +32,16 @@ func Handle(req []byte) string {
 			if len(userQuery) > 0 {
 				user = userQuery
 			}
+			numLines = vals.Get("numLines")
+			sinceStr := vals.Get("since")
+			if sinceStr != "" {
+				var err error
+				since, err = strconv.Atoi(sinceStr)
+				if err != nil {
+					log.Fatalf("failed to parse since %q as integer. error: %s", sinceStr, err.Error())
+				}
+			}
+
 		}
 	}
 
@@ -47,7 +61,7 @@ func Handle(req []byte) string {
 		log.Fatalf("requested function %q could not be found or you are not allowed to access it", function)
 	}
 
-	formattedLogs, fmtErr := getFormattedLogs(gatewayURL, function)
+	formattedLogs, fmtErr := getFormattedLogs(gatewayURL, function, numLines, since)
 
 	if fmtErr != nil {
 		log.Fatalf("there was an error formatting logs for the function %q, %s", function, fmtErr)
@@ -55,7 +69,7 @@ func Handle(req []byte) string {
 	return formattedLogs
 }
 
-func getFormattedLogs(gatewayURL string, function string) (string, error) {
+func getFormattedLogs(gatewayURL, function, numLines string, since int) (string, error) {
 
 	if len(function) == 0 {
 		return "", errors.New("function name was empty, please provide a valid function name")
@@ -64,7 +78,13 @@ func getFormattedLogs(gatewayURL string, function string) (string, error) {
 
 	queryParams["name"] = function
 	queryParams["follow"] = "false"
-	queryParams["since"] = time.Now().Add(-1 * time.Minute * 30).Format(time.RFC3339)
+	if since > 0 {
+		queryParams["since"] = time.Now().Add(-1 * time.Duration(since) * time.Minute).Format(time.RFC3339)
+	}
+
+	if numLines != "" {
+		queryParams["tail"] = numLines
+	}
 
 	response, bodyBytes := makeGatewayHttpReq(gatewayURL+"/system/logs", queryParams)
 
