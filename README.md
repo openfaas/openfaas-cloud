@@ -96,3 +96,4 @@ Read the [developer's guide](docs/README.md) to find out more about the function
 ## Getting help
 
 For help join #openfaas-cloud on the [OpenFaaS Slack workspace](https://docs.openfaas.com/community).
+

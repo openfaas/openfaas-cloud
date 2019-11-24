@@ -13,7 +13,6 @@ import { FunctionOverviewPanel } from '../FunctionOverviewPanel';
 import { ReplicasProgress } from '../ReplicasProgress';
 
 import { Button } from 'reactstrap';
-import {BuildLogPage} from "../../pages/BuildLogPage";
 
 const renderContainerImage = image => {
   const imageWithoutTag = image.split(':')[0];
@@ -40,7 +39,6 @@ const FunctionDetailSummary = ({
   handleShowBadgeModal,
   handleShowRunOnMyOFModal
 }) => {
-  console.log('functionInvocation', functionInvocationData);
   const toBuildLogs = `${fn.shortName}/build-log?repoPath=${fn.gitOwner}/${
     fn.gitRepo
   }&commitSHA=${fn.gitSha}`;

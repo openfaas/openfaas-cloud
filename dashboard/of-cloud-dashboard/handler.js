@@ -54,7 +54,7 @@ module.exports = (event, context) => {
   if (/^\/api\/(list-functions|system-metrics|pipeline-log|function-logs).*/.test(path)) {
 
     // See if a user is trying to query functions they do not have permissions to view
-    if (!isResourceInTokenClaims(path, query, decodedCookie["sub"], organizations)) {
+    if (!isResourceInTokenClaims(path, query, decodedCookie, organizations)) {
       console.log("the user '" + decodedCookie["sub"] + "' tried to access a resource they are not entitled to")
       context.status(403).succeed('Forbidden');
       return;
@@ -125,7 +125,7 @@ module.exports = (event, context) => {
 
     function get_all_claims(organizations, decodedCookie) {
       if (decodedCookie && organizations.length > 0) {
-        return  organizations + "," + decodedCookie["sub"];
+        return  organizations.length > 0 ? organizations + "," + decodedCookie["sub"] : decodedCookie["sub"];
       }
       return ""
     }
@@ -196,7 +196,12 @@ var getRequestedEntityFromPath = function (path) {
   return params.get('user')
 }
 
-var isResourceInTokenClaims = function (path, queryString, user, organisations) {
+var isResourceInTokenClaims = function (path, queryString, decodedCookie, organisations) {
+  if (!decodedCookie) {
+    // We are running without auth if we get to this point without a cookie - the edge-router validates auth
+    return true
+  }
+  let user = decodedCookie["sub"]
   // check if the user is trying to access the fn logs or fn stats for one of their functions
   if(/^\/api\/(system-metrics|function-logs).*/.test(path)) {
     if (!isRepoOwnedByUser(queryString, user, organisations)) {
@@ -207,7 +212,9 @@ var isResourceInTokenClaims = function (path, queryString, user, organisations) 
   if (user === queryString["user"]) {
     return true
   }
-  return organisations.indexOf(queryString["user"]) >= 0
+
+  let orgs = organisations.split(",");
+  return orgs.indexOf(queryString["user"]) >= 0
 }
 
 function isRepoOwnedByUser(query, user, organisations) {
