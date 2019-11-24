@@ -180,11 +180,13 @@ class FunctionsApi {
 
   fetchFunctionLog({
                   longFnName,
-                  user
+                  user,
+                  numLines,
+                  since
                 }) {
     const url = `${
         this.apiBaseUrl
-    }/function-logs?function=${longFnName}&user=${user}`;
+    }/function-logs?function=${longFnName}&user=${user}&numLines=${numLines}&since=${since}`;
     return axios.get(url).then(res => {
       return res.data;
     });

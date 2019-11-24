@@ -175,3 +175,7 @@ a {
 .overflow-hidden {
     overflow: hidden;
 }
+
+.reload-width {
+    width: 32px !important;
+}

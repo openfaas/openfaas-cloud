@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import AceEditor from 'react-ace';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {Card, CardHeader, CardBody, Button} from 'reactstrap';
+import {Card, CardHeader, CardBody, Button, Input, InputGroup, InputGroupText, Container, Col, Row} from 'reactstrap';
 
 import 'brace/mode/sh';
 import 'brace/theme/monokai';
@@ -25,18 +25,23 @@ export class FunctionLogPage extends Component {
       log: '',
       functionName,
       user,
-      fetchError: false
+      fetchError: false,
+      numLines: 100,
+      since: 0
     };
+
+    this.changeNumLines = this.changeNumLines.bind(this);
+    this.changeSince = this.changeSince.bind(this);
   }
 
   componentDidMount() {
-    const { functionName, user } = this.state;
+    const { functionName, user, numLines, since } = this.state;
 
     this.setState({ isLoading: true });
 
     const longFnName = `${user.toString().toLowerCase()}-${functionName}`
       try {
-          functionsApi.fetchFunctionLog({longFnName, user}).then(res => {
+          functionsApi.fetchFunctionLog({longFnName, user, numLines, since }).then(res => {
             this.setState({isLoading: false, log: res});
 
           })
@@ -82,11 +87,25 @@ export class FunctionLogPage extends Component {
         )
     }
 
-    reloadPage(functionName, user) {
+    changeNumLines(event) {
+        this.setState({numLines: event.target.value}, () => {
+            const { functionName, user, numLines, since } = this.state;
+            this.reloadPage(functionName, user, numLines, since)
+        });
+    }
+
+    changeSince(event) {
+        this.setState({since: event.target.value}, () => {
+            const { functionName, user, numLines, since } = this.state;
+            this.reloadPage(functionName, user, numLines, since)
+        });
+    }
+
+    reloadPage(functionName, user, numLines, since) {
       const longFnName = `${user.toString().toLowerCase()}-${functionName}`
 
       try {
-          functionsApi.fetchFunctionLog({longFnName, user}).then(res => {
+          functionsApi.fetchFunctionLog({longFnName, user, numLines, since}).then(res => {
               this.setState({log: res, isLoading: false});
           })
       } catch (e) {
@@ -105,16 +124,40 @@ export class FunctionLogPage extends Component {
         return (
             <Card outline color="success">
                 <CardHeader className="bg-success color-success">
-                    Function logs for {functionName}
-                    <Button
-                        outline
-                        size="xs"
-                        title="Re-load logs"
-                        className="float-right"
-                        onClick={() => this.reloadPage(functionName, user)}
-                    >
-                        <FontAwesomeIcon icon={faSync} />
-                    </Button>
+                    <Container>
+                        <Row>
+                            <Col xs="12" md="4" lg="6">
+                                Function logs for {functionName}
+                            </Col>
+                            <Col xs="12" md="8" lg="6">
+                                <Row>
+                                    <Col xs="5" md="4" lg="4">
+                                        <InputGroup size="sm">
+                                            <Input placeholder="Num of lines" onChange={this.changeNumLines} value={this.state.numLines} min={0} max={500} type="number" step="5" />
+                                            <InputGroupText className="form-control">Lines</InputGroupText>
+                                        </InputGroup>
+                                    </Col>
+                                    <Col xs="5" md="4" lg="4">
+                                        <InputGroup size="sm">
+                                            <Input placeholder="since minutes" onChange={this.changeSince} value={this.state.since} min={0} max={1440} type="number" step="15" />
+                                            <InputGroupText className="form-control">Mins</InputGroupText>
+                                        </InputGroup>
+                                    </Col>
+                                    <Col xs="1" md="1" lg="1">
+                                        <InputGroup size="sm">
+                                            <InputGroupText type="button"
+                                                title="Re-load logs"
+                                                className="float-right form-control reload-width"
+                                                onClick={() => this.reloadPage(functionName, user, this.state.numLines, this.state.since)}
+                                            >
+                                                <FontAwesomeIcon icon={faSync} />
+                                            </InputGroupText>
+                                        </InputGroup>
+                                    </Col>
+                                </Row>
+                            </Col>
+                        </Row>
+                    </Container>
                 </CardHeader>
                 <CardBody>
                     {this.getPanelBody(log, isLoading)}
