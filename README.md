@@ -75,19 +75,23 @@ You can set up and host your own *OpenFaaS Cloud* or contact alex@openfaas.com f
 
 ### Option 1: Automated deployment (self-hosted)
 
-You can set up your own OpenFaaS Cloud with authentication, wildcard certificates using the [ofc-bootstrap tool](https://github.com/openfaas-incubator/ofc-bootstrap)
+You can set up your own OpenFaaS Cloud with authentication and wildcard certificates using ofc-bootstrap in around 100 seconds.
+
+Get started: [ofc-bootstrap](https://github.com/openfaas-incubator/ofc-bootstrap)
 
 This method assumes you are using Kubernetes and have a public IP available. Some basic knowledge of how to setup a GitHub App and GitHub OAuth App along with a DNS service account on Google Cloud DNS or AWS Route53.
 
-### Option 2: Manual deployment (self-hosted)
+### Option 2: Community Cluster (SaaS)
+
+The OpenFaaS Community Cluster is a hosted version of OpenFaaS Cloud for community use and for evaluation.
+
+* [Apply for the Community Cluster](https://github.com/openfaas/community-cluster/tree/master/docs)
+
+### Option 3: Manual deployment (self-hosted)
 
 The manual deployment takes longer, but covers all the requirements in detail and is the most flexible option. You may follow this guide if you are contributing to the project, or if you want to use Swarm.
 
 Read the [developer's guide](docs/README.md) to find out more about the functions and to start hacking on OpenFaaS Cloud.
-
-### Option 3: Community Cluster (SaaS)
-
-There are a limited amount of spots available on the OpenFaaS Community Cluster. To apply contact alex@openfaas.com with what you plan to run on the environment. Read the privacy statement and terms and conditions for the hosted version of [OpenFaaS Cloud](./PRIVACY.md).
 
 ## Getting help
 
