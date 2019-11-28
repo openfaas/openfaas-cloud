@@ -1,11 +1,17 @@
 OpenFaaS Cloud
 ==============
 
-OpenFaaS Cloud: multi-user PaaS managed through git
+Managed OpenFaaS for teams
 
 ![https://pbs.twimg.com/media/DacWCtZVMAAJQ-u.jpg](https://pbs.twimg.com/media/DacWCtZVMAAJQ-u.jpg)
 
 *Announcement from Cisco's DevNet Create in Mountain View*
+
+## KubeCon 2019 talk 🌮
+
+Watch the latest conference talk from KubeCon:
+
+[OpenFaaS Cloud + Linkerd: A Secure, Multi-Tenant Serverless Platform - Charles Pretzer & Alex Ellis](https://www.youtube.com/watch?v=sD7hCwq3Gw0&feature=emb_title)
 
 ## Description
 
@@ -23,6 +29,7 @@ Features:
 * Onboard new git repos with a single click by adding the *GitHub App* or a repository tag in *GitLab*
 * Immediate feedback on your personal dashboard and through GitHub Checks or GitLab Statuses
 * Sub-domain per user or organization with HTTPS
+* Runtime-logs for your functions
 * Fast, non-root image builds using Docker's buildkit
 
 The dashboard page for a user:
