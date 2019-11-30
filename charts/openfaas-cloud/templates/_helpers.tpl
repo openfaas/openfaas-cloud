@@ -65,5 +65,11 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
             tokenSecretRef:
               name: digitalocean-dns
               key: access-token
-{{- end }}
+{{- else if eq .Values.tls.dnsService "cloudflare" }}
+          cloudflare:
+            email: {{ required "A .Values.tls.cloudflare.email is required" .Values.tld.cloudflare.email }}
+            apiKeySecretRef:
+              name: cloudflare-api-key-secret
+              key: api-key
+{{- end -}}
 {{- end -}}
