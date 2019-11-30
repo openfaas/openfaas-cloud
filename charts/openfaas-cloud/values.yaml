@@ -66,7 +66,7 @@ tls:
   ## should you swap this to prod
   issuerType: staging
 
-  ## dnsService, one of "route53", "digitalocean" or "clouddns"
+  ## dnsService, one of "route53", "digitalocean" , "cloudflare" or "clouddns"
   dnsService: ""
 
   ## route53 specific conofig, required if dnsService is set t route53
@@ -80,6 +80,9 @@ tls:
 
     ## ambientCredentials this should be set to try if you are using an AWS ambient credentials provider, such as kube2iam
     ambientCredentials: false
+
+  cloudflare:
+    email:
 
 
   ## config for when clouddns is enabled
