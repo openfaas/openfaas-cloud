@@ -1,4 +1,3 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -34,7 +33,7 @@ spec:
       containers:
         - name: edge-auth
           image: {{ .Values.edgeAuth.image }}
-          imagePullPolicy: Always
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
           readinessProbe:
             {{- if .Values.global.httpProbe }}
             httpGet:

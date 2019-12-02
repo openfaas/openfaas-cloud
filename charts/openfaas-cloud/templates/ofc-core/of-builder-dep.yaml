@@ -1,4 +1,3 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -80,10 +79,10 @@ spec:
 {{- end }}
         - name: of-buildkit
           args: ["--addr", "tcp://0.0.0.0:1234"]
-          image: {{ .Values.ofBuilder.buildKitImage }}:{{ .Values.ofBuilder.buildKitTag }}
+          image: {{ .Values.buildKit.image }}
           imagePullPolicy: {{ .Values.global.imagePullPolicy }}
           ports:
             - containerPort: 1234
               protocol: TCP
           securityContext:
-            privileged: {{ .Values.ofBuilder.buildKit.privileged }}
+            privileged: {{ .Values.buildKit.privileged }}

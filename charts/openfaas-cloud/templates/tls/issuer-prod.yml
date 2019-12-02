@@ -1,9 +1,9 @@
----
+{{- if .Values.tls.enabled }}
 apiVersion: cert-manager.io/v1alpha2
 kind: ClusterIssuer
 metadata:
   name: letsencrypt-prod
-  namespace: {{ .Values.global.openfaasNamespace }}
+  namespace: {{ .Values.global.coreNamespace}}
   annotations:
     dnsProvider: {{ required "A .Values.tls.dnsService is required!" .Values.tls.dnsService }}
 spec:
@@ -15,3 +15,4 @@ spec:
     solvers:
       - dns01:
           {{- template "openfaas-cloud.tls.dns" . }}
+{{- end }}

@@ -1,0 +1,15 @@
+# These are default values for all of the required fields.
+
+edgeAuth:
+  clientSecret: client-secret
+  clientId: client-id
+
+
+global:
+  customersURL: https://example.com/customers_url
+  rootDomain: example.com
+
+tls:
+  enabled: false
+  dnsService: fake
+  email: fake@example.com

@@ -1,4 +1,3 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -23,7 +22,7 @@ spec:
     spec:
       containers:
         - name: edge-router
-          image: {{ .Values.edgeRouter.container }}
+          image: {{ .Values.edgeRouter.image}}
           imagePullPolicy: {{ .Values.global.imagePullPolicy }}
           readinessProbe:
             {{- if .Values.global.httpProbe }}
@@ -43,7 +42,7 @@ spec:
             timeoutSeconds: 5
           env:
             - name: upstream_url
-              value: "http://gateway.{{ .Values.global.openfaasNamespace }}:8080"
+              value: "http://gateway.{{ .Values.global.coreNamespace}}:8080"
             - name: port
               value: "8080"
             - name: timeout
@@ -51,9 +50,9 @@ spec:
             # For OAuth 2.0
             - name: auth_url
             {{- if .Values.global.enableOAuth2 }}
-              value: "http://edge-auth.{{ .Values.global.openfaasNamespace }}:8080"
+              value: "http://edge-auth.{{ .Values.global.coreNamespace}}:8080"
             {{- else }}
-              value: "http://echo.{{ .Values.global.openfaasFunctionsNamespace }}:8080"
+              value: "http://echo.{{ .Values.global.functionsNamespace }}:8080"
             {{- end }}
           ports:
             - containerPort: 8080
