@@ -119,7 +119,7 @@ private_key_filename: my-private-key
 
 ```yaml
 provider:
-  name: faas
+  name: openfaas
   gateway: http://127.0.0.1:8080
 
 ```
