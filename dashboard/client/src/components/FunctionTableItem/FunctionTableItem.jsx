@@ -50,7 +50,7 @@ const FunctionTableItem = ({ onClick, fn }) => {
           { fn.gitOwner}
       </td>
       <td>{shortName}</td>
-      <td>
+      <td className={"d-none d-sm-table-cell"}>
         <Button
           outline
           size="xs"
@@ -60,7 +60,7 @@ const FunctionTableItem = ({ onClick, fn }) => {
           <FontAwesomeIcon icon="link" />
         </Button>
       </td>
-      <td>
+      <td className={"d-none d-sm-table-cell"}>
         <div className="d-flex justify-content-between align-items-center">
           <a href={repoUrl} onClick={e => e.stopPropagation()}>
             { gitRepo }
@@ -68,16 +68,16 @@ const FunctionTableItem = ({ onClick, fn }) => {
           { gitPrivate && <FontAwesomeIcon icon={faUserSecret} /> }
         </div>
       </td>
-      <td>
+      <td className={"d-none d-sm-table-cell"}>
         { shortSha }
       </td>
       <td>
         { sinceDuration }
       </td>
-      <td>
+      <td className={"d-none d-sm-table-cell"}>
         { invocationCount }
       </td>
-      <td>
+      <td className={"d-none d-sm-table-cell"}>
         <ReplicasProgress fn={fn} />
       </td>
       <td>
