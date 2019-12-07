@@ -133,7 +133,7 @@ class FunctionTableWithoutRouter extends Component {
     );
 
     return (
-      <Table {...tableProps}>
+      <Table {...tableProps} responsive>
         <thead>
         <tr>
           <th>
@@ -147,12 +147,12 @@ class FunctionTableWithoutRouter extends Component {
             </UncontrolledDropdown>
           </th>
           <th>Name</th>
-          <th style={{ width: '42px' }} />
-          <th>Repository</th>
-          <th>SHA</th>
+          <th style={{ width: '42px' }} className={"d-none d-sm-table-cell"} scope={"col"}/>
+          <th className={"d-none d-sm-table-cell"} scope={"col"}>Repository</th>
+          <th className={"d-none d-sm-table-cell"} scope={"col"}>SHA</th>
           <th>Deployed</th>
-          <th>Invocations</th>
-          <th>Replicas</th>
+          <th className={"d-none d-sm-table-cell"} scope={"col"}>Invocations</th>
+          <th className={"d-none d-sm-table-cell"} scope={"col"}>Replicas</th>
           <th />
         </tr>
         </thead>
