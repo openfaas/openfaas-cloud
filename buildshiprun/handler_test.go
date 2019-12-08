@@ -111,28 +111,28 @@ func Test_GetImageName(t *testing.T) {
 		Output            string
 	}{
 		{
-			"Test Docker Hub with user-prefix",
+			"Test Docker Hub with user-prefix finds correct image name",
 			"docker.io/of-community/",
 			"docker.io/of-community/",
 			"docker.io/of-community/function-name/",
 			"docker.io/of-community/function-name/",
 		},
 		{
-			"Testcase1",
+			"Test Swarm registry default port finds correct image name",
 			"registry:5000",
 			"127.0.0.1:5000",
 			"registry:5000/username/function-name/",
 			"127.0.0.1:5000/username/function-name/",
 		},
 		{
-			"Testcase2",
+			"Test Kubernetes registry default port finds correct image name",
 			"registry:31115",
 			"127.0.0.1:31115",
 			"registry:31115/username/function-name/",
 			"127.0.0.1:31115/username/function-name/",
 		},
 		{
-			"Testcase3",
+			"Test a registry without a port finds correct image name",
 			"registry:31115",
 			"127.0.0.1",
 			"registry:31115/username/function-name/",
