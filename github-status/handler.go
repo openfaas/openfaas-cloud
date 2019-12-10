@@ -119,10 +119,10 @@ func getLogs(status *sdk.CommitStatus, event *sdk.Event) (string, error) {
 
 func buildPublicStatusURL(status string, statusContext string, event *sdk.Event) string {
 	url := event.URL
+	publicURL := os.Getenv("gateway_public_url")
+	gatewayPrettyURL := os.Getenv("gateway_pretty_url")
 
 	if status == sdk.StatusSuccess {
-		publicURL := os.Getenv("gateway_public_url")
-		gatewayPrettyURL := os.Getenv("gateway_pretty_url")
 		if statusContext != sdk.StackContext {
 			if len(gatewayPrettyURL) > 0 {
 				// https://user.get-faas.com/function
@@ -142,23 +142,31 @@ func buildPublicStatusURL(status string, statusContext string, event *sdk.Event)
 				if strings.HasSuffix(publicURL, "/") == false {
 					publicURL = publicURL + "/"
 				}
-				url, _ = formatDashboardURL(publicURL, event.Owner)			}
+				url, _ = formatDashboardURL(publicURL, event.Owner)
+			}
 		}
 	} else if status == sdk.StatusFailure {
-		publicURL := os.Getenv("gateway_public_url")
-		gatewayPrettyURL := os.Getenv("gateway_pretty_url")
+		if statusContext != sdk.StackContext {
+			if len(gatewayPrettyURL) > 0 {
+				url = strings.Replace(gatewayPrettyURL, "user", "system", 1)
+				url = strings.Replace(url, "function", "dashboard", 1)
 
-		if len(gatewayPrettyURL) > 0 {
-			url = strings.Replace(gatewayPrettyURL, "user", "system", 1)
-			url = strings.Replace(url, "function", "dashboard", 1)
-
-		} else if len(publicURL) > 0 {
-			if strings.HasSuffix(publicURL, "/") == false {
-				publicURL = publicURL + "/"
+			} else if len(publicURL) > 0 {
+				if strings.HasSuffix(publicURL, "/") == false {
+					publicURL = publicURL + "/"
+				}
+				url = publicURL + "/function/system-dashboard"
 			}
-			url = publicURL + "/function/system-dashboard"
+			url += "/" + event.Owner + "/" + event.Service + "/build-log?repoPath=" + event.Owner + "/" + event.Repository + "&commitSHA=" + event.SHA
+		} else {
+			if len(publicURL) > 0 {
+				if strings.HasSuffix(publicURL, "/") == false {
+					publicURL = publicURL + "/"
+				}
+				url, _ = formatDashboardURL(publicURL, event.Owner)
+			}
 		}
-		url += "/" + event.Owner + "/" + event.Service + "/log?repoPath=" + event.Owner + "/" + event.Repository + "&commitSHA=" + event.SHA
+
 	}
 
 	return url
