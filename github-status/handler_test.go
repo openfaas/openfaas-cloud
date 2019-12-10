@@ -462,3 +462,39 @@ func Test_truncate(t *testing.T) {
 		})
 	}
 }
+
+func Test_stackDeployEventCorrectUrl(t *testing.T) {
+	os.Setenv("gateway_public_url", "https://cloud.example.com:8080")
+
+	event := &sdk.Event{
+		Owner:   "alexellis",
+		Service: "stack-deploy",
+	}
+
+	val := buildPublicStatusURL("success", sdk.BuildFunctionContext(event.Service), event)
+	want := "https://system.example.com:8080/dashboard/alexellis"
+
+	if val != want {
+		t.Errorf("building PublicURL: want %s, got %s", want, val)
+		t.Fail()
+	}
+
+}
+
+func Test_stackDeployEventCorrectUrlSubdomain(t *testing.T) {
+	os.Setenv("gateway_public_url", "https://cloud.this.example.com:8080")
+
+	event := &sdk.Event{
+		Owner:   "alexellis",
+		Service: "stack-deploy",
+	}
+
+	val := buildPublicStatusURL("success", sdk.BuildFunctionContext(event.Service), event)
+	want := "https://system.this.example.com:8080/dashboard/alexellis"
+
+	if val != want {
+		t.Errorf("building PublicURL: want %s, got %s", want, val)
+		t.Fail()
+	}
+
+}

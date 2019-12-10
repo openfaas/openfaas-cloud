@@ -18,8 +18,6 @@ import (
 )
 
 const (
-	defaultPrivateKeyName   = "private-key"
-	defaultSecretMountPath  = "/var/openfaas/secrets"
 	githubCheckCompleted    = "completed"
 	githubCheckQueued       = "queued"
 	githubConclusionFailure = "failure"
@@ -140,16 +138,11 @@ func buildPublicStatusURL(status string, statusContext string, event *sdk.Event)
 				url = publicURL + "function/" + serviceValue
 			}
 		} else { // For context Stack on success the gateway url is used
-			if len(gatewayPrettyURL) > 0 {
-				// https://user.get-faas.com/function
-				url = strings.Replace(gatewayPrettyURL, "user", event.Owner, 1)
-				url = strings.Replace(url, "function", "", 1)
-			} else if len(publicURL) > 0 {
+			if len(publicURL) > 0 {
 				if strings.HasSuffix(publicURL, "/") == false {
 					publicURL = publicURL + "/"
 				}
-				url = publicURL
-			}
+				url, _ = formatDashboardURL(publicURL, event.Owner)			}
 		}
 	} else if status == sdk.StatusFailure {
 		publicURL := os.Getenv("gateway_public_url")
@@ -169,6 +162,14 @@ func buildPublicStatusURL(status string, statusContext string, event *sdk.Event)
 	}
 
 	return url
+}
+
+func formatDashboardURL(gatewayURL string, eventOwner string) (string, error) {
+	systemURL, formatErr := sdk.FormatSystemURL(gatewayURL)
+	if formatErr != nil {
+		return "", fmt.Errorf("error while formatting dashboard URL: %s", formatErr.Error())
+	}
+	return fmt.Sprintf("%s/dashboard/%s", systemURL, eventOwner), nil
 }
 
 func reportToGithub(commitStatus *sdk.CommitStatus, event *sdk.Event) error {
