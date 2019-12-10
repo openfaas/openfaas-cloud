@@ -1,6 +1,7 @@
 package function
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -295,6 +296,48 @@ func Test_checkCompatibleTemplates(t *testing.T) {
 	}
 }
 
+func Test_JoinErrors_Single_Error(t *testing.T) {
+	err := fmt.Errorf("%s, %s", "http://some-repo", errors.New("some Error"))
+	list := []error{err}
+	want := fmt.Errorf("%s, %s\n", "http://some-repo", errors.New("some Error"))
+	got := joinErrors(list)
+
+	if got == nil {
+		t.Error("Expected Error, got nil")
+	}
+
+	if got.Error() != want.Error() {
+		t.Errorf("Expected %v: got: %v", want, got)
+	}
+}
+
+func Test_JoinErrors_Multiple_Errors(t *testing.T) {
+	err := fmt.Errorf("%s, %s", "http://some-repo", errors.New("some Error"))
+	list := []error{err, err}
+	want := fmt.Errorf("%s, %s\n", "http://some-repo", errors.New("some Error"))
+	got := joinErrors(list)
+
+	if got == nil {
+		t.Error("Expected Error, got nil")
+	}
+	wantErr := fmt.Sprintf("%s\n%s\n", err.Error(), err.Error())
+
+	if got.Error() != wantErr {
+		t.Errorf("Expected %v: got: %v", want, got)
+	}
+}
+
+func Test_JoinErrors_No_Errors(t *testing.T) {
+	list := []error{}
+	got := joinErrors(list)
+
+	if got != nil {
+		t.Errorf("Expected nil , got %v", got)
+	}
+}
+
+
+
 func mockTempTemplatesDir(files []string, directory string) (string, error) {
 	permissions := 0744
 	tmpDir := os.TempDir()
@@ -315,3 +358,5 @@ func mockTempTemplatesDir(files []string, directory string) (string, error) {
 	}
 	return templatesDir, nil
 }
+
+

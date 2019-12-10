@@ -41,35 +41,48 @@ type cfg struct {
 	Frontend *string `json:"frontend,omitempty"`
 }
 
-func parseYAML(pushEvent sdk.PushEvent, filePath string) (*stack.Services, error) {
+func parseYAML(filePath string) (*stack.Services, error) {
 	envVarSubst := false
 	parsed, err := stack.ParseYAMLFile(path.Join(filePath, "stack.yml"), "", "", envVarSubst)
 	return parsed, err
 }
 
 func fetchTemplates(filePath string) error {
-	templateRepos, err := formatTemplateRepos()
-	if err != nil {
-		return fmt.Errorf("Failed to format template repos: %t", err)
+	templateRepos, errors := formatTemplateRepos()
+
+	if err := joinErrors(errors); err != nil {
+		return err
 	}
 
+	var errs []error
 	for _, repo := range templateRepos {
 		pullCmd := exec.Command("faas-cli", "template", "pull", repo)
 		pullCmd.Dir = filePath
-		err = pullCmd.Start()
-		if err != nil {
-			return fmt.Errorf("Failed to start faas-cli template pull: %t", err)
+		if err := pullCmd.Start(); err != nil {
+			errs = append(errs, fmt.Errorf("%s, %s", repo, err.Error()))
+			continue
 		}
-		err = pullCmd.Wait()
-		if err != nil {
-			return fmt.Errorf("Failed to wait faas-cli template pull: %t", err)
+		if err := pullCmd.Wait(); err != nil {
+			errs = append(errs, fmt.Errorf("%s, %s", repo, err.Error()))
 		}
 	}
 
+	err := joinErrors(errs)
+	return err
+}
+
+func joinErrors(errors []error) error {
+	if len(errors) > 0 {
+		var msg string
+		for _, err := range errors {
+			msg = msg + err.Error() + "\n"
+		}
+		return fmt.Errorf(msg)
+	}
 	return nil
 }
 
-func shrinkwrap(pushEvent sdk.PushEvent, filePath string) (string, error) {
+func shrinkwrap(filePath string) (string, error) {
 	buildCmd := exec.Command("faas-cli", "build", "-f", "stack.yml", "--shrinkwrap")
 	buildCmd.Dir = filePath
 	err := buildCmd.Start()
@@ -550,22 +563,23 @@ func importSecrets(pushEvent sdk.PushEvent, stack *stack.Services, clonePath str
 	return nil
 }
 
-func formatTemplateRepos() ([]string, error) {
+func formatTemplateRepos() ([]string, []error) {
 	templateRepos := []string{"https://github.com/openfaas/templates"}
 
-	var err error
+	var errors []error
 	if envTemplates := os.Getenv("custom_templates"); len(envTemplates) > 0 {
 		customTemplates := strings.Split(strings.Trim(envTemplates, " "), ",")
 		for _, repo := range customTemplates {
 			repo = strings.Trim(repo, " ")
-			if _, err = url.ParseRequestURI(repo); err != nil {
-				err = fmt.Errorf("Non-valid template URL is configured in custom_templates: %s \n%t", repo, err)
+			if _, err := url.ParseRequestURI(repo); err != nil {
+				err = fmt.Errorf("Non-valid template URL is configured in custom_templates: %s \n%s", repo, err.Error())
+				errors = append(errors, err)
 			} else {
 				templateRepos = append(templateRepos, repo)
 			}
 		}
 	}
-	return templateRepos, err
+	return templateRepos, errors
 }
 
 func reportStatus(status *sdk.Status, SCM string) error {

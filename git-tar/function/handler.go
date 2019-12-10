@@ -114,7 +114,7 @@ func Handle(req []byte) []byte {
 		os.Exit(-1)
 	}
 
-	stack, err := parseYAML(pushEvent, clonePath)
+	stack, err := parseYAML(clonePath)
 	if err != nil {
 		log.Println("parseYAML ", err.Error())
 		status.AddStatus(sdk.StatusFailure, "parseYAML error : "+err.Error(), sdk.StackContext)
@@ -157,7 +157,7 @@ func Handle(req []byte) []byte {
 	}
 
 	var shrinkWrapPath string
-	shrinkWrapPath, err = shrinkwrap(pushEvent, clonePath)
+	shrinkWrapPath, err = shrinkwrap(clonePath)
 	if err != nil {
 		log.Println("Shrinkwrap ", err.Error())
 		status.AddStatus(sdk.StatusFailure, "shrinkwrap error : "+err.Error(), sdk.StackContext)
