@@ -7,13 +7,7 @@ Managed OpenFaaS for teams
 
 The high-level workflow for the OpenFaaS Cloud CI/CD pipeline.
 
-## **New**: KubeCon 2019 talk 🌮
-
-Watch the latest conference talk from KubeCon:
-
-[OpenFaaS Cloud + Linkerd: A Secure, Multi-Tenant Serverless Platform - Charles Pretzer & Alex Ellis](https://www.youtube.com/watch?v=sD7hCwq3Gw0&feature=emb_title)
-
-## Description
+## Introduction
 
 [![Build Status](https://travis-ci.com/openfaas/openfaas-cloud.svg?branch=master)](https://travis-ci.com/openfaas/openfaas-cloud)
 
@@ -40,18 +34,22 @@ The details page for a function:
 
 ![Details page](/docs/details.png)
 
-### Requirements
+## Overview
 
-* OpenFaaS (0.9.10 or greater is recommended)
-* Docker Swarm or Kubernetes
+### KubeCon video
 
-> Note: other OpenFaaS providers may work, but have not been tested
+[![](http://img.youtube.com/vi/sD7hCwq3Gw0/maxresdefault.jpg)](https://www.youtube.com/watch?v=sD7hCwq3Gw0)
 
-## Blog post
+[KubeCon: OpenFaaS Cloud + Linkerd: A Secure, Multi-Tenant Serverless Platform - Charles Pretzer & Alex Ellis](https://www.youtube.com/watch?v=sD7hCwq3Gw0&feature=emb_title)
 
-Read my [introducing OpenFaaS Cloud](https://blog.alexellis.io/introducing-openfaas-cloud/) blog post for an overview of the idea with examples, screenshots and background on the project.
+### Blog posts
 
-## Documentation
+* [Build your own OpenFaaS Cloud with AWS EKS](https://www.openfaas.com/blog/eks-openfaas-cloud-build-guide/)
+* [Introducing OpenFaaS Cloud with GitLab](https://www.openfaas.com/blog/openfaas-cloud-gitlab/)
+* [Introducing OpenFaaS Cloud](https://blog.alexellis.io/introducing-openfaas-cloud/)
+* [Sailing through the Serverless Ocean with Spotinst & OpenFaaS Cloud](https://spotinst.com/blog/sailing-through-the-serverless-ocean-with-openfaas-cloud/)
+
+### Documentation
 
 * [Conceptual architecture](https://docs.openfaas.com/openfaas-cloud/architecture).
 * [Authentication](https://docs.openfaas.com/openfaas-cloud/authentication/)
@@ -59,13 +57,13 @@ Read my [introducing OpenFaaS Cloud](https://blog.alexellis.io/introducing-openf
 * [Manage secrets](https://docs.openfaas.com/openfaas-cloud/secrets/)
 * [User guide](https://docs.openfaas.com/openfaas-cloud/user-guide/)
 
-## Roadmap & Features
+### Roadmap & Features
 
 See the [Roadmap & Features](docs/ROADMAP.md)
 
 ## Get started
 
-You can set up and host your own *OpenFaaS Cloud* or contact alex@openfaas.com for instructions on how to participate in a public trial of a fully-hosted service (a.k.a. Community Cluster).
+You can set up and host your own *OpenFaaS Cloud* or apply for access to the hosted Community Cluster.
 
 ### Option 1: Automated deployment (self-hosted)
 
@@ -89,5 +87,5 @@ Read the [developer's guide](docs/README.md) to find out more about the function
 
 ## Getting help
 
-For help join #openfaas-cloud on the [OpenFaaS Slack workspace](https://docs.openfaas.com/community).
+For help join #openfaas-cloud on the [OpenFaaS Slack workspace](https://docs.openfaas.com/community). If you need commercial support, contact [sales@openfaas.com](mailto:sales@openfaas.com)
 
