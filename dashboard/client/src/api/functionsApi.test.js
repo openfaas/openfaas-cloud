@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { functionsApi } from './functionsApi';
 jest.mock('axios');
+import {buildPublicFunctionURL} from "./functionsApi";
 
 const user = 'some-user';
 const baseFunction = {
@@ -37,7 +38,7 @@ describe('functionsApi', () => {
       const response = await functionsApi.fetchFunctions(user);
 
       // Assert
-      const [actual] = response;
+      const [[actual]] = response;
       expect(actual.shortName).toEqual('some-function');
     });
     it('reorders the function with the Git-DeployTime to be newest first', async () => {
@@ -64,10 +65,32 @@ describe('functionsApi', () => {
       const response = await functionsApi.fetchFunctions(user);
 
       // Assert
-      const [first, second] = response;
+      const [[first, second]] = response;
       // Check that the newer function comes first
       expect(first.name).toEqual(functionResponse2.name);
       expect(second.name).toEqual(functionResponse1.name);
     });
+  });
+
+
+  describe('replaceFunctionEnding', () => {
+    it('replaces function with trailing slash', async () => {
+      let got = buildPublicFunctionURL("https://example.function.code.com/function/", "real-user-function")
+
+      expect(got).toEqual("https://example.function.code.com/real-user-function")
+
+    });
+    it('replaces function without trailing slash', async () => {
+      let got = buildPublicFunctionURL("https://example.function.code.com/function", "real-user-function")
+
+      expect(got).toEqual("https://example.function.code.com/real-user-function")
+
+    });
+
+    it('appends nothing if it doesnt end with function', async () => {
+      let got = buildPublicFunctionURL("http://example.function.isfunctionfun.com/not-fn-ending/", "fnEnding")
+
+      expect(got).toEqual("http://example.function.isfunctionfun.com/not-fn-ending")
+    })
   });
 });

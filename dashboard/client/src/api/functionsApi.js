@@ -5,7 +5,6 @@ const getRepoURL = annotations => annotations['com.openfaas.cloud.git-repo-url']
 
 class FunctionsApi {
   constructor() {
-    this.selectedRepo = '';
     this.prettyDomain = window.PRETTY_URL;
     this.queryPrettyUrl = window.QUERY_PRETTY_URL === 'true';
 
@@ -52,7 +51,8 @@ class FunctionsApi {
       if (this.queryPrettyUrl) {
         endpoint = this.prettyDomain
           .replace('user', user)
-          .replace('function', shortName);
+        endpoint = buildPublicFunctionURL(endpoint, shortName)
+
       } else {
         endpoint = this.baseURL + '/function/' + item.name;
       }
@@ -102,7 +102,7 @@ class FunctionsApi {
     // if we are fetching orgs too (only for dashboard) then add them here
     if (fetchOrgs) {
       let organizations = window.ALL_CLAIMS;
-      if (organizations.length > 0 ) {
+      if (organizations && organizations.length > 0 ) {
         orgs = orgs.concat(organizations.split(',')).filter(item => item);
       }
     }
@@ -198,6 +198,16 @@ class FunctionsApi {
             throw Error("Failed to fetch function logs - is the function scaled to 0? \nmessage:" + fail.message)
         });
   }
+}
+
+export const buildPublicFunctionURL = (url, newEnding) => {
+  if (url.endsWith("/")) {
+    url = url.substr(0, url.length - 1)
+  }
+  if (!url.endsWith("function")){
+    return url
+  }
+    return url.substr(0, url.length - "function".length) + newEnding
 }
 
 export const functionsApi = new FunctionsApi();
