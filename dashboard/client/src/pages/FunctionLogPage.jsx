@@ -29,20 +29,26 @@ export class FunctionLogPage extends Component {
     };
   }
 
+  loadFunctionLogs = (longFnName, user) => {
+      functionsApi.fetchFunctionLog({longFnName, user})
+          .then(
+            res => {
+              this.setState({isLoading: false, log: res});
+            })
+          .catch(
+            err => {
+              this.setState({isLoading: false, fetchError: true})
+          })
+  }
+
   componentDidMount() {
     const { functionName, user } = this.state;
 
     this.setState({ isLoading: true });
 
     const longFnName = `${user.toString().toLowerCase()}-${functionName}`
-      try {
-          functionsApi.fetchFunctionLog({longFnName, user}).then(res => {
-            this.setState({isLoading: false, log: res});
 
-          })
-      } catch (e) {
-        this.setState({isLoading: false, log: [], fetchError: e})
-      }
+      this.loadFunctionLogs(longFnName, user)
     };
 
   getPanelBody(logs, isLoading, fetchError) {
@@ -68,9 +74,11 @@ export class FunctionLogPage extends Component {
             );
         }
 
-        let infoMsg = fetchError ? "There was an error fetching the logs" : "No logs found for this function, try invoking the function and re-loading this page";
+        let infoMsg = fetchError ?
+            "Can't show logs when the function is scaled to zero" :
+            "No logs found for this function, try invoking the function and re-loading this page";
 
-        if (logs.replace(/\s/g,'').length > 0) {
+        if (!fetchError && logs.replace(/\s/g,'').length > 0) {
            return  <AceEditor {...editorOptions} value={logs} />;
         } else return (
            <Card>
@@ -84,14 +92,7 @@ export class FunctionLogPage extends Component {
 
     reloadPage(functionName, user) {
       const longFnName = `${user.toString().toLowerCase()}-${functionName}`
-
-      try {
-          functionsApi.fetchFunctionLog({longFnName, user}).then(res => {
-              this.setState({log: res, isLoading: false});
-          })
-      } catch (e) {
-          this.setState({fetchError: e, isLoading: false})
-      }
+        this.loadFunctionLogs(longFnName, user)
     }
 
     render() {
@@ -99,7 +100,8 @@ export class FunctionLogPage extends Component {
             functionName,
             log,
             isLoading,
-            user
+            user,
+            fetchError
         } = this.state;
 
         return (
@@ -117,7 +119,7 @@ export class FunctionLogPage extends Component {
                     </Button>
                 </CardHeader>
                 <CardBody>
-                    {this.getPanelBody(log, isLoading)}
+                    {this.getPanelBody(log, isLoading, fetchError)}
                 </CardBody>
             </Card>
         );
