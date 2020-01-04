@@ -190,9 +190,13 @@ class FunctionsApi {
     const url = `${
         this.apiBaseUrl
     }/function-logs?function=${longFnName}&user=${user}`;
+
     return axios.get(url).then(res => {
-      return res.data;
-    });
+          return res.data;
+        }).catch(
+          fail => {
+            throw Error("Failed to fetch function logs - is the function scaled to 0? \nmessage:" + fail.message)
+        });
   }
 }
 
