@@ -50,42 +50,45 @@ func makeEdgeRouterDep(httpProbe, oauthEnabled bool) YamlSpec {
 	labels["app.kubernetes.io/instance"] = "RELEASE-NAME"
 	labels["app.kubernetes.io/managed-by"] = "Helm"
 	labels["app.kubernetes.io/name"] = "openfaas-cloud"
-	labels["helm.sh/chart"] = "openfaas-cloud-0.11.9"
-
+	labels["helm.sh/chart"] = "openfaas-cloud-0.12.1"
 
 	containerEnvironment := makeRouterContainerEnv(oauthEnabled)
 
-	var readinessProbe ReadinessProbe
+	var readinessProbe LivenessProbe
 	if httpProbe {
-		readinessProbe = ReadinessProbe{
+		readinessProbe = LivenessProbe{
 			HttpGet: HttpProbe{
 				Path: "/healthz",
 				Port: 8080,
 			},
 			TimeoutSeconds: 5,
+			InitialDelaySeconds: 2,
+			PeriodSeconds: 10,
 		}
 	} else {
-		readinessProbe = ReadinessProbe{
-			ExecProbe:      ExecProbe{
-				Command: []string{"wget","--quiet", "--tries=1", "--timeout=5", "--spider", "http://localhost:8080/healthz"},
+		readinessProbe = LivenessProbe{
+			ExecProbe: ExecProbe{
+				Command: []string{"wget", "--quiet", "--tries=1", "--timeout=5", "--spider", "http://localhost:8080/healthz"},
 			},
 			TimeoutSeconds: 5,
+			InitialDelaySeconds: 2,
+			PeriodSeconds: 10,
 		}
 	}
 	return YamlSpec{
 		ApiVersion: "apps/v1",
 		Kind:       "Deployment",
 		Metadata: MetadataItems{
-			Name:        "edge-router",
-			Labels:      labels,
+			Name:   "edge-router",
+			Labels: labels,
 		},
 		Spec: Spec{
-			Replicas:    1,
-			Selector:    MatchLabelSelector{MatchLabels: map[string]string{"app": "edge-router"}},
+			Replicas: 1,
+			Selector: MatchLabelSelector{MatchLabels: map[string]string{"app": "edge-router"}},
 			Template: SpecTemplate{
 				Metadata: MetadataItems{
-					Annotations: map[string]string{"prometheus.io.scrape":"false"},
-					Labels: map[string]string{"app":"edge-router"},
+					Annotations: map[string]string{"prometheus.io.scrape": "false"},
+					Labels:      map[string]string{"app": "edge-router"},
 				},
 				Spec: TemplateSpec{
 					Containers: []DeploymentContainers{{
@@ -93,8 +96,8 @@ func makeEdgeRouterDep(httpProbe, oauthEnabled bool) YamlSpec {
 						Image:                   "openfaas/edge-router:0.7.4",
 						ImagePullPolicy:         "IfNotPresent",
 						ContainerReadinessProbe: readinessProbe,
-						ContainerEnvironment: containerEnvironment,
-						Ports:                   []ContainerPort{{
+						ContainerEnvironment:    containerEnvironment,
+						Ports: []ContainerPort{{
 							Port:     8080,
 							Protocol: "TCP",
 						}},
@@ -107,14 +110,14 @@ func makeEdgeRouterDep(httpProbe, oauthEnabled bool) YamlSpec {
 
 func makeRouterContainerEnv(oauthEnabled bool) []Environment {
 	var environ []Environment
-	environ = append(environ, Environment{ Name:  "upstream_url", Value: "http://gateway.openfaas:8080"})
-	environ = append(environ, Environment{ Name:  "port", Value: "8080"})
-	environ = append(environ, Environment{ Name:  "timeout", Value: "60s"})
+	environ = append(environ, Environment{Name: "upstream_url", Value: "http://gateway.openfaas:8080"})
+	environ = append(environ, Environment{Name: "port", Value: "8080"})
+	environ = append(environ, Environment{Name: "timeout", Value: "60s"})
 
 	if oauthEnabled {
-		environ = append(environ, Environment{ Name:  "auth_url", Value: "http://edge-auth.openfaas:8080"})
+		environ = append(environ, Environment{Name: "auth_url", Value: "http://edge-auth.openfaas:8080"})
 	} else {
-		environ = append(environ, Environment{ Name:  "auth_url", Value: "http://echo.openfaas-fn:8080"})
+		environ = append(environ, Environment{Name: "auth_url", Value: "http://echo.openfaas-fn:8080"})
 	}
 
 	return environ
