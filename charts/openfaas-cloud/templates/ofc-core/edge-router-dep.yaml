@@ -24,7 +24,7 @@ spec:
         - name: edge-router
           image: {{ .Values.edgeRouter.image}}
           imagePullPolicy: {{ .Values.global.imagePullPolicy }}
-          readinessProbe:
+          livenessProbe:
             {{- if .Values.global.httpProbe }}
             httpGet:
               path: /healthz
@@ -39,6 +39,8 @@ spec:
                 - --spider
                 - http://localhost:8080/healthz
             {{- end }}
+            initialDelaySeconds: 2
+            periodSeconds: 10
             timeoutSeconds: 5
           env:
             - name: upstream_url

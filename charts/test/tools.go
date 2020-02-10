@@ -15,19 +15,19 @@ func serviceBuilder(svcName, svcType string, srcPort, targetPort int) SvcSpec {
 	return SvcSpec{
 		ApiVersion: "v1",
 		Kind:       "Service",
-		Metadata:   MetadataItems{
-			Name:        svcName,
-			Labels:      labelMap,
+		Metadata: MetadataItems{
+			Name:   svcName,
+			Labels: labelMap,
 		},
-		Spec:       MapSpec{
-			Type:        svcType,
-			Ports:       []SvcPorts{{
+		Spec: MapSpec{
+			Type: svcType,
+			Ports: []SvcPorts{{
 				Name:       "http",
 				Port:       srcPort,
 				Protocol:   "TCP",
 				TargetPort: targetPort,
 			}},
-			Selector:    labelMap,
+			Selector: labelMap,
 		},
 	}
 
@@ -37,22 +37,21 @@ type SvcSpec struct {
 	ApiVersion string        `yaml:"apiVersion"`
 	Kind       string        `yaml:"kind"`
 	Metadata   MetadataItems `yaml:"metadata"`
-	Spec       MapSpec          `yaml:"spec"`
+	Spec       MapSpec       `yaml:"spec"`
 }
 
 type MapSpec struct {
-	Type        string            `yaml:"type,omitempty"`
-	Ports       []SvcPorts        `yaml:"ports,omitempty"`
-	Selector    map[string]string `yaml:"selector,omitempty"`
+	Type     string            `yaml:"type,omitempty"`
+	Ports    []SvcPorts        `yaml:"ports,omitempty"`
+	Selector map[string]string `yaml:"selector,omitempty"`
 }
 
 type SvcPorts struct {
-	Name string `yaml:"name"`
-	Port int `yaml:"port"`
-	Protocol string `yaml:"protocol"`
-	TargetPort int `yaml:"targetPort"`
+	Name       string `yaml:"name"`
+	Port       int    `yaml:"port"`
+	Protocol   string `yaml:"protocol"`
+	TargetPort int    `yaml:"targetPort"`
 }
-
 
 func runSvcTest(parts []string, filename string, want SvcSpec, t *testing.T) {
 	_, _ = helmRunner(parts...)

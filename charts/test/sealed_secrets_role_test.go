@@ -9,7 +9,6 @@ func Test_SealedSecretsRole_DefaultFlags(t *testing.T) {
 	runYamlTest(parts, "./tmp/openfaas-cloud/templates/sealed-secrets/rbac-import-secrets-role-binding.yml", want, t)
 }
 
-
 func Test_SealedSecretsRole_OveriddenFlags(t *testing.T) {
 	parts := []string{
 		"--set", "global.functionsNamespace=this-new-ns",
@@ -23,18 +22,18 @@ func makeSecretsRoleBinding(fnNamespace string) YamlSpec {
 	return YamlSpec{
 		Kind:       "RoleBinding",
 		ApiVersion: "rbac.authorization.k8s.io/v1",
-		Metadata:   MetadataItems{
-			Name:        "manage-sealed-secrets",
-			Namespace:   fnNamespace,
+		Metadata: MetadataItems{
+			Name:      "manage-sealed-secrets",
+			Namespace: fnNamespace,
 		},
-		Subjects: []Subjects {{
+		Subjects: []Subjects{{
 			Kind:      "ServiceAccount",
 			Name:      "sealedsecrets-importer-rw",
 			Namespace: fnNamespace,
 		}},
 		RoleRef: map[string]string{
-			"kind": "ClusterRole",
-			"name": "sealedsecrets-importer",
+			"kind":     "ClusterRole",
+			"name":     "sealedsecrets-importer",
 			"apiGroup": "rbac.authorization.k8s.io",
 		},
 	}

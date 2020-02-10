@@ -49,7 +49,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
           clouddns:
             project: {{ .Values.tls.clouddns.projectID | quote }}
             serviceAccountSecretRef:
-              name: "{{ .Values.tls.clouddns.dnsService}}-service-account"
+              name: "clouddns-service-account"
               key: service-account.json
 {{- else if eq .Values.tls.dnsService "route53" }}
           route53:
@@ -57,7 +57,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
   {{- if not .Values.tls.route53.ambientCredentials }}
             accessKeyID: {{ required "A .Values.tls.route53.accessKeyID is required!" .Values.tls.route53.accessKeyID }}
             secretAccessKeySecretRef:
-              name: "{{ .Values.tls.dnsService}}-credentials-secret"
+              name: "route53-credentials-secret"
               key: secret-access-key
   {{- end }}
 {{- else if eq .Values.tls.dnsService "digitalocean" }}
@@ -67,7 +67,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
               key: access-token
 {{- else if eq .Values.tls.dnsService "cloudflare" }}
           cloudflare:
-            email: {{ required "A .Values.tls.cloudflare.email is required" .Values.tld.cloudflare.email }}
+            email: {{ required "A .Values.tls.cloudflare.email is required" .Values.tls.cloudflare.email }}
             apiKeySecretRef:
               name: cloudflare-api-key-secret
               key: api-key

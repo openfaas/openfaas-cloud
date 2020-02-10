@@ -1,6 +1,5 @@
 package test
 
-
 import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -11,7 +10,7 @@ import (
 func Test_CoreOFBuilderSvc(t *testing.T) {
 	parts := []string{}
 
-	want := serviceBuilder("of-builder","ClusterIP", 8080, 8080)
+	want := serviceBuilder("of-builder", "ClusterIP", 8080, 8080)
 	_, _ = helmRunner(parts...)
 
 	data, err := ioutil.ReadFile("./tmp/openfaas-cloud/templates/ofc-core/of-builder-svc.yaml")
@@ -30,4 +29,3 @@ func Test_CoreOFBuilderSvc(t *testing.T) {
 		t.Fail()
 	}
 }
-

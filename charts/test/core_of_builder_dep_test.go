@@ -15,7 +15,6 @@ func Test_CoreOFBuilderDep_NonHttpProbe(t *testing.T) {
 	runYamlTest(parts, "./tmp/openfaas-cloud/templates/ofc-core/of-builder-dep.yaml", want, t)
 }
 
-
 func makeOFBuilderDep(httpProbe, isECR bool, replicaCount int, buildkitPrivileged, ofBuildkitImage string) YamlSpec {
 	labels := make(map[string]string)
 
@@ -23,44 +22,47 @@ func makeOFBuilderDep(httpProbe, isECR bool, replicaCount int, buildkitPrivilege
 	labels["app.kubernetes.io/instance"] = "RELEASE-NAME"
 	labels["app.kubernetes.io/managed-by"] = "Helm"
 	labels["app.kubernetes.io/name"] = "openfaas-cloud"
-	labels["helm.sh/chart"] = "openfaas-cloud-0.11.9"
-
+	labels["helm.sh/chart"] = "openfaas-cloud-0.12.1"
 
 	deployVolumes := makeOFBuilderDeployVolumes([]string{"registry-secret", "payload-secret"}, isECR)
 	containerVolumes := makeOFBuilderContainerVolumes(isECR)
 	containerEnvironment := makeOFBuilderContainerEnv()
 
-	var readinessProbe ReadinessProbe
+	var readinessProbe LivenessProbe
 	if httpProbe {
-		readinessProbe = ReadinessProbe{
+		readinessProbe = LivenessProbe{
 			HttpGet: HttpProbe{
 				Path: "/healthz",
 				Port: 8080,
 			},
 			TimeoutSeconds: 5,
+			PeriodSeconds: 10,
+			InitialDelaySeconds: 2,
 		}
 	} else {
-		readinessProbe = ReadinessProbe{
-			ExecProbe:      ExecProbe{
-				Command: []string{"wget","--quiet", "--tries=1", "--timeout=5", "--spider", "http://localhost:8080/healthz"},
+		readinessProbe = LivenessProbe{
+			ExecProbe: ExecProbe{
+				Command: []string{"wget", "--quiet", "--tries=1", "--timeout=5", "--spider", "http://localhost:8080/healthz"},
 			},
 			TimeoutSeconds: 5,
+			PeriodSeconds: 10,
+			InitialDelaySeconds: 2,
 		}
 	}
 	return YamlSpec{
 		ApiVersion: "apps/v1",
 		Kind:       "Deployment",
 		Metadata: MetadataItems{
-			Name:        "of-builder",
-			Labels:      labels,
+			Name:   "of-builder",
+			Labels: labels,
 		},
 		Spec: Spec{
-			Replicas:    replicaCount,
-			Selector:    MatchLabelSelector{MatchLabels: map[string]string{"app": "of-builder"}},
+			Replicas: replicaCount,
+			Selector: MatchLabelSelector{MatchLabels: map[string]string{"app": "of-builder"}},
 			Template: SpecTemplate{
 				Metadata: MetadataItems{
-					Annotations: map[string]string{"prometheus.io.scrape":"false"},
-					Labels: map[string]string{"app":"of-builder"},
+					Annotations: map[string]string{"prometheus.io.scrape": "false"},
+					Labels:      map[string]string{"app": "of-builder"},
 				},
 				Spec: TemplateSpec{
 					Volumes: deployVolumes,
@@ -69,19 +71,19 @@ func makeOFBuilderDep(httpProbe, isECR bool, replicaCount int, buildkitPrivilege
 						Image:                   "openfaas/of-builder:0.7.2",
 						ImagePullPolicy:         "IfNotPresent",
 						ContainerReadinessProbe: readinessProbe,
-						ContainerEnvironment: containerEnvironment,
-						Ports:                   []ContainerPort{{
+						ContainerEnvironment:    containerEnvironment,
+						Ports: []ContainerPort{{
 							Port:     8080,
 							Protocol: "TCP",
 						}},
-						Volumes:                 containerVolumes,
+						Volumes: containerVolumes,
 					},
 						{
 							Name:            "of-buildkit",
-							Args:			 []string{"--addr", "tcp://0.0.0.0:1234"},
+							Args:            []string{"--addr", "tcp://0.0.0.0:1234"},
 							Image:           ofBuildkitImage,
 							ImagePullPolicy: "IfNotPresent",
-							Ports:           []ContainerPort{{
+							Ports: []ContainerPort{{
 								Port:     1234,
 								Protocol: "TCP",
 							}},
@@ -120,10 +122,10 @@ func makeOFBuilderContainerVolumes(isECR bool) []ContainerVolume {
 
 func makeOFBuilderContainerEnv() []Environment {
 	var environ []Environment
-	environ = append(environ, Environment{ Name:  "enable_lchown", Value: "true"})
-	environ = append(environ, Environment{ Name:  "insecure", Value: "false"})
-	environ = append(environ, Environment{ Name:  "buildkit_url", Value: "tcp://127.0.0.1:1234"})
-	environ = append(environ, Environment{ Name:  "disable_hmac", Value: "false"})
+	environ = append(environ, Environment{Name: "enable_lchown", Value: "true"})
+	environ = append(environ, Environment{Name: "insecure", Value: "false"})
+	environ = append(environ, Environment{Name: "buildkit_url", Value: "tcp://127.0.0.1:1234"})
+	environ = append(environ, Environment{Name: "disable_hmac", Value: "false"})
 
 	return environ
 }
@@ -144,8 +146,6 @@ func makeOFBuilderDeployVolumes(names []string, isECR bool) []DeploymentVolumes 
 			SecretInfo: map[string]string{"secretName": "aws-ecr-credentials", "defaultMode": "420"},
 		})
 	}
-
-
 
 	return volumes
 }

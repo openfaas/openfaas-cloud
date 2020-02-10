@@ -9,6 +9,7 @@ buildKit:
   image: moby/buildkit:v0.6.2
   privileged: true
 
+
 edgeAuth:
   image: openfaas/edge-auth:0.6.3
   replicaCount: 1
@@ -40,7 +41,7 @@ tls:
   route53:
     region:
     accessKeyID:
-    ## ambientCredentials this should be set to try if you are using an AWS ambient credentials provider, such as kube2iam
+    ## ambientCredentials this should be set to true if you are using an AWS ambient credentials provider, such as kube2iam
     ambientCredentials: false
 
   cloudflare:
@@ -52,7 +53,7 @@ tls:
 ## global values that are re-used across multiple components
 global:
 
-  ## rootDomain is the root domain of the ofc installation
+  ## rootDomain is the root domain of the ofc installation o6s.io for example
   rootDomain:
   prometheusScrape: false
   ## customersURL is the url to the raw file that containers the list of users who are able to use this installation
@@ -70,3 +71,6 @@ global:
 
   ## httpProbe set this to false to use an exec probe instead - Istio users might want to set this to false.
   httpProbe: true
+
+  ## Ingress class could be set to traefik for example
+  ingressClass: nginx
