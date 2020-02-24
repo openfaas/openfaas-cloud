@@ -16,7 +16,7 @@ spec:
   template:
     metadata:
       annotations:
-        prometheus.io.scrape: {{ .Values.global.prometheusScrape | quote }}
+        prometheus.io.scrape: "false"
       labels:
         app: edge-router
     spec:
@@ -51,7 +51,7 @@ spec:
               value: "60s"
             # For OAuth 2.0
             - name: auth_url
-            {{- if .Values.global.enableOAuth2 }}
+            {{- if .Values.edgeAuth.enableOAuth2 }}
               value: "http://edge-auth.{{ .Values.global.coreNamespace}}:8080"
             {{- else }}
               value: "http://echo.{{ .Values.global.functionsNamespace }}:8080"

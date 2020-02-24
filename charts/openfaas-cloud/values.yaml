@@ -3,7 +3,7 @@
 
 ofBuilder:
   image: openfaas/of-builder:0.7.2
-  replicaCount: 1
+  replicas: 1
 
 buildKit:
   image: moby/buildkit:v0.6.2
@@ -12,7 +12,8 @@ buildKit:
 
 edgeAuth:
   image: openfaas/edge-auth:0.6.3
-  replicaCount: 1
+  replicas: 1
+  enableOAuth2: true
   oauthProvider: github
   ## OAuthProviderBaseURL can be left blank for github, Gitlab users need to provide the url for their gitlab instance
   oauthProviderBaseURL:
@@ -55,14 +56,12 @@ global:
 
   ## rootDomain is the root domain of the ofc installation o6s.io for example
   rootDomain:
-  prometheusScrape: false
   ## customersURL is the url to the raw file that containers the list of users who are able to use this installation
   customersURL:
   ## scheme is the http/https setting for the installation
   scheme: https
   enableECR: false
   imagePullPolicy: IfNotPresent
-  enableOAuth2: true
   ## coreNamespace this is used where we need to communicate with core openfaas components
   coreNamespace: openfaas
 

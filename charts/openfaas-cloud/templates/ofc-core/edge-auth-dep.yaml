@@ -9,14 +9,14 @@ metadata:
     helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
     app.kubernetes.io/component: edge-auth
 spec:
-  replicas: {{ .Values.edgeAuth.replicaCount }}
+  replicas: {{ .Values.edgeAuth.replicas }}
   selector:
     matchLabels:
       app: edge-auth
   template:
     metadata:
       annotations:
-        prometheus.io.scrape: {{ .Values.global.prometheusScrape | quote }}
+        prometheus.io.scrape: "false"
       labels:
         app: edge-auth
     spec:

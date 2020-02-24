@@ -5,8 +5,8 @@ import "testing"
 func Test_CoreOFBuilderDep_NonHttpProbe(t *testing.T) {
 	parts := []string{
 		"--set", "global.httpProbe=false",
-		"--set", "global.enableOAuth2=false",
-		"--set", "ofBuilder.replicaCount=5",
+		"--set", "edgeAuth.enableOAuth2=false",
+		"--set", "ofBuilder.replicas=5",
 		"--set", "global.enableECR=true",
 		"--set", "buildKit.privileged=false",
 	}
@@ -15,7 +15,7 @@ func Test_CoreOFBuilderDep_NonHttpProbe(t *testing.T) {
 	runYamlTest(parts, "./tmp/openfaas-cloud/templates/ofc-core/of-builder-dep.yaml", want, t)
 }
 
-func makeOFBuilderDep(httpProbe, isECR bool, replicaCount int, buildkitPrivileged, ofBuildkitImage string) YamlSpec {
+func makeOFBuilderDep(httpProbe, isECR bool, replicas int, buildkitPrivileged, ofBuildkitImage string) YamlSpec {
 	labels := make(map[string]string)
 
 	labels["app.kubernetes.io/component"] = "of-builder"
@@ -57,7 +57,7 @@ func makeOFBuilderDep(httpProbe, isECR bool, replicaCount int, buildkitPrivilege
 			Labels: labels,
 		},
 		Spec: Spec{
-			Replicas: replicaCount,
+			Replicas: replicas,
 			Selector: MatchLabelSelector{MatchLabels: map[string]string{"app": "of-builder"}},
 			Template: SpecTemplate{
 				Metadata: MetadataItems{
