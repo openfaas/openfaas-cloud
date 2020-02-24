@@ -4,9 +4,9 @@ metadata:
   name: openfaas-ingress
   namespace: {{ .Values.global.coreNamespace }}
   annotations:
-    kubernetes.io/ingress.class: {{ .Values.global.ingressClass | quote }}
-    nginx.ingress.kubernetes.io/limit-connections: "20"
-    nginx.ingress.kubernetes.io/limit-rpm: "600"
+    kubernetes.io/ingress.class: {{ .Values.ingress.class | quote }}
+    nginx.ingress.kubernetes.io/limit-connections: {{ .Values.ingress.maxConnections | quote }}
+    nginx.ingress.kubernetes.io/limit-rpm: {{ .Values.ingress.requestsPerMinute | quote }}
   labels:
     app: faas-netesd
 spec:

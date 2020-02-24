@@ -11,7 +11,7 @@ func Test_IngressAuthNoTLS(t *testing.T) {
 		"--set", "global.rootDomain=myfass.club",
 	}
 
-	want := buildIngressAuth("myfass.club", "auth.system", "openfaas-auth-ingress", "nginx", false)
+	want := buildIngressAuth("myfass.club", "auth.system", "openfaas-auth-ingress", "nginx", "600", "20", false)
 	runYamlTest(parts, "./tmp/openfaas-cloud/templates/ingress/ingress-auth.yml", want, t)
 }
 func Test_IngressAuthWithTLS(t *testing.T) {
@@ -20,7 +20,7 @@ func Test_IngressAuthWithTLS(t *testing.T) {
 		"--set", "tls.enabled=true",
 	}
 
-	want := buildIngressAuth("myfass.club", "auth.system", "openfaas-auth-ingress", "nginx", true)
+	want := buildIngressAuth("myfass.club", "auth.system", "openfaas-auth-ingress", "nginx", "600", "20", true)
 	runYamlTest(parts, "./tmp/openfaas-cloud/templates/ingress/ingress-auth.yml", want, t)
 }
 
@@ -28,7 +28,7 @@ func Test_IngressWildcardNoTLS(t *testing.T) {
 	parts := []string{
 		"--set", "global.rootDomain=myfass.club",
 	}
-	want := buildIngressAuth("myfass.club", "*", "openfaas-ingress", "nginx", false)
+	want := buildIngressAuth("myfass.club", "*", "openfaas-ingress", "nginx", "600", "20", false)
 	runYamlTest(parts, "./tmp/openfaas-cloud/templates/ingress/ingress-wildcard.yml", want, t)
 }
 func Test_IngressWildcardWithTLS(t *testing.T) {
@@ -37,7 +37,7 @@ func Test_IngressWildcardWithTLS(t *testing.T) {
 		"--set", "tls.enabled=true",
 	}
 
-	want := buildIngressAuth("myfass.club", "*", "openfaas-ingress", "nginx", true)
+	want := buildIngressAuth("myfass.club", "*", "openfaas-ingress", "nginx", "600", "20", true)
 	runYamlTest(parts, "./tmp/openfaas-cloud/templates/ingress/ingress-wildcard.yml", want, t)
 }
 
@@ -45,10 +45,10 @@ func Test_IngressWildcardIngressClass(t *testing.T) {
 
 	parts := []string{
 		"--set", "global.rootDomain=myfass.club",
-		"--set", "global.ingressClass=traefik",
+		"--set", "ingress.class=traefik",
 	}
 
-	want := buildIngressAuth("myfass.club", "*", "openfaas-ingress", "traefik", false)
+	want := buildIngressAuth("myfass.club", "*", "openfaas-ingress", "traefik", "600", "20", false)
 	runYamlTest(parts, "./tmp/openfaas-cloud/templates/ingress/ingress-wildcard.yml", want, t)
 }
 
@@ -56,14 +56,36 @@ func Test_IngressAuthIngressClass(t *testing.T) {
 
 	parts := []string{
 		"--set", "global.rootDomain=myfass.club",
-		"--set", "global.ingressClass=traefik",
+		"--set", "ingress.class=traefik",
 	}
 
-	want := buildIngressAuth("myfass.club", "auth.system", "openfaas-auth-ingress", "traefik", false)
+	want := buildIngressAuth("myfass.club", "auth.system", "openfaas-auth-ingress", "traefik", "600", "20", false)
 	runYamlTest(parts, "./tmp/openfaas-cloud/templates/ingress/ingress-auth.yml", want, t)
 }
 
-func buildIngressAuth(hostDomain, prefix, name, ingressClass string, tls bool) YamlSpec {
+func Test_IngressAuthIngress_RPM(t *testing.T) {
+
+	parts := []string{
+		"--set", "global.rootDomain=myfass.club",
+		"--set", "ingress.requestsPerMinute=200",
+	}
+
+	want := buildIngressAuth("myfass.club", "auth.system", "openfaas-auth-ingress", "nginx", "200", "20", false)
+	runYamlTest(parts, "./tmp/openfaas-cloud/templates/ingress/ingress-auth.yml", want, t)
+}
+
+func Test_IngressAuthIngress_MaxCon(t *testing.T) {
+
+	parts := []string{
+		"--set", "global.rootDomain=myfass.club",
+		"--set", "ingress.maxConnections=200",
+	}
+
+	want := buildIngressAuth("myfass.club", "auth.system", "openfaas-auth-ingress", "nginx", "600", "200", false)
+	runYamlTest(parts, "./tmp/openfaas-cloud/templates/ingress/ingress-auth.yml", want, t)
+}
+
+func buildIngressAuth(hostDomain, prefix, name, ingressClass, rpm, maxConnections string, tls bool) YamlSpec {
 	annotations := make(map[string]string)
 	labels := make(map[string]string)
 	backend := make(map[string]string)
@@ -74,8 +96,8 @@ func buildIngressAuth(hostDomain, prefix, name, ingressClass string, tls bool) Y
 	labels["app"] = "faas-netesd"
 
 	annotations["kubernetes.io/ingress.class"] = ingressClass
-	annotations["nginx.ingress.kubernetes.io/limit-connections"] = "20"
-	annotations["nginx.ingress.kubernetes.io/limit-rpm"] = "600"
+	annotations["nginx.ingress.kubernetes.io/limit-connections"] = maxConnections
+	annotations["nginx.ingress.kubernetes.io/limit-rpm"] = rpm
 
 	spec := Spec{
 		Rules: []SpecRules{{
@@ -104,7 +126,7 @@ func buildIngressAuth(hostDomain, prefix, name, ingressClass string, tls bool) Y
 		Kind:       "Ingress",
 		Metadata: MetadataItems{
 			Name:        name,
-			Namespace: 	"openfaas",
+			Namespace:   "openfaas",
 			Annotations: annotations,
 			Labels:      labels,
 		},
