@@ -68,7 +68,7 @@ func Handle(req []byte) string {
 
 	if buildBranch := buildBranch(); len(pushEvent.Ref) == 0 ||
 		pushEvent.Ref != fmt.Sprintf("refs/heads/%s", buildBranch) {
-		msg := fmt.Sprintf("refusing to build target branch: %s, want branch: %s", pushEvent.Ref, buildBranch)
+		msg := fmt.Sprintf("skipping build for: %s branch, the build branch is: %s", pushEvent.Ref, buildBranch)
 		auditEvent := sdk.AuditEvent{
 			Message: msg,
 			Owner:   pushEvent.Repository.Owner.Login,
@@ -78,7 +78,7 @@ func Handle(req []byte) string {
 
 		audit.Post(auditEvent)
 
-		status.AddStatus(sdk.StatusFailure, msg, sdk.StackContext)
+		status.AddStatus(sdk.StatusSuccess, msg, sdk.StackContext)
 		reportGitHubStatus(status)
 		return msg
 	}
