@@ -26,6 +26,10 @@ Features:
 * Runtime-logs for your functions
 * Fast, non-root image builds using [buildkit](https://github.com/moby/buildkit/) from Docker
 
+Non-goals:
+
+* Raspberry Pi support - this is out of scope, since OpenFaaS Cloud is for professional use
+
 The dashboard page for a user:
 
 ![Dashboard](/docs/dashboard.png)
