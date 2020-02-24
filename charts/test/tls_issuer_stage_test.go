@@ -12,7 +12,7 @@ func Test_IssuerStaging_NotEnabled(t *testing.T) {
 	}
 
 	filename := "./tmp/no-tls-staging/openfaas-cloud/templates/tls/issuer-staging.yml"
-	_, _ = helmRunnerToLocation("./tmp/no-tls-staging", parts...)
+	_, _ = helmRunnerToLocation("./tmp", parts...)
 
 	_, err := ioutil.ReadFile(filename)
 	if err == nil {

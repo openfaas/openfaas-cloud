@@ -12,7 +12,7 @@ func Test_IssuerProd_NotEnabled(t *testing.T) {
 	}
 
 	filename := "./tmp/no-tls-prod/openfaas-cloud/templates/tls/issuer-prod.yml"
-	_, _ = helmRunnerToLocation("./tmp/no-tls-prod", parts...)
+	_, _ = helmRunnerToLocation("./tmp", parts...)
 
 	_, err := ioutil.ReadFile(filename)
 	if err == nil {

@@ -7,7 +7,7 @@ import (
 func Test_CoreEdgeRouterDep_NonHttpProbe(t *testing.T) {
 	parts := []string{
 		"--set", "global.httpProbe=false",
-		"--set", "global.enableOAuth2=false",
+		"--set", "edgeAuth.enableOAuth2=false",
 	}
 
 	want := makeEdgeRouterDep(false, false)
@@ -17,7 +17,7 @@ func Test_CoreEdgeRouterDep_NonHttpProbe(t *testing.T) {
 func Test_CoreEdgeRouterDep_HttpProbe(t *testing.T) {
 	parts := []string{
 		"--set", "global.httpProbe=true",
-		"--set", "global.enableOAuth2=false",
+		"--set", "edgeAuth.enableOAuth2=false",
 	}
 
 	want := makeEdgeRouterDep(true, false)
@@ -26,7 +26,7 @@ func Test_CoreEdgeRouterDep_HttpProbe(t *testing.T) {
 func Test_CoreEdgeRouterDep_HttpAndOauth(t *testing.T) {
 	parts := []string{
 		"--set", "global.httpProbe=true",
-		"--set", "global.enableOAuth2=true",
+		"--set", "edgeAuth.enableOAuth2=true",
 	}
 
 	want := makeEdgeRouterDep(true, true)
@@ -36,7 +36,7 @@ func Test_CoreEdgeRouterDep_HttpAndOauth(t *testing.T) {
 func Test_CoreEdgeRouterDep_NoHttpOauth(t *testing.T) {
 	parts := []string{
 		"--set", "global.httpProbe=false",
-		"--set", "global.enableOAuth2=true",
+		"--set", "edgeAuth.enableOAuth2=true",
 	}
 
 	want := makeEdgeRouterDep(false, true)

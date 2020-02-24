@@ -9,14 +9,14 @@ metadata:
     helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
     app.kubernetes.io/component: of-builder
 spec:
-  replicas: {{ .Values.ofBuilder.replicaCount }}
+  replicas: {{ .Values.ofBuilder.replicas }}
   selector:
     matchLabels:
       app: of-builder
   template:
     metadata:
       annotations:
-        prometheus.io.scrape: {{ .Values.global.prometheusScrape | quote }}
+        prometheus.io.scrape: "false"
       labels:
         app: of-builder
     spec:
