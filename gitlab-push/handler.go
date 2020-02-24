@@ -228,7 +228,7 @@ func checkBranch(branchRef string) (branchErr error) {
 	buildBranch := getBranch()
 	branchFromRef := filterBranchRef(branchRef)
 	if buildBranch != branchFromRef {
-		msg := fmt.Sprintf("refusing to build target branch: %s, want branch: %s",
+		msg := fmt.Sprintf("skipping build for: %s branch, the build branch is: %s",
 			branchFromRef,
 			buildBranch)
 		branchErr = fmt.Errorf(msg)

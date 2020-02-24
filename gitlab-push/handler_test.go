@@ -126,7 +126,7 @@ func Test_checkBranch(t *testing.T) {
 			title:         "Branch does not exist in environmental variables",
 			branchesInEnv: "staging",
 			branchRef:     "/refs/heads/development",
-			expectedError: errors.New("refusing to build target branch: development, want branch: staging"),
+			expectedError: errors.New("skipping build for: development branch, the build branch is: staging"),
 		},
 	}
 	for _, test := range tests {
