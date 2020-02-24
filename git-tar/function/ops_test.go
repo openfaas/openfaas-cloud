@@ -336,8 +336,6 @@ func Test_JoinErrors_No_Errors(t *testing.T) {
 	}
 }
 
-
-
 func mockTempTemplatesDir(files []string, directory string) (string, error) {
 	permissions := 0744
 	tmpDir := os.TempDir()
@@ -358,5 +356,3 @@ func mockTempTemplatesDir(files []string, directory string) (string, error) {
 	}
 	return templatesDir, nil
 }
-
-
