@@ -26,7 +26,7 @@ functions:
   github-push:
     lang: go
     handler: ./github-push
-    image: functions/github-push:0.7.3
+    image: functions/github-push:0.7.4
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
