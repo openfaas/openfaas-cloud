@@ -51,6 +51,13 @@ tls:
   clouddns:
     projectID:
 
+## Values for the Ingress resources
+ingress:
+  ## Ingress class could be set to traefik for example
+  class: nginx
+  maxConnections: 20
+  requestsPerMinute: 600
+
 ## global values that are re-used across multiple components
 global:
 
@@ -71,5 +78,3 @@ global:
   ## httpProbe set this to false to use an exec probe instead - Istio users might want to set this to false.
   httpProbe: true
 
-  ## Ingress class could be set to traefik for example
-  ingressClass: nginx
