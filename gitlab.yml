@@ -25,6 +25,7 @@ functions:
       - gitlab-webhook-secret
       - payload-secret
       - gitlab-api-token
+      - customers
 
   gitlab-push:
     lang: go
@@ -42,6 +43,7 @@ functions:
       - gateway_config.yml
     secrets:
       - payload-secret
+      - customers
 
   gitlab-status:
     lang: go

@@ -6,10 +6,12 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
 // MakeQueryHandler returns whether a client can access a resource
@@ -24,7 +26,10 @@ func MakeQueryHandler(config *Config, protected []string, restrictedPrefix []str
 		log.Fatalf("unable to parse public key: %s", keyErr.Error())
 	}
 
-	customers := NewCustomers()
+	customersPath := os.Getenv("customers_path")
+	customersURL := os.Getenv("customers_url")
+
+	customers := sdk.NewCustomers(customersPath, customersURL)
 	customers.Fetch()
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -91,7 +96,7 @@ func isProtected(resource string, protected []string) bool {
 	return false
 }
 
-func validCookie(r *http.Request, cookieName string, publicKey crypto.PublicKey, customers *Customers, debug bool) int {
+func validCookie(r *http.Request, cookieName string, publicKey crypto.PublicKey, customers *sdk.Customers, debug bool) int {
 
 	cookie, err := r.Cookie(cookieName)
 	if err != nil {

@@ -6,7 +6,7 @@ functions:
   system-github-event:
     lang: go
     handler: ./github-event
-    image: functions/github-event:0.8.1
+    image: functions/github-event:0.9.0
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -22,6 +22,7 @@ functions:
     secrets:
       - github-webhook-secret
       - payload-secret
+      - customers
 
   github-push:
     lang: go
@@ -43,6 +44,7 @@ functions:
     secrets:
       - github-webhook-secret
       - payload-secret
+      - customers
 
   git-tar:
     lang: dockerfile

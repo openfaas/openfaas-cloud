@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  digest = "1:871b7cfa5fe18bfdbd4bf117c166c3cff8d3b61c8afe4e998b5b8ac0c160ca24"
+  name = "github.com/alexellis/hmac"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "d5d71edd7bc74eb6ae4b99eccc6bda738435f43f"
+  version = "1.2"
+
+[[projects]]
   digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
   name = "github.com/dgrijalva/jwt-go"
   packages = ["."]
@@ -9,9 +17,28 @@
   revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
   version = "v3.2.0"
 
+[[projects]]
+  digest = "1:640b3b23db9a5542f998adcf5ca3527951855f93156784dd9592242a61b89598"
+  name = "github.com/openfaas/faas-provider"
+  packages = ["auth"]
+  pruneopts = "UT"
+  revision = "98c25c3919da1ca07bb93fad63fd9715b460963f"
+  version = "012.1"
+
+[[projects]]
+  digest = "1:4bdd284c46a1a79c5d1bdcb445c3c3e181a6687888afab1ae61b0486a9c6b177"
+  name = "github.com/openfaas/openfaas-cloud"
+  packages = ["sdk"]
+  pruneopts = "UT"
+  revision = "641b1e0a1d2ffabf3c8a4edf657458217d64137e"
+  version = "0.12.2"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  input-imports = ["github.com/dgrijalva/jwt-go"]
+  input-imports = [
+    "github.com/dgrijalva/jwt-go",
+    "github.com/openfaas/openfaas-cloud/sdk",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
