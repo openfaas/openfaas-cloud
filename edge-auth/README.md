@@ -41,11 +41,10 @@ Contents (encoded JWT):
 
 Please note - You need to be a public member of any Organisation that you wish to be able to see the dashboard and functions for.
 
-
 ## Building
 
 ```
-export TAG=0.6.3
+export TAG=0.7.0
 make build push
 ```
 
@@ -106,7 +105,7 @@ echo -n "$CLIENT_SECRET" | docker secret create of-client-secret -
 
 ```sh
 docker rm -f edge-auth
-export TAG=0.6.3
+export TAG=0.7.0
 
 docker run \
  -e client_secret="$CLIENT_SECRET" \

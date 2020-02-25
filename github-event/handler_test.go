@@ -33,7 +33,11 @@ func Test_validateCustomers_UserNotFound(t *testing.T) {
 		},
 	}
 
-	err := validateCustomers(&customer, s.URL)
+	customersPath := os.Getenv("customers_path")
+	customersURL := s.URL
+	customers := sdk.NewCustomers(customersPath, customersURL)
+	customers.Fetch()
+	err := validateCustomers(&customer, customers)
 
 	if err == nil {
 		t.Errorf("Expected sender to be invalid and to generate an error")
@@ -55,41 +59,14 @@ func Test_validateCustomers_UserFound(t *testing.T) {
 		},
 	}
 
-	err := validateCustomers(&customer, s.URL)
+	customersPath := os.Getenv("customers_path")
+	customersURL := s.URL
+	customers := sdk.NewCustomers(customersPath, customersURL)
+	customers.Fetch()
+	err := validateCustomers(&customer, customers)
 
 	if err != nil {
 		t.Errorf("Expected sender to be valid, but got error: %s", err.Error())
-	}
-}
-
-func Test_validCustomer_Found_Passes(t *testing.T) {
-	res := validCustomer([]string{"rgee0", "alexellis"}, "alexellis")
-
-	want := true
-	if res != want {
-		t.Errorf("want error: \"%t\", got: \"%t\"", want, res)
-		t.Fail()
-	}
-}
-
-func Test_validCustomer_NotFound_Fails(t *testing.T) {
-	res := validCustomer([]string{"alexellis"}, "rgee0")
-
-	want := false
-	if res != want {
-		t.Errorf("want error: \"%t\", got: \"%t\"", want, res)
-		t.Fail()
-	}
-}
-
-func Test_validCustomer_EmptyInput_Fails(t *testing.T) {
-	res := validCustomer([]string{"alexellis"}, "")
-
-	want := false
-
-	if res != want {
-		t.Errorf("want error: \"%t\", got: \"%t\"", want, res)
-		t.Fail()
 	}
 }
 
@@ -118,9 +95,9 @@ func Test_Handle_ValidateCustomersInvalid(t *testing.T) {
 
 	res := Handle(body)
 
-	want := "Customer: rgee0 not found in CUSTOMERS file via " + server.URL
+	want := `Customer: "rgee0" not found in customers ACL`
 	if res != want {
-		t.Errorf("want error: \"%s\", got: \"%s\"", want, res)
+		t.Errorf("want error: %q, got: %q", want, res)
 		t.Fail()
 	}
 }
@@ -162,7 +139,7 @@ func Test_Handle_Event(t *testing.T) {
 			action:            "",
 			validateCustomers: "true",
 			validateHmac:      "false",
-			want:              "Customer:  not found in CUSTOMERS file via ",
+			want:              "Customer: \"\" not found in customers ACL",
 			login:             "",
 		},
 		{
@@ -198,7 +175,6 @@ func Test_Handle_Event(t *testing.T) {
 
 			if event.validateCustomers == "true" && len(event.login) == 0 {
 				os.Setenv("customers_url", server.URL)
-				event.want = event.want + server.URL
 			}
 
 			res := Handle(req)
