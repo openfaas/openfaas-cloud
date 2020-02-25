@@ -26,7 +26,7 @@ func (r ImageRequest) GetRepository() string {
 	if tagIndex > -1 {
 		image = image[:tagIndex]
 	}
-	return image
+	return strings.ToLower(image)
 }
 
 // Handle accepts an ImageRequest and creates the registry entry if required
