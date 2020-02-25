@@ -27,9 +27,9 @@ spec:
         - name: of-client-secret
           secret:
             secretName: of-client-secret
-        - name: customers
+        - name: of-customers
           secret:
-            secretName: customers
+            secretName: of-customers
       containers:
       - name: edge-auth
         image: openfaas/edge-auth:0.7.0
@@ -51,7 +51,7 @@ spec:
           - name: private_key_path
             value: "/var/secrets/private/key"
           - name: customers_path
-            value: "/var/secrets/customers/customers"
+            value: "/var/secrets/of-customers/of-customers"
 # Update for your configuration:
           - name: client_secret # this can also be provided via a secret named of-client-secret
             value: ""
@@ -93,6 +93,6 @@ spec:
         - name: of-client-secret
           readOnly: true
           mountPath: "/var/secrets/of-client-secret"
-        - name: customers
+        - name: of-customers
           readOnly: true
-          mountPath: "/var/secrets/customers"
+          mountPath: "/var/secrets/of-customers"
