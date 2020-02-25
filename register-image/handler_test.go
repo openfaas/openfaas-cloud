@@ -39,3 +39,15 @@ func Test_GetImageStripsECRRegistry(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func Test_GetImageLowecasesRegistryName(t *testing.T) {
+	r := ImageRequest{Image: "1238475.dkr.ecr.eu-central-1.amazonaws.com/ofbuilder/go-for-IT"}
+
+	got := r.GetRepository()
+	want := "ofbuilder/go-for-it"
+
+	if got != want {
+		t.Errorf("GetRepository want: %s, got %s", want, got)
+		t.Fail()
+	}
+}
