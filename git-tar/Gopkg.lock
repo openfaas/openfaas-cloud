@@ -65,12 +65,12 @@
   version = "0.7.1"
 
 [[projects]]
-  digest = "1:bfeeed88d0e6fd0c674b2bf0db4f6da90eecac5e7f6f32d2afec1ddaef6cb6d3"
+  digest = "1:072e4b47fac82c4cc1fd6b3d3d02247a735e9416fdb9f0e24efa976b01c68743"
   name = "github.com/openfaas/openfaas-cloud"
   packages = ["sdk"]
   pruneopts = "UT"
-  revision = "b953415c10e95fdc00284d899b322745b41aab5b"
-  version = "0.9.11"
+  revision = "6a94566a9f09a6b7d0b645205cad2e64e115c0fd"
+  version = "0.13.0"
 
 [[projects]]
   digest = "1:5b92d232e81c3e8eec282c92dcaa2e0e1ad3c23157be19a01b3e33f7e6e8d137"

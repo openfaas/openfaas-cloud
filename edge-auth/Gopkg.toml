@@ -2,7 +2,6 @@
   name = "github.com/dgrijalva/jwt-go"
   version = "3.2.0"
 
-
 [[constraint]]
   name = "github.com/alexellis/hmac"
   version = "1.2"
@@ -10,6 +9,10 @@
 [[constraint]]
   name = "github.com/openfaas/faas-provider"
   version = "v0.15.0"
+
+[[constraint]]
+  name = "github.com/openfaas/openfaas-cloud"
+  version = "0.13.0"
 
 [prune]
   go-tests = true

@@ -4,7 +4,7 @@
 
 [[constraint]]
   name = "github.com/openfaas/openfaas-cloud"
-  version = "0.9.11"
+  version = "0.13.0"
 
 [[constraint]]
   name = "github.com/alexellis/hmac"
@@ -18,9 +18,12 @@
   name = "gopkg.in/yaml.v2"
   version = "v2.2.3"
 
-[prune]
-  go-tests = true
-  unused-packages = true
 [[constraint]]
   branch = "master"
   name = "code.cloudfoundry.org/bytefmt"
+
+[prune]
+  go-tests = true
+  unused-packages = true
+
+
