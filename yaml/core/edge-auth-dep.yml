@@ -32,7 +32,7 @@ spec:
             secretName: customers
       containers:
       - name: edge-auth
-        image: openfaas/edge-auth:0.6.3
+        image: openfaas/edge-auth:0.7.0
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -73,7 +73,7 @@ spec:
           - name: cookie_root_domain
             value: ".system.o6s.io"
 
-# This is a default and can be overriden
+# This is a default and can be overridden
           - name: customers_url
             value: "https://raw.githubusercontent.com/openfaas/openfaas-cloud/master/CUSTOMERS"
 
