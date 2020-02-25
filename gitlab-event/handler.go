@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -88,6 +89,12 @@ func Handle(req []byte) string {
 		installationTag = tag
 	}
 
+	customersPath := os.Getenv("customers_path")
+	customersURL := os.Getenv("customers_url")
+
+	customers := sdk.NewCustomers(customersPath, customersURL)
+	customers.Fetch()
+
 	switch eventName.Event {
 	case PushEvent:
 		eventInfo := sdk.GitLabPushEvent{}
@@ -102,19 +109,19 @@ func Handle(req []byte) string {
 		}
 
 		if readBool("validate_customers") {
-			customersURL := os.Getenv("customers_url")
-			customers, getErr := getCustomers(customersURL)
-			if getErr != nil {
-				return fmt.Sprintf("unable to read customers from %s error: %s", customersURL, getErr.Error())
-			}
-			if !validCustomer(customers, username) {
+
+			if valid, err := customers.Get(username); valid == false || err != nil {
+				if err != nil {
+					log.Printf("error getting customer: %q, %s", username, err.Error())
+				}
+
 				auditEvent := sdk.AuditEvent{
 					Message: "Customer not found",
 					Owner:   eventInfo.UserUsername,
 					Source:  Source,
 				}
 				sdk.PostAudit(auditEvent)
-				return fmt.Sprintf("Customer: %s not found in CUSTOMERS file via %s", eventInfo.UserUsername, customersURL)
+				return fmt.Sprintf("Customer: %s not found in customer ACL", eventInfo.UserUsername)
 			}
 		}
 
@@ -154,12 +161,12 @@ func Handle(req []byte) string {
 		}
 
 		if readBool("validate_customers") {
-			customersURL := os.Getenv("customers_url")
-			customers, getErr := getCustomers(customersURL)
-			if getErr != nil {
-				return fmt.Sprintf("unable to read customers from %s error: %s", customersURL, getErr.Error())
-			}
-			if !validCustomer(customers, username) {
+
+			if valid, err := customers.Get(username); valid == false || err != nil {
+				if err != nil {
+					log.Printf("error getting customer: %q, %s", username, err.Error())
+				}
+
 				auditEvent := sdk.AuditEvent{
 					Message: "Customer not found",
 					Owner:   username,
@@ -373,16 +380,6 @@ func getCustomers(customerURL string) ([]string, error) {
 		}
 	}
 	return customers, nil
-}
-
-func validCustomer(customers []string, owner string) bool {
-	for _, customer := range customers {
-		if len(customer) > 0 &&
-			strings.EqualFold(customer, owner) {
-			return true
-		}
-	}
-	return false
 }
 
 func getUser(pathWithNamespace string) (string, error) {
