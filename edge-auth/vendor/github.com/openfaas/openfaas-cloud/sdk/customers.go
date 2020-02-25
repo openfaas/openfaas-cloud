@@ -93,7 +93,6 @@ func (c *Customers) Fetch() error {
 
 			for _, customer := range strings.Split(values, "\n") {
 				if formatted := formatUsername(customer); len(formatted) > 0 {
-					fmt.Printf("flat %q\n", formatted)
 					usernames[formatted] = "true"
 				}
 			}
@@ -149,7 +148,6 @@ func fetchCustomers(customerURL string) ([]string, error) {
 
 		for _, c := range strings.Split(string(pageBody), "\n") {
 			if formatted := formatUsername(c); len(formatted) > 0 {
-				fmt.Printf("http %q\n", formatted)
 				customers = append(customers, formatted)
 			}
 		}
@@ -159,8 +157,5 @@ func fetchCustomers(customerURL string) ([]string, error) {
 }
 
 func formatUsername(input string) string {
-	v := strings.Trim(strings.TrimSpace(strings.ToLower(input)), "\n\r")
-	fmt.Printf("%q\n", v)
-
-	return v
+	return strings.TrimSpace(strings.ToLower(input))
 }

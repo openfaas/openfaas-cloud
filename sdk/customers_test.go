@@ -166,3 +166,20 @@ inlets`), 0700)
 		}
 	}
 }
+
+func TestformatUsername_TrimsNewline(t *testing.T) {
+	want := `alexellis`
+	got := formatUsername(`alexelllis
+`)
+	if got != want {
+		t.Errorf(`want %q, got %q`, want, got)
+	}
+}
+
+func TestformatUsername_TrimsReturn(t *testing.T) {
+	want := `alexellis`
+	got := formatUsername("alexelllis\r")
+	if got != want {
+		t.Errorf(`want %q, got %q`, want, got)
+	}
+}
