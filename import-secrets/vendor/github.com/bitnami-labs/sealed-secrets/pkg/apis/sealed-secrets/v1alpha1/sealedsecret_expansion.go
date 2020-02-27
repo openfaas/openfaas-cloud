@@ -3,23 +3,117 @@ package v1alpha1
 import (
 	"crypto/rand"
 	"crypto/rsa"
+	"encoding/base64"
 	"fmt"
 
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	runtimeserializer "k8s.io/apimachinery/pkg/runtime/serializer"
 
 	"github.com/bitnami-labs/sealed-secrets/pkg/crypto"
+	"github.com/mkmik/multierror"
 )
 
-func labelFor(o metav1.Object) ([]byte, bool) {
-	label := o.GetAnnotations()[SealedSecretClusterWideAnnotation]
-	if label == "true" {
-		return []byte(""), true
+const (
+	// The StrictScope pins the sealed secret to a specific namespace and a specific name.
+	StrictScope SealingScope = iota
+	// The NamespaceWideScope only pins a sealed secret to a specific namespace.
+	NamespaceWideScope
+	// The ClusterWideScope allows the sealed secret to be unsealed in any namespace of the cluster.
+	ClusterWideScope
+
+	// The DefaultScope is currently the StrictScope.
+	DefaultScope = StrictScope
+)
+
+var (
+	// TODO(mkm): remove after a release
+	AcceptDeprecatedV1Data = false
+)
+
+// SealedSecretExpansion has methods to work with SealedSecrets resources.
+type SealedSecretExpansion interface {
+	Unseal(codecs runtimeserializer.CodecFactory, privKeys map[string]*rsa.PrivateKey) (*v1.Secret, error)
+}
+
+// SealingScope is an enum that declares the mobility of a sealed secret by defining
+// in which scopes
+type SealingScope int
+
+func (s *SealingScope) String() string {
+	switch *s {
+	case StrictScope:
+		return "strict"
+	case NamespaceWideScope:
+		return "namespace-wide"
+	case ClusterWideScope:
+		return "cluster-wide"
+	default:
+		return fmt.Sprintf("undefined-%d", *s)
 	}
-	label = fmt.Sprintf("%s/%s", o.GetNamespace(), o.GetName())
-	return []byte(label), false
+}
+
+func (s *SealingScope) Set(v string) error {
+	switch v {
+	case "":
+		*s = DefaultScope
+	case "strict":
+		*s = StrictScope
+	case "namespace-wide":
+		*s = NamespaceWideScope
+	case "cluster-wide":
+		*s = ClusterWideScope
+	default:
+		return fmt.Errorf("must be one of: strict, namespace-wide, cluster-wide")
+	}
+	return nil
+}
+
+// Type implements the pflag.Value interface
+func (s *SealingScope) Type() string { return "string" }
+
+// EncryptionLabel returns the label meant to be used for encrypting a sealed secret according to scope.
+func EncryptionLabel(namespace, name string, scope SealingScope) []byte {
+	var l string
+	switch scope {
+	case ClusterWideScope:
+		l = ""
+	case NamespaceWideScope:
+		l = namespace
+	case StrictScope:
+		fallthrough
+	default:
+		l = fmt.Sprintf("%s/%s", namespace, name)
+	}
+	return []byte(l)
+}
+
+func scopeFromLegacy(o metav1.Object) (SealingScope, bool, bool) {
+	if o.GetAnnotations()[SealedSecretClusterWideAnnotation] == "true" {
+		return ClusterWideScope, true, false
+	}
+	if o.GetAnnotations()[SealedSecretNamespaceWideAnnotation] == "true" {
+		return NamespaceWideScope, false, true
+	}
+	return StrictScope, false, false
+}
+
+// Returns labels followed by clusterWide followed by namespaceWide.
+func labelFor(o metav1.Object) ([]byte, bool, bool) {
+	scope, clusterWide, namespaceWide := scopeFromLegacy(o)
+	return EncryptionLabel(o.GetNamespace(), o.GetName(), scope), clusterWide, namespaceWide
+}
+
+// SecretScope returns the scope of a secret to be sealed, as annotated in its metadata.
+func SecretScope(o metav1.Object) SealingScope {
+	scope, _, _ := scopeFromLegacy(o)
+	return scope
+}
+
+// Scope returns the scope of the sealed secret, as annotated in its metadata.
+func (s *SealedSecret) Scope() SealingScope {
+	return SecretScope(&s.Spec.Template)
 }
 
 // NewSealedSecretV1 creates a new SealedSecret object wrapping the
@@ -32,8 +126,8 @@ func NewSealedSecretV1(codecs runtimeserializer.CodecFactory, pubKey *rsa.Public
 		return nil, fmt.Errorf("binary can't serialize JSON")
 	}
 
-	if secret.GetNamespace() == "" {
-		return nil, fmt.Errorf("Secret must declare a namespace")
+	if SecretScope(secret) != ClusterWideScope && secret.GetNamespace() == "" {
+		return nil, fmt.Errorf("secret must declare a namespace")
 	}
 
 	codec := codecs.EncoderForVersion(info.Serializer, v1.SchemeGroupVersion)
@@ -44,7 +138,7 @@ func NewSealedSecretV1(codecs runtimeserializer.CodecFactory, pubKey *rsa.Public
 
 	// RSA-OAEP will fail to decrypt unless the same label is used
 	// during decryption.
-	label, clusterWide := labelFor(secret)
+	label, clusterWide, namespaceWide := labelFor(secret)
 
 	ciphertext, err := crypto.HybridEncrypt(rand.Reader, pubKey, plaintext, label)
 	if err != nil {
@@ -64,15 +158,35 @@ func NewSealedSecretV1(codecs runtimeserializer.CodecFactory, pubKey *rsa.Public
 	if clusterWide {
 		s.Annotations = map[string]string{SealedSecretClusterWideAnnotation: "true"}
 	}
+	if namespaceWide {
+		s.Annotations = map[string]string{SealedSecretNamespaceWideAnnotation: "true"}
+	}
 	return s, nil
+}
+
+// StripLastAppliedAnnotations strips annotations added by tools such as kubectl and kubecfg
+// that contain a full copy of the original object kept in the annotation for strategic-merge-patch
+// purposes. We need to remove these annotations when sealing an existing secret otherwise we'd leak
+// the secrets.
+func StripLastAppliedAnnotations(annotations map[string]string) {
+	if annotations == nil {
+		return
+	}
+	keys := []string{
+		"kubectl.kubernetes.io/last-applied-configuration",
+		"kubecfg.ksonnet.io/last-applied-configuration",
+	}
+	for _, k := range keys {
+		delete(annotations, k)
+	}
 }
 
 // NewSealedSecret creates a new SealedSecret object wrapping the
 // provided secret. This encrypts only the values of each secrets
 // individually, so secrets can be updated one by one.
 func NewSealedSecret(codecs runtimeserializer.CodecFactory, pubKey *rsa.PublicKey, secret *v1.Secret) (*SealedSecret, error) {
-	if secret.GetNamespace() == "" {
-		return nil, fmt.Errorf("Secret must declare a namespace")
+	if SecretScope(secret) != ClusterWideScope && secret.GetNamespace() == "" {
+		return nil, fmt.Errorf("secret must declare a namespace")
 	}
 
 	s := &SealedSecret{
@@ -81,30 +195,59 @@ func NewSealedSecret(codecs runtimeserializer.CodecFactory, pubKey *rsa.PublicKe
 			Namespace: secret.GetNamespace(),
 		},
 		Spec: SealedSecretSpec{
-			EncryptedData: map[string][]byte{},
+			Template: SecretTemplateSpec{
+				// ObjectMeta copied below
+				Type: secret.Type,
+			},
+			EncryptedData: map[string]string{},
 		},
 	}
+	secret.ObjectMeta.DeepCopyInto(&s.Spec.Template.ObjectMeta)
+
+	// the input secret could come from a real secret object applied with `kubectl apply` or similar tools
+	// which put a copy of the object version at application time in an annotation in order to support
+	// strategic merge patch in subsequent updates. We need to strip those annotations or else we would
+	// be leaking secrets in clear in a way that might be non obvious to users.
+	// See https://github.com/bitnami-labs/sealed-secrets/issues/227
+	StripLastAppliedAnnotations(s.Spec.Template.ObjectMeta.Annotations)
+
+	// Cleanup ownerReference (See #243)
+	s.Spec.Template.ObjectMeta.OwnerReferences = nil
 
 	// RSA-OAEP will fail to decrypt unless the same label is used
 	// during decryption.
-	label, clusterWide := labelFor(secret)
+	label, clusterWide, namespaceWide := labelFor(secret)
 
 	for key, value := range secret.Data {
 		ciphertext, err := crypto.HybridEncrypt(rand.Reader, pubKey, value, label)
 		if err != nil {
 			return nil, err
 		}
-		s.Spec.EncryptedData[key] = ciphertext
+		s.Spec.EncryptedData[key] = base64.StdEncoding.EncodeToString(ciphertext)
+	}
+
+	for key, value := range secret.StringData {
+		ciphertext, err := crypto.HybridEncrypt(rand.Reader, pubKey, []byte(value), label)
+		if err != nil {
+			return nil, err
+		}
+		s.Spec.EncryptedData[key] = base64.StdEncoding.EncodeToString(ciphertext)
 	}
 
 	if clusterWide {
-		s.Annotations = map[string]string{SealedSecretClusterWideAnnotation: "true"}
+		if s.Annotations == nil {
+			s.Annotations = map[string]string{}
+		}
+		s.Annotations[SealedSecretClusterWideAnnotation] = "true"
+	}
+	if namespaceWide {
+		s.Annotations = map[string]string{SealedSecretNamespaceWideAnnotation: "true"}
 	}
 	return s, nil
 }
 
-// Unseal decypts and returns the embedded v1.Secret.
-func (s *SealedSecret) Unseal(codecs runtimeserializer.CodecFactory, privKey *rsa.PrivateKey) (*v1.Secret, error) {
+// Unseal decrypts and returns the embedded v1.Secret.
+func (s *SealedSecret) Unseal(codecs runtimeserializer.CodecFactory, privKeys map[string]*rsa.PrivateKey) (*v1.Secret, error) {
 	boolTrue := true
 	smeta := s.GetObjectMeta()
 
@@ -112,20 +255,33 @@ func (s *SealedSecret) Unseal(codecs runtimeserializer.CodecFactory, privKey *rs
 	// during encryption.  This check ensures that we can't be
 	// tricked into decrypting a sealed secret into an unexpected
 	// namespace/name.
-	label, _ := labelFor(smeta)
+	label, _, _ := labelFor(smeta)
 
 	var secret v1.Secret
 	if len(s.Spec.EncryptedData) > 0 {
+		s.Spec.Template.ObjectMeta.DeepCopyInto(&secret.ObjectMeta)
+		secret.Type = s.Spec.Template.Type
+
 		secret.Data = map[string][]byte{}
+
+		var errs []error
 		for key, value := range s.Spec.EncryptedData {
-			plaintext, err := crypto.HybridDecrypt(rand.Reader, privKey, value, label)
+			valueBytes, err := base64.StdEncoding.DecodeString(value)
 			if err != nil {
 				return nil, err
 			}
+			plaintext, err := crypto.HybridDecrypt(rand.Reader, privKeys, valueBytes, label)
+			if err != nil {
+				errs = append(errs, multierror.Tag(key, err))
+			}
 			secret.Data[key] = plaintext
 		}
-	} else { // Support decrypting old secrets for backward compatibility
-		plaintext, err := crypto.HybridDecrypt(rand.Reader, privKey, s.Spec.Data, label)
+
+		if errs != nil {
+			return nil, multierror.Join(multierror.Uniq(errs), multierror.WithFormatter(multierror.InlineFormatter))
+		}
+	} else if AcceptDeprecatedV1Data { // Support decrypting old secrets for backward compatibility
+		plaintext, err := crypto.HybridDecrypt(rand.Reader, privKeys, s.Spec.Data, label)
 		if err != nil {
 			return nil, err
 		}
@@ -133,6 +289,10 @@ func (s *SealedSecret) Unseal(codecs runtimeserializer.CodecFactory, privKey *rs
 		dec := codecs.UniversalDecoder(secret.GroupVersionKind().GroupVersion())
 		if err = runtime.DecodeInto(dec, plaintext, &secret); err != nil {
 			return nil, err
+		}
+	} else {
+		if s.Spec.Data != nil {
+			return nil, fmt.Errorf("using deprecated 'data' field, use 'encryptedData' or flip the feature flag")
 		}
 	}
 

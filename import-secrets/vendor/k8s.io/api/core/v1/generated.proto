@@ -21,7 +21,6 @@ syntax = 'proto2';
 
 package k8s.io.api.core.v1;
 
-import "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1/generated.proto";
 import "k8s.io/apimachinery/pkg/api/resource/generated.proto";
 import "k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto";
 import "k8s.io/apimachinery/pkg/runtime/generated.proto";
@@ -32,7 +31,7 @@ import "k8s.io/apimachinery/pkg/util/intstr/generated.proto";
 option go_package = "v1";
 
 // Represents a Persistent Disk resource in AWS.
-// 
+//
 // An AWS EBS disk must exist before mounting to a container. The disk
 // must also be in the same AWS zone as the kubelet. An AWS EBS disk
 // can only be mounted as read/write once. AWS EBS volumes support
@@ -188,7 +187,7 @@ message CSIPersistentVolumeSource {
 
   // Filesystem type to mount.
   // Must be a filesystem type supported by the host operating system.
-  // Ex. "ext4", "xfs", "ntfs". Implicitly inferred to be "ext4" if unspecified.
+  // Ex. "ext4", "xfs", "ntfs".
   // +optional
   optional string fsType = 4;
 
@@ -199,7 +198,7 @@ message CSIPersistentVolumeSource {
   // ControllerPublishSecretRef is a reference to the secret object containing
   // sensitive information to pass to the CSI driver to complete the CSI
   // ControllerPublishVolume and ControllerUnpublishVolume calls.
-  // This field is optional, and  may be empty if no secret is required. If the
+  // This field is optional, and may be empty if no secret is required. If the
   // secret object contains more than one secret, all secrets are passed.
   // +optional
   optional SecretReference controllerPublishSecretRef = 6;
@@ -207,7 +206,7 @@ message CSIPersistentVolumeSource {
   // NodeStageSecretRef is a reference to the secret object containing sensitive
   // information to pass to the CSI driver to complete the CSI NodeStageVolume
   // and NodeStageVolume and NodeUnstageVolume calls.
-  // This field is optional, and  may be empty if no secret is required. If the
+  // This field is optional, and may be empty if no secret is required. If the
   // secret object contains more than one secret, all secrets are passed.
   // +optional
   optional SecretReference nodeStageSecretRef = 7;
@@ -215,10 +214,50 @@ message CSIPersistentVolumeSource {
   // NodePublishSecretRef is a reference to the secret object containing
   // sensitive information to pass to the CSI driver to complete the CSI
   // NodePublishVolume and NodeUnpublishVolume calls.
-  // This field is optional, and  may be empty if no secret is required. If the
+  // This field is optional, and may be empty if no secret is required. If the
   // secret object contains more than one secret, all secrets are passed.
   // +optional
   optional SecretReference nodePublishSecretRef = 8;
+
+  // ControllerExpandSecretRef is a reference to the secret object containing
+  // sensitive information to pass to the CSI driver to complete the CSI
+  // ControllerExpandVolume call.
+  // This is an alpha field and requires enabling ExpandCSIVolumes feature gate.
+  // This field is optional, and may be empty if no secret is required. If the
+  // secret object contains more than one secret, all secrets are passed.
+  // +optional
+  optional SecretReference controllerExpandSecretRef = 9;
+}
+
+// Represents a source location of a volume to mount, managed by an external CSI driver
+message CSIVolumeSource {
+  // Driver is the name of the CSI driver that handles this volume.
+  // Consult with your admin for the correct name as registered in the cluster.
+  optional string driver = 1;
+
+  // Specifies a read-only configuration for the volume.
+  // Defaults to false (read/write).
+  // +optional
+  optional bool readOnly = 2;
+
+  // Filesystem type to mount. Ex. "ext4", "xfs", "ntfs".
+  // If not provided, the empty value is passed to the associated CSI driver
+  // which will determine the default filesystem to apply.
+  // +optional
+  optional string fsType = 3;
+
+  // VolumeAttributes stores driver-specific properties that are passed to the CSI
+  // driver. Consult your driver's documentation for supported values.
+  // +optional
+  map<string, string> volumeAttributes = 4;
+
+  // NodePublishSecretRef is a reference to the secret object containing
+  // sensitive information to pass to the CSI driver to complete the CSI
+  // NodePublishVolume and NodeUnpublishVolume calls.
+  // This field is optional, and  may be empty if no secret is required. If the
+  // secret object contains more than one secret, all secret references are passed.
+  // +optional
+  optional LocalObjectReference nodePublishSecretRef = 5;
 }
 
 // Adds and removes POSIX capabilities from running containers.
@@ -302,6 +341,34 @@ message CephFSVolumeSource {
 // A Cinder volume must exist before mounting to a container.
 // The volume must also be in the same region as the kubelet.
 // Cinder volumes support ownership management and SELinux relabeling.
+message CinderPersistentVolumeSource {
+  // volume id used to identify the volume in cinder
+  // More info: https://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md
+  optional string volumeID = 1;
+
+  // Filesystem type to mount.
+  // Must be a filesystem type supported by the host operating system.
+  // Examples: "ext4", "xfs", "ntfs". Implicitly inferred to be "ext4" if unspecified.
+  // More info: https://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md
+  // +optional
+  optional string fsType = 2;
+
+  // Optional: Defaults to false (read/write). ReadOnly here will force
+  // the ReadOnly setting in VolumeMounts.
+  // More info: https://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md
+  // +optional
+  optional bool readOnly = 3;
+
+  // Optional: points to a secret object containing parameters used to connect
+  // to OpenStack.
+  // +optional
+  optional SecretReference secretRef = 4;
+}
+
+// Represents a cinder volume resource in Openstack.
+// A Cinder volume must exist before mounting to a container.
+// The volume must also be in the same region as the kubelet.
+// Cinder volumes support ownership management and SELinux relabeling.
 message CinderVolumeSource {
   // volume id used to identify the volume in cinder
   // More info: https://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md
@@ -319,6 +386,11 @@ message CinderVolumeSource {
   // More info: https://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md
   // +optional
   optional bool readOnly = 3;
+
+  // Optional: points to a secret object containing parameters used to connect
+  // to OpenStack.
+  // +optional
+  optional LocalObjectReference secretRef = 4;
 }
 
 // ClientIPConfig represents the configurations of Client IP based session affinity.
@@ -404,7 +476,7 @@ message ConfigMap {
 
 // ConfigMapEnvSource selects a ConfigMap to populate the environment
 // variables with.
-// 
+//
 // The contents of the target ConfigMap's Data field will represent the
 // key-value pairs as environment variables.
 message ConfigMapEnvSource {
@@ -424,7 +496,7 @@ message ConfigMapKeySelector {
   // The key to select.
   optional string key = 2;
 
-  // Specify whether the ConfigMap or it's key must be defined
+  // Specify whether the ConfigMap or its key must be defined
   // +optional
   optional bool optional = 3;
 }
@@ -465,7 +537,7 @@ message ConfigMapNodeConfigSource {
 }
 
 // Adapts a ConfigMap into a projected volume.
-// 
+//
 // The contents of the target ConfigMap's Data field will be presented in a
 // projected volume as files using the keys in the Data field as the file names,
 // unless the items element is populated with specific mappings of keys to paths.
@@ -484,13 +556,13 @@ message ConfigMapProjection {
   // +optional
   repeated KeyToPath items = 2;
 
-  // Specify whether the ConfigMap or it's keys must be defined
+  // Specify whether the ConfigMap or its keys must be defined
   // +optional
   optional bool optional = 4;
 }
 
 // Adapts a ConfigMap into a volume.
-// 
+//
 // The contents of the target ConfigMap's Data field will be presented in a
 // volume as files using the keys in the Data field as the file names, unless
 // the items element is populated with specific mappings of keys to paths.
@@ -516,7 +588,7 @@ message ConfigMapVolumeSource {
   // +optional
   optional int32 defaultMode = 3;
 
-  // Specify whether the ConfigMap or it's keys must be defined
+  // Specify whether the ConfigMap or its keys must be defined
   // +optional
   optional bool optional = 4;
 }
@@ -574,6 +646,9 @@ message Container {
   // +optional
   // +patchMergeKey=containerPort
   // +patchStrategy=merge
+  // +listType=map
+  // +listMapKey=containerPort
+  // +listMapKey=protocol
   repeated ContainerPort ports = 6;
 
   // List of sources to populate environment variables in the container.
@@ -594,7 +669,7 @@ message Container {
 
   // Compute Resources required by this container.
   // Cannot be updated.
-  // More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#resources
+  // More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
   // +optional
   optional ResourceRequirements resources = 8;
 
@@ -606,7 +681,7 @@ message Container {
   repeated VolumeMount volumeMounts = 9;
 
   // volumeDevices is the list of block devices to be used by the container.
-  // This is an alpha feature and may change in the future.
+  // This is a beta feature.
   // +patchMergeKey=devicePath
   // +patchStrategy=merge
   // +optional
@@ -717,7 +792,7 @@ message ContainerPort {
   // This must be a valid port number, 0 < x < 65536.
   optional int32 containerPort = 3;
 
-  // Protocol for port. Must be UDP or TCP.
+  // Protocol for port. Must be UDP, TCP, or SCTP.
   // Defaults to "TCP".
   // +optional
   optional string protocol = 4;
@@ -936,7 +1011,7 @@ message EndpointPort {
   optional int32 port = 2;
 
   // The IP protocol for this port.
-  // Must be UDP or TCP.
+  // Must be UDP, TCP, or SCTP.
   // Default is TCP.
   // +optional
   optional string protocol = 3;
@@ -1152,6 +1227,7 @@ message EventSeries {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.MicroTime lastObservedTime = 2;
 
   // State of this Series: Ongoing or Finished
+  // Deprecated. Planned removal for 1.18
   optional string state = 3;
 }
 
@@ -1282,7 +1358,7 @@ message FlockerVolumeSource {
 }
 
 // Represents a Persistent Disk resource in Google Compute Engine.
-// 
+//
 // A GCE PD must exist before mounting to a container. The disk must
 // also be in the same GCE project and zone as the kubelet. A GCE PD
 // can only be mounted as read/write once or read-only many times. GCE
@@ -1318,7 +1394,7 @@ message GCEPersistentDiskVolumeSource {
 // Represents a volume that is populated with the contents of a git repository.
 // Git repo volumes do not support ownership management.
 // Git repo volumes support SELinux relabeling.
-// 
+//
 // DEPRECATED: GitRepo is deprecated. To provision a container with a git repo, mount an
 // EmptyDir into an InitContainer that clones the repo using git, then mount the EmptyDir
 // into the Pod's container.
@@ -1336,6 +1412,30 @@ message GitRepoVolumeSource {
   // the subdirectory with the given name.
   // +optional
   optional string directory = 3;
+}
+
+// Represents a Glusterfs mount that lasts the lifetime of a pod.
+// Glusterfs volumes do not support ownership management or SELinux relabeling.
+message GlusterfsPersistentVolumeSource {
+  // EndpointsName is the endpoint name that details Glusterfs topology.
+  // More info: https://releases.k8s.io/HEAD/examples/volumes/glusterfs/README.md#create-a-pod
+  optional string endpoints = 1;
+
+  // Path is the Glusterfs volume path.
+  // More info: https://releases.k8s.io/HEAD/examples/volumes/glusterfs/README.md#create-a-pod
+  optional string path = 2;
+
+  // ReadOnly here will force the Glusterfs volume to be mounted with read-only permissions.
+  // Defaults to false.
+  // More info: https://releases.k8s.io/HEAD/examples/volumes/glusterfs/README.md#create-a-pod
+  // +optional
+  optional bool readOnly = 3;
+
+  // EndpointsNamespace is the namespace that contains Glusterfs endpoint.
+  // If this field is empty, the EndpointNamespace defaults to the same namespace as the bound PVC.
+  // More info: https://releases.k8s.io/HEAD/examples/volumes/glusterfs/README.md#create-a-pod
+  // +optional
+  optional string endpointsNamespace = 4;
 }
 
 // Represents a Glusterfs mount that lasts the lifetime of a pod.
@@ -1577,11 +1677,15 @@ message Lifecycle {
   // +optional
   optional Handler postStart = 1;
 
-  // PreStop is called immediately before a container is terminated.
-  // The container is terminated after the handler completes.
-  // The reason for termination is passed to the handler.
-  // Regardless of the outcome of the handler, the container is eventually terminated.
-  // Other management of the container blocks until the hook completes.
+  // PreStop is called immediately before a container is terminated due to an
+  // API request or management event such as liveness probe failure,
+  // preemption, resource contention, etc. The handler is not called if the
+  // container crashes or exits. The reason for termination is passed to the
+  // handler. The Pod's termination grace period countdown begins before the
+  // PreStop hooked is executed. Regardless of the outcome of the handler, the
+  // container will eventually terminate within the Pod's termination grace
+  // period. Other management of the container blocks until the hook completes
+  // or until the termination grace period is reached.
   // More info: https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/#container-hooks
   // +optional
   optional Handler preStop = 2;
@@ -1692,10 +1796,14 @@ message LocalObjectReference {
 message LocalVolumeSource {
   // The full path to the volume on the node.
   // It can be either a directory or block device (disk, partition, ...).
-  // Directories can be represented only by PersistentVolume with VolumeMode=Filesystem.
-  // Block devices can be represented only by VolumeMode=Block, which also requires the
-  // BlockVolume alpha feature gate to be enabled.
   optional string path = 1;
+
+  // Filesystem type to mount.
+  // It applies only when the Path is a block device.
+  // Must be a filesystem type supported by the host operating system.
+  // Ex. "ext4", "xfs", "ntfs". The default value is to auto-select a fileystem if unspecified.
+  // +optional
+  optional string fsType = 2;
 }
 
 // Represents an NFS mount that lasts the lifetime of a pod.
@@ -1959,6 +2067,7 @@ message NodeSelectorRequirement {
 
 // A null or empty node selector term matches no objects. The requirements of
 // them are ANDed.
+// The TopologySelectorTerm type implements a subset of the NodeSelectorTerm.
 message NodeSelectorTerm {
   // A list of node selector requirements by node's labels.
   // +optional
@@ -2256,9 +2365,20 @@ message PersistentVolumeClaimSpec {
 
   // volumeMode defines what type of volume is required by the claim.
   // Value of Filesystem is implied when not included in claim spec.
-  // This is an alpha feature and may change in the future.
+  // This is a beta feature.
   // +optional
   optional string volumeMode = 6;
+
+  // This field requires the VolumeSnapshotDataSource alpha feature gate to be
+  // enabled and currently VolumeSnapshot is the only supported data source.
+  // If the provisioner can support VolumeSnapshot data source, it will create
+  // a new volume and data will be restored to the volume at the same time.
+  // If the provisioner does not support VolumeSnapshot data source, volume will
+  // not be created and the failure will be reported as an event.
+  // In the future, we plan to support more data source types and the behavior
+  // of the provisioner may change.
+  // +optional
+  optional TypedLocalObjectReference dataSource = 7;
 }
 
 // PersistentVolumeClaimStatus is the current status of a persistent volume claim.
@@ -2338,7 +2458,7 @@ message PersistentVolumeSource {
   // exposed to the pod. Provisioned by an admin.
   // More info: https://releases.k8s.io/HEAD/examples/volumes/glusterfs/README.md
   // +optional
-  optional GlusterfsVolumeSource glusterfs = 4;
+  optional GlusterfsPersistentVolumeSource glusterfs = 4;
 
   // NFS represents an NFS mount on the host. Provisioned by an admin.
   // More info: https://kubernetes.io/docs/concepts/storage/volumes#nfs
@@ -2358,7 +2478,7 @@ message PersistentVolumeSource {
   // Cinder represents a cinder volume attached and mounted on kubelets host machine
   // More info: https://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md
   // +optional
-  optional CinderVolumeSource cinder = 8;
+  optional CinderPersistentVolumeSource cinder = 8;
 
   // CephFS represents a Ceph FS mount on the host that shares a pod's lifetime
   // +optional
@@ -2413,7 +2533,7 @@ message PersistentVolumeSource {
   // +optional
   optional StorageOSPersistentVolumeSource storageos = 21;
 
-  // CSI represents storage that handled by an external CSI driver (Beta feature).
+  // CSI represents storage that is handled by an external CSI driver (Beta feature).
   // +optional
   optional CSIPersistentVolumeSource csi = 22;
 }
@@ -2461,7 +2581,7 @@ message PersistentVolumeSpec {
 
   // volumeMode defines if a volume is intended to be used with a formatted filesystem
   // or to remain in raw block state. Value of Filesystem is implied when not included in spec.
-  // This is an alpha feature and may change in the future.
+  // This is a beta feature.
   // +optional
   optional string volumeMode = 8;
 
@@ -2817,6 +2937,10 @@ message PodSecurityContext {
   // +optional
   optional SELinuxOptions seLinuxOptions = 1;
 
+  // Windows security options.
+  // +optional
+  optional WindowsSecurityContextOptions windowsOptions = 8;
+
   // The UID to run the entrypoint of the container process.
   // Defaults to user specified in image metadata if unspecified.
   // May also be set in SecurityContext.  If set in both SecurityContext and
@@ -2851,14 +2975,19 @@ message PodSecurityContext {
   // A special supplemental group that applies to all containers in a pod.
   // Some volume types allow the Kubelet to change the ownership of that volume
   // to be owned by the pod:
-  // 
+  //
   // 1. The owning GID will be the FSGroup
   // 2. The setgid bit is set (new files created in the volume will be owned by FSGroup)
   // 3. The permission bits are OR'd with rw-rw----
-  // 
+  //
   // If unset, the Kubelet will not modify the ownership and permissions of any volume.
   // +optional
   optional int64 fsGroup = 5;
+
+  // Sysctls hold a list of namespaced sysctls used for the pod. Pods with unsupported
+  // sysctls (by the container runtime) might fail to launch.
+  // +optional
+  repeated Sysctl sysctls = 7;
 }
 
 // Describes the class of pods that should avoid this node.
@@ -2986,7 +3115,7 @@ message PodSpec {
   // in the same pod, and the first process in each container will not be assigned PID 1.
   // HostPID and ShareProcessNamespace cannot both be set.
   // Optional: Default to false.
-  // This field is alpha-level and is honored only by servers that enable the PodShareProcessNamespace feature.
+  // This field is beta-level and may be disabled with the PodShareProcessNamespace feature.
   // +k8s:conversion-gen=false
   // +optional
   optional bool shareProcessNamespace = 27;
@@ -3061,9 +3190,31 @@ message PodSpec {
   // If specified, all readiness gates will be evaluated for pod readiness.
   // A pod is ready when all its containers are ready AND
   // all conditions specified in the readiness gates have status equal to "True"
-  // More info: https://github.com/kubernetes/community/blob/master/keps/sig-network/0007-pod-ready%2B%2B.md
+  // More info: https://git.k8s.io/enhancements/keps/sig-network/0007-pod-ready%2B%2B.md
   // +optional
   repeated PodReadinessGate readinessGates = 28;
+
+  // RuntimeClassName refers to a RuntimeClass object in the node.k8s.io group, which should be used
+  // to run this pod.  If no RuntimeClass resource matches the named class, the pod will not be run.
+  // If unset or empty, the "legacy" RuntimeClass will be used, which is an implicit class with an
+  // empty definition that uses the default runtime handler.
+  // More info: https://git.k8s.io/enhancements/keps/sig-node/runtime-class.md
+  // This is a beta feature as of Kubernetes v1.14.
+  // +optional
+  optional string runtimeClassName = 29;
+
+  // EnableServiceLinks indicates whether information about services should be injected into pod's
+  // environment variables, matching the syntax of Docker links.
+  // Optional: Defaults to true.
+  // +optional
+  optional bool enableServiceLinks = 30;
+
+  // PreemptionPolicy is the Policy for preempting pods with lower priority.
+  // One of Never, PreemptLowerPriority.
+  // Defaults to PreemptLowerPriority if unset.
+  // This field is alpha-level and is only honored by servers that enable the NonPreemptingPriority feature.
+  // +optional
+  optional string preemptionPolicy = 31;
 }
 
 // PodStatus represents information about the status of a pod. Status may trail the actual
@@ -3074,7 +3225,7 @@ message PodStatus {
   // The conditions array, the reason and message fields, and the individual container status
   // arrays contain more detail about the pod's status.
   // There are five possible phase values:
-  // 
+  //
   // Pending: The pod has been accepted by the Kubernetes system, but one or more of the
   // container images has not been created. This includes time before being scheduled as
   // well as time spent downloading images over the network, which could take a while.
@@ -3086,7 +3237,7 @@ message PodStatus {
   // by the system.
   // Unknown: For some reason the state of the pod could not be obtained, typically due to an
   // error in communicating with the host of the pod.
-  // 
+  //
   // More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#pod-phase
   // +optional
   optional string phase = 1;
@@ -3327,6 +3478,11 @@ message QuobyteVolumeSource {
   // Default is no group
   // +optional
   optional string group = 5;
+
+  // Tenant owning the given Quobyte volume in the Backend
+  // Used with dynamically provisioned Quobyte volumes, value is set by the plugin
+  // +optional
+  optional string tenant = 6;
 }
 
 // Represents a Rados Block Device mount that lasts the lifetime of a pod.
@@ -3606,7 +3762,7 @@ message ResourceQuotaList {
 
 // ResourceQuotaSpec defines the desired hard limits to enforce for Quota.
 message ResourceQuotaSpec {
-  // Hard is the set of desired hard limits for each named resource.
+  // hard is the set of desired hard limits for each named resource.
   // More info: https://kubernetes.io/docs/concepts/policy/resource-quotas/
   // +optional
   map<string, k8s.io.apimachinery.pkg.api.resource.Quantity> hard = 1;
@@ -3615,6 +3771,12 @@ message ResourceQuotaSpec {
   // If not specified, the quota matches all objects.
   // +optional
   repeated string scopes = 2;
+
+  // scopeSelector is also a collection of filters like scopes that must match each object tracked by a quota
+  // but expressed using ScopeSelectorOperator in combination with possible values.
+  // For a resource to match, both scopes AND scopeSelector (if specified in spec), must be matched.
+  // +optional
+  optional ScopeSelector scopeSelector = 3;
 }
 
 // ResourceQuotaStatus defines the enforced hard limits and observed use.
@@ -3688,6 +3850,7 @@ message ScaleIOPersistentVolumeSource {
   optional string storagePool = 6;
 
   // Indicates whether the storage for a volume should be ThickProvisioned or ThinProvisioned.
+  // Default is ThinProvisioned.
   // +optional
   optional string storageMode = 7;
 
@@ -3697,7 +3860,8 @@ message ScaleIOPersistentVolumeSource {
 
   // Filesystem type to mount.
   // Must be a filesystem type supported by the host operating system.
-  // Ex. "ext4", "xfs", "ntfs". Implicitly inferred to be "ext4" if unspecified.
+  // Ex. "ext4", "xfs", "ntfs".
+  // Default is "xfs"
   // +optional
   optional string fsType = 9;
 
@@ -3732,6 +3896,7 @@ message ScaleIOVolumeSource {
   optional string storagePool = 6;
 
   // Indicates whether the storage for a volume should be ThickProvisioned or ThinProvisioned.
+  // Default is ThinProvisioned.
   // +optional
   optional string storageMode = 7;
 
@@ -3741,7 +3906,8 @@ message ScaleIOVolumeSource {
 
   // Filesystem type to mount.
   // Must be a filesystem type supported by the host operating system.
-  // Ex. "ext4", "xfs", "ntfs". Implicitly inferred to be "ext4" if unspecified.
+  // Ex. "ext4", "xfs", "ntfs".
+  // Default is "xfs".
   // +optional
   optional string fsType = 9;
 
@@ -3749,6 +3915,32 @@ message ScaleIOVolumeSource {
   // the ReadOnly setting in VolumeMounts.
   // +optional
   optional bool readOnly = 10;
+}
+
+// A scope selector represents the AND of the selectors represented
+// by the scoped-resource selector requirements.
+message ScopeSelector {
+  // A list of scope selector requirements by scope of the resources.
+  // +optional
+  repeated ScopedResourceSelectorRequirement matchExpressions = 1;
+}
+
+// A scoped-resource selector requirement is a selector that contains values, a scope name, and an operator
+// that relates the scope name and values.
+message ScopedResourceSelectorRequirement {
+  // The name of the scope that the selector applies to.
+  optional string scopeName = 1;
+
+  // Represents a scope's relationship to a set of values.
+  // Valid operators are In, NotIn, Exists, DoesNotExist.
+  optional string operator = 2;
+
+  // An array of string values. If the operator is In or NotIn,
+  // the values array must be non-empty. If the operator is Exists or DoesNotExist,
+  // the values array must be empty.
+  // This array is replaced during a strategic merge patch.
+  // +optional
+  repeated string values = 3;
 }
 
 // Secret holds secret data of a certain type. The total bytes of the values in
@@ -3781,7 +3973,7 @@ message Secret {
 
 // SecretEnvSource selects a Secret to populate the environment
 // variables with.
-// 
+//
 // The contents of the target Secret's Data field will represent the
 // key-value pairs as environment variables.
 message SecretEnvSource {
@@ -3801,7 +3993,7 @@ message SecretKeySelector {
   // The key of the secret to select from.  Must be a valid secret key.
   optional string key = 2;
 
-  // Specify whether the Secret or it's key must be defined
+  // Specify whether the Secret or its key must be defined
   // +optional
   optional bool optional = 3;
 }
@@ -3819,7 +4011,7 @@ message SecretList {
 }
 
 // Adapts a secret into a projected volume.
-// 
+//
 // The contents of the target Secret's Data field will be presented in a
 // projected volume as files using the keys in the Data field as the file names.
 // Note that this is identical to a secret volume source without the default
@@ -3855,7 +4047,7 @@ message SecretReference {
 }
 
 // Adapts a Secret into a volume.
-// 
+//
 // The contents of the target Secret's Data field will be presented in a volume
 // as files using the keys in the Data field as the file names.
 // Secret volumes support ownership management and SELinux relabeling.
@@ -3883,7 +4075,7 @@ message SecretVolumeSource {
   // +optional
   optional int32 defaultMode = 3;
 
-  // Specify whether the Secret or it's keys must be defined
+  // Specify whether the Secret or its keys must be defined
   // +optional
   optional bool optional = 4;
 }
@@ -3909,6 +4101,10 @@ message SecurityContext {
   // PodSecurityContext, the value specified in SecurityContext takes precedence.
   // +optional
   optional SELinuxOptions seLinuxOptions = 3;
+
+  // Windows security options.
+  // +optional
+  optional WindowsSecurityContextOptions windowsOptions = 10;
 
   // The UID to run the entrypoint of the container process.
   // Defaults to user specified in image metadata if unspecified.
@@ -3946,6 +4142,13 @@ message SecurityContext {
   // 2) has CAP_SYS_ADMIN
   // +optional
   optional bool allowPrivilegeEscalation = 7;
+
+  // procMount denotes the type of proc mount to use for the containers.
+  // The default is DefaultProcMount which uses the container runtime defaults for
+  // readonly paths and masked paths.
+  // This requires the ProcMountType feature flag to be enabled.
+  // +optional
+  optional string procMount = 9;
 }
 
 // SerializedReference is a reference to serialized object.
@@ -4065,7 +4268,7 @@ message ServicePort {
   // +optional
   optional string name = 1;
 
-  // The IP protocol for this port. Supports "TCP" and "UDP".
+  // The IP protocol for this port. Supports "TCP", "UDP", and "SCTP".
   // Default is TCP.
   // +optional
   optional string protocol = 2;
@@ -4110,6 +4313,9 @@ message ServiceSpec {
   // More info: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies
   // +patchMergeKey=port
   // +patchStrategy=merge
+  // +listType=map
+  // +listMapKey=port
+  // +listMapKey=protocol
   repeated ServicePort ports = 1;
 
   // Route service traffic to pods with label keys and values matching this
@@ -4146,7 +4352,7 @@ message ServiceSpec {
   // "LoadBalancer" builds on NodePort and creates an
   // external load-balancer (if supported in the current cloud) which routes
   // to the clusterIP.
-  // More info: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services---service-types
+  // More info: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
   // +optional
   optional string type = 4;
 
@@ -4373,6 +4579,44 @@ message Toleration {
   optional int64 tolerationSeconds = 5;
 }
 
+// A topology selector requirement is a selector that matches given label.
+// This is an alpha feature and may change in the future.
+message TopologySelectorLabelRequirement {
+  // The label key that the selector applies to.
+  optional string key = 1;
+
+  // An array of string values. One value must match the label to be selected.
+  // Each entry in Values is ORed.
+  repeated string values = 2;
+}
+
+// A topology selector term represents the result of label queries.
+// A null or empty topology selector term matches no objects.
+// The requirements of them are ANDed.
+// It provides a subset of functionality as NodeSelectorTerm.
+// This is an alpha feature and may change in the future.
+message TopologySelectorTerm {
+  // A list of topology selector requirements by labels.
+  // +optional
+  repeated TopologySelectorLabelRequirement matchLabelExpressions = 1;
+}
+
+// TypedLocalObjectReference contains enough information to let you locate the
+// typed referenced object inside the same namespace.
+message TypedLocalObjectReference {
+  // APIGroup is the group for the resource being referenced.
+  // If APIGroup is not specified, the specified Kind must be in the core API group.
+  // For any other third-party types, APIGroup is required.
+  // +optional
+  optional string apiGroup = 1;
+
+  // Kind is the type of resource being referenced
+  optional string kind = 2;
+
+  // Name is the name of resource being referenced
+  optional string name = 3;
+}
+
 // Volume represents a named volume in a pod that may be accessed by any container in the pod.
 message Volume {
   // Volume's name.
@@ -4416,10 +4660,18 @@ message VolumeMount {
 
   // mountPropagation determines how mounts are propagated from the host
   // to container and the other way around.
-  // When not set, MountPropagationHostToContainer is used.
+  // When not set, MountPropagationNone is used.
   // This field is beta in 1.10.
   // +optional
   optional string mountPropagation = 5;
+
+  // Expanded path within the volume from which the container's volume should be mounted.
+  // Behaves similarly to SubPath but environment variable references $(VAR_NAME) are expanded using the container's environment.
+  // Defaults to "" (volume's root).
+  // SubPathExpr and SubPath are mutually exclusive.
+  // This field is beta in 1.15.
+  // +optional
+  optional string subPathExpr = 6;
 }
 
 // VolumeNodeAffinity defines constraints that limit what nodes this volume can be accessed from.
@@ -4580,6 +4832,10 @@ message VolumeSource {
   // StorageOS represents a StorageOS volume attached and mounted on Kubernetes nodes.
   // +optional
   optional StorageOSVolumeSource storageos = 27;
+
+  // CSI (Container Storage Interface) represents storage that is handled by an external CSI driver (Alpha feature).
+  // +optional
+  optional CSIVolumeSource csi = 28;
 }
 
 // Represents a vSphere volume resource.
@@ -4610,5 +4866,20 @@ message WeightedPodAffinityTerm {
 
   // Required. A pod affinity term, associated with the corresponding weight.
   optional PodAffinityTerm podAffinityTerm = 2;
+}
+
+// WindowsSecurityContextOptions contain Windows-specific options and credentials.
+message WindowsSecurityContextOptions {
+  // GMSACredentialSpecName is the name of the GMSA credential spec to use.
+  // This field is alpha-level and is only honored by servers that enable the WindowsGMSA feature flag.
+  // +optional
+  optional string gmsaCredentialSpecName = 1;
+
+  // GMSACredentialSpec is where the GMSA admission webhook
+  // (https://github.com/kubernetes-sigs/windows-gmsa) inlines the contents of the
+  // GMSA credential spec named by the GMSACredentialSpecName field.
+  // This field is alpha-level and is only honored by servers that enable the WindowsGMSA feature flag.
+  // +optional
+  optional string gmsaCredentialSpec = 2;
 }
 
