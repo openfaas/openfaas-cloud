@@ -96,7 +96,7 @@ func Handle(req []byte) string {
 		auditEvent.Message = fmt.Sprintf("buildshiprun failure: %s", err.Error())
 		sdk.PostAudit(auditEvent)
 
-		status.AddStatus(sdk.StatusFailure, err.Error(), sdk.BuildFunctionContext(event.Service))
+		status.AddStatus(sdk.StatusFailure, err.Error(), sdk.BuildFunctionContext(event.EventKey))
 		statusErr := reportStatus(status, event.SCM)
 		if statusErr != nil {
 			log.Printf(statusErr.Error())
@@ -120,7 +120,7 @@ func Handle(req []byte) string {
 		auditEvent.Message = fmt.Sprintf("buildshiprun failure reading response: %s, response: %s", unmarshalErr.Error(), string(buildBytes))
 		sdk.PostAudit(auditEvent)
 
-		status.AddStatus(sdk.StatusFailure, unmarshalErr.Error(), sdk.BuildFunctionContext(event.Service))
+		status.AddStatus(sdk.StatusFailure, unmarshalErr.Error(), sdk.BuildFunctionContext(event.EventKey))
 		statusErr := reportStatus(status, event.SCM)
 		if statusErr != nil {
 			log.Printf(statusErr.Error())
@@ -136,7 +136,7 @@ func Handle(req []byte) string {
 	if len(repositoryURL) == 0 {
 		msg := "repository_url env-var not set"
 		fmt.Fprintf(os.Stderr, msg)
-		status.AddStatus(sdk.StatusFailure, msg, sdk.BuildFunctionContext(event.Service))
+		status.AddStatus(sdk.StatusFailure, msg, sdk.BuildFunctionContext(event.EventKey))
 		statusErr := reportStatus(status, event.SCM)
 		if statusErr != nil {
 			log.Printf(statusErr.Error())
@@ -160,7 +160,7 @@ func Handle(req []byte) string {
 
 	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusAccepted {
 		msg := "Unable to build image, check builder logs"
-		status.AddStatus(sdk.StatusFailure, msg, sdk.BuildFunctionContext(event.Service))
+		status.AddStatus(sdk.StatusFailure, msg, sdk.BuildFunctionContext(event.EventKey))
 		statusErr := reportStatus(status, event.SCM)
 		if statusErr != nil {
 			log.Printf(statusErr.Error())
@@ -273,7 +273,7 @@ func Handle(req []byte) string {
 		log.Println(deployResult)
 
 		if err != nil {
-			status.AddStatus(sdk.StatusFailure, err.Error(), sdk.BuildFunctionContext(event.Service))
+			status.AddStatus(sdk.StatusFailure, err.Error(), sdk.BuildFunctionContext(event.EventKey))
 			statusErr := reportStatus(status, event.SCM)
 			if statusErr != nil {
 				log.Printf(statusErr.Error())
@@ -289,7 +289,7 @@ func Handle(req []byte) string {
 
 	}
 
-	status.AddStatus(sdk.StatusSuccess, fmt.Sprintf("deployed: %s", serviceValue), sdk.BuildFunctionContext(event.Service))
+	status.AddStatus(sdk.StatusSuccess, fmt.Sprintf("deployed: %s", serviceValue), sdk.BuildFunctionContext(event.EventKey))
 	statusErr := reportStatus(status, event.SCM)
 	if statusErr != nil {
 		log.Printf(statusErr.Error())
