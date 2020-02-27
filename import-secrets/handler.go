@@ -100,7 +100,7 @@ func Handle(req []byte) string {
 	ss.ObjectMeta = *userSecret.Metadata
 	ss.ObjectMeta.Name = name
 	ss.Spec = ssv1alpha1.SealedSecretSpec{
-		EncryptedData: map[string][]byte{},
+		EncryptedData: map[string]string{},
 	}
 
 	err = updateEncryptedData(&ss, &userSecret)
@@ -128,7 +128,7 @@ func updateEncryptedData(ss *ssv1alpha1.SealedSecret, userSecret *SealedSecret) 
 			return fmt.Errorf("can't decode base64 string (%s) - error: %s", k, err)
 		}
 
-		ss.Spec.EncryptedData[k] = encodedBytes
+		ss.Spec.EncryptedData[k] = string(encodedBytes)
 	}
 
 	return nil
