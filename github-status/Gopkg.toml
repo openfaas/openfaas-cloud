@@ -39,8 +39,9 @@
 
 [[constraint]]
   name = "github.com/openfaas/openfaas-cloud"
-  version = "0.8.8"
+  version = "0.13.2"
 
 [prune]
   go-tests = true
   unused-packages = true
+

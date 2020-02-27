@@ -50,7 +50,7 @@ func GetSubdomain(URL string) (string, error) {
 }
 
 // FormatSystemURL formats the system URL which points to the
-// of-router with the gateway_public_url environmental variable
+// edge-router with the gateway_public_url environmental variable
 func FormatSystemURL(gatewayURL string) (string, error) {
 	if strings.HasSuffix(gatewayURL, "/") {
 		gatewayURL = strings.TrimSuffix(gatewayURL, "/")
