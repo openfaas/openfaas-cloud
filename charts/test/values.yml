@@ -4,9 +4,11 @@ edgeAuth:
   clientSecret: client-secret
   clientId: client-id
 
+customers:
+  url: https://example.com/customers_url
+
 
 global:
-  customersURL: https://example.com/customers_url
   rootDomain: example.com
 
 tls:

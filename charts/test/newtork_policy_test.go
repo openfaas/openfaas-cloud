@@ -48,7 +48,7 @@ func buildCoreNetworkPolicy(coreNamespace, functionNamespace string) YamlSpec {
 		ApiVersion: "networking.k8s.io/v1",
 		Kind:       "NetworkPolicy",
 		Metadata: MetadataItems{
-			Name: coreNamespace,
+			Name:      coreNamespace,
 			Namespace: coreNamespace,
 		},
 		Spec: Spec{

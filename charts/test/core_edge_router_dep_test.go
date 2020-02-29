@@ -61,18 +61,18 @@ func makeEdgeRouterDep(httpProbe, oauthEnabled bool) YamlSpec {
 				Path: "/healthz",
 				Port: 8080,
 			},
-			TimeoutSeconds: 5,
+			TimeoutSeconds:      5,
 			InitialDelaySeconds: 2,
-			PeriodSeconds: 10,
+			PeriodSeconds:       10,
 		}
 	} else {
 		readinessProbe = LivenessProbe{
 			ExecProbe: ExecProbe{
 				Command: []string{"wget", "--quiet", "--tries=1", "--timeout=5", "--spider", "http://localhost:8080/healthz"},
 			},
-			TimeoutSeconds: 5,
+			TimeoutSeconds:      5,
 			InitialDelaySeconds: 2,
-			PeriodSeconds: 10,
+			PeriodSeconds:       10,
 		}
 	}
 	return YamlSpec{

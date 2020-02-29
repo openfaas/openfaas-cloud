@@ -30,6 +30,11 @@ spec:
         - name: of-client-secret
           secret:
             secretName: of-client-secret
+        {{- if .Values.customers.customersSecret }}
+        - name: of-customers
+          secret:
+            secretName: of-customers
+        {{- end }}
       containers:
         - name: edge-auth
           image: {{ .Values.edgeAuth.image }}
@@ -61,6 +66,10 @@ spec:
               value: "/var/secrets/public/key.pub"
             - name: private_key_path
               value: "/var/secrets/private/key"
+            {{- if .Values.customers.customersSecret }}
+            - name: customers_path
+              value: "/var/secrets/of-customers/of-customers"
+            {{- end }}
             - name: client_secret
               value: {{ required "A valid .Values.edgeAuth.clientSecret entry required!" .Values.edgeAuth.clientSecret | quote }}
             - name: client_id
@@ -73,8 +82,10 @@ spec:
               value: {{ printf "%s://auth.system.%s" .Values.global.scheme .Values.global.rootDomain | quote }}
             - name: cookie_root_domain
               value: {{ printf ".system.%s" .Values.global.rootDomain | quote }}
+            {{- if not .Values.customers.customersSecret }}
             - name: customers_url
-              value: {{ required "A valid .Values.global.customersURL entry required!" .Values.global.customersURL | quote }}
+              value: {{ required "A valid .Values.customers.url entry required!" .Values.customers.url | quote }}
+            {{- end }}
             - name: write_debug
               value: {{ .Values.edgeAuth.writeDebug | quote }}
           ports:
@@ -90,3 +101,8 @@ spec:
             - name: of-client-secret
               readOnly: true
               mountPath: "/var/secrets/of-client-secret"
+            {{- if .Values.customers.customersSecret }}
+            - name: of-customers
+              readOnly: true
+              mountPath: "/var/secrets/of-customers"
+            {{- end }}

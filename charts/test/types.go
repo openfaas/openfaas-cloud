@@ -153,11 +153,11 @@ type ContainerPort struct {
 }
 
 type LivenessProbe struct {
-	HttpGet        HttpProbe `yaml:"httpGet"`
-	ExecProbe      ExecProbe `yaml:"exec"`
-	TimeoutSeconds int       `yaml:"timeoutSeconds"`
-	InitialDelaySeconds	int	`yaml:"initialDelaySeconds"`
-	PeriodSeconds int 	`yaml:"periodSeconds"`
+	HttpGet             HttpProbe `yaml:"httpGet"`
+	ExecProbe           ExecProbe `yaml:"exec"`
+	TimeoutSeconds      int       `yaml:"timeoutSeconds"`
+	InitialDelaySeconds int       `yaml:"initialDelaySeconds"`
+	PeriodSeconds       int       `yaml:"periodSeconds"`
 }
 
 type ExecProbe struct {
