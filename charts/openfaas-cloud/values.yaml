@@ -11,7 +11,7 @@ buildKit:
 
 
 edgeAuth:
-  image: openfaas/edge-auth:0.6.3
+  image: openfaas/edge-auth:0.7.0
   replicas: 1
   enableOAuth2: true
   oauthProvider: github
@@ -58,13 +58,19 @@ ingress:
   maxConnections: 20
   requestsPerMinute: 600
 
+customers:
+  ## customersURL is the url to the raw file that containers the list of users who are able to use this installation
+  url: ""
+  ## If you want to keep the customers for your OFC installation secret you can set the names in a kubernetes secret as
+  ## indicated in the openfaas-cloud docs on customers. If you want this option, set this to true.
+  customersSecret: false
+
+
 ## global values that are re-used across multiple components
 global:
 
   ## rootDomain is the root domain of the ofc installation o6s.io for example
   rootDomain: "example.com"
-  ## customersURL is the url to the raw file that containers the list of users who are able to use this installation
-  customersURL: ""
   ## scheme is the http/https setting for the installation
   scheme: https
   enableECR: false

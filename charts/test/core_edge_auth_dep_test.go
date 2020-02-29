@@ -6,7 +6,7 @@ import (
 
 func Test_CoreEdgeAuthDep(t *testing.T) {
 	var parts []string
-	want := makeEdgeAuthDep(true)
+	want := makeEdgeAuthDep(true, false)
 	runYamlTest(parts, "./tmp/openfaas-cloud/templates/ofc-core/edge-auth-dep.yaml", want, t)
 }
 
@@ -14,12 +14,20 @@ func Test_CoreEdgeAuthDep_NonHttpProbe(t *testing.T) {
 	parts := []string{
 		"--set", "global.httpProbe=false",
 	}
-	want := makeEdgeAuthDep(false)
+	want := makeEdgeAuthDep(false, false)
 	runYamlTest(parts, "./tmp/openfaas-cloud/templates/ofc-core/edge-auth-dep.yaml", want, t)
-
 }
 
-func makeEdgeAuthDep(httpProbe bool) YamlSpec {
+func Test_CoreEdgeAuthDep_CustomersSecret(t *testing.T) {
+	parts := []string{
+		"--set", "customers.customersSecret=true",
+	}
+
+	want := makeEdgeAuthDep(true, true)
+	runYamlTest(parts, "./tmp/openfaas-cloud/templates/ofc-core/edge-auth-dep.yaml", want, t)
+}
+
+func makeEdgeAuthDep(httpProbe, customersSecret bool) YamlSpec {
 	labels := make(map[string]string)
 
 	labels["app.kubernetes.io/component"] = "edge-auth"
@@ -28,9 +36,14 @@ func makeEdgeAuthDep(httpProbe bool) YamlSpec {
 	labels["app.kubernetes.io/name"] = "openfaas-cloud"
 	labels["helm.sh/chart"] = "openfaas-cloud-0.12.1"
 
-	deployVolumes := makeDeployVolumes([]string{"jwt-private-key", "jwt-public-key", "of-client-secret"})
-	containerVolumes := makeContainerVolumes()
-	containerEnvironment := makeContainerEnv()
+	requiredVolumes := []string{"jwt-private-key", "jwt-public-key", "of-client-secret"}
+	if customersSecret {
+		requiredVolumes = append(requiredVolumes, "of-customers")
+	}
+
+	deployVolumes := makeDeployVolumes(requiredVolumes)
+	containerVolumes := makeContainerVolumes(customersSecret)
+	containerEnvironment := makeContainerEnv(customersSecret)
 
 	var livenessProbe LivenessProbe
 	if httpProbe {
@@ -39,8 +52,8 @@ func makeEdgeAuthDep(httpProbe bool) YamlSpec {
 				Path: "/healthz",
 				Port: 8080,
 			},
-			TimeoutSeconds: 5,
-			PeriodSeconds: 10,
+			TimeoutSeconds:      5,
+			PeriodSeconds:       10,
 			InitialDelaySeconds: 2,
 		}
 	} else {
@@ -48,8 +61,8 @@ func makeEdgeAuthDep(httpProbe bool) YamlSpec {
 			ExecProbe: ExecProbe{
 				Command: []string{"wget", "--quiet", "--tries=1", "--timeout=5", "--spider", "http://localhost:8080/healthz"},
 			},
-			TimeoutSeconds: 5,
-			PeriodSeconds: 10,
+			TimeoutSeconds:      5,
+			PeriodSeconds:       10,
 			InitialDelaySeconds: 2,
 		}
 	}
@@ -72,7 +85,7 @@ func makeEdgeAuthDep(httpProbe bool) YamlSpec {
 					Volumes: deployVolumes,
 					Containers: []DeploymentContainers{{
 						Name:                    "edge-auth",
-						Image:                   "openfaas/edge-auth:0.6.3",
+						Image:                   "openfaas/edge-auth:0.7.0",
 						ImagePullPolicy:         "IfNotPresent",
 						ContainerReadinessProbe: livenessProbe,
 						ContainerEnvironment:    containerEnvironment,
@@ -88,7 +101,8 @@ func makeEdgeAuthDep(httpProbe bool) YamlSpec {
 	}
 }
 
-func makeContainerVolumes() []ContainerVolume {
+func makeContainerVolumes(customersSecret bool) []ContainerVolume {
+
 	var vols []ContainerVolume
 	vols = append(vols, ContainerVolume{
 		Name:      "jwt-private-key",
@@ -108,22 +122,35 @@ func makeContainerVolumes() []ContainerVolume {
 		MountPath: "/var/secrets/of-client-secret",
 	})
 
+	if customersSecret {
+		vols = append(vols, ContainerVolume{
+			Name:      "of-customers",
+			ReadOnly:  true,
+			MountPath: "/var/secrets/of-customers",
+		})
+	}
+
 	return vols
 }
 
-func makeContainerEnv() []Environment {
+func makeContainerEnv(customersSecret bool) []Environment {
 	var environ []Environment
 	environ = append(environ, Environment{Name: "port", Value: "8080"})
 	environ = append(environ, Environment{Name: "oauth_client_secret_path", Value: "/var/secrets/of-client-secret/of-client-secret"})
 	environ = append(environ, Environment{Name: "public_key_path", Value: "/var/secrets/public/key.pub"})
 	environ = append(environ, Environment{Name: "private_key_path", Value: "/var/secrets/private/key"})
+	if customersSecret {
+		environ = append(environ, Environment{Name: "customers_path", Value: "/var/secrets/of-customers/of-customers"})
+	}
 	environ = append(environ, Environment{Name: "client_secret", Value: "client-secret"})
 	environ = append(environ, Environment{Name: "client_id", Value: "client-id"})
 	environ = append(environ, Environment{Name: "oauth_provider_base_url", Value: ""})
 	environ = append(environ, Environment{Name: "oauth_provider", Value: "github"})
 	environ = append(environ, Environment{Name: "external_redirect_domain", Value: "https://auth.system.example.com"})
 	environ = append(environ, Environment{Name: "cookie_root_domain", Value: ".system.example.com"})
-	environ = append(environ, Environment{Name: "customers_url", Value: "https://example.com/customers_url"})
+	if !customersSecret {
+		environ = append(environ, Environment{Name: "customers_url", Value: "https://example.com/customers_url"})
+	}
 	environ = append(environ, Environment{Name: "write_debug", Value: "false"})
 
 	return environ

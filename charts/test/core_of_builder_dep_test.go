@@ -35,8 +35,8 @@ func makeOFBuilderDep(httpProbe, isECR bool, replicas int, buildkitPrivileged, o
 				Path: "/healthz",
 				Port: 8080,
 			},
-			TimeoutSeconds: 5,
-			PeriodSeconds: 10,
+			TimeoutSeconds:      5,
+			PeriodSeconds:       10,
 			InitialDelaySeconds: 2,
 		}
 	} else {
@@ -44,8 +44,8 @@ func makeOFBuilderDep(httpProbe, isECR bool, replicas int, buildkitPrivileged, o
 			ExecProbe: ExecProbe{
 				Command: []string{"wget", "--quiet", "--tries=1", "--timeout=5", "--spider", "http://localhost:8080/healthz"},
 			},
-			TimeoutSeconds: 5,
-			PeriodSeconds: 10,
+			TimeoutSeconds:      5,
+			PeriodSeconds:       10,
 			InitialDelaySeconds: 2,
 		}
 	}
