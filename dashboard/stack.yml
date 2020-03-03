@@ -4,16 +4,11 @@ provider:
 
 functions:
   system-dashboard:
-    lang: node10-express
+    lang: node12
     handler: ./of-cloud-dashboard
-    image: functions/of-cloud-dashboard:0.7.3
+    image: alexellis2/of-cloud-dashboard:0.7.17
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
     environment_file:
       - dashboard_config.yml
-
-configuration:
-  templates:
-    - name: node10-express
-      source: https://github.com/openfaas-incubator/node10-express-template

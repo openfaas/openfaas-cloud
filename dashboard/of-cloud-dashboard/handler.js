@@ -1,52 +1,21 @@
 'use strict';
 
+const axios = require('axios');
 const fs = require('fs');
-const request = require('request');
+const fsPromises = fs.promises
+var qs = require('qs');
 
-const handleLogout = (context) => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
-  const day = now.getDate();
-  const expires = new Date(year, month, day);
-  const headers = {
-    'Set-Cookie': [
-      'openfaas_cloud_token=',
-      `Expires=${expires.toUTCString()}`,
-      `Domain=${process.env.cookie_root_domain}`,
-      'Path=/',
-    ].join('; ')
-  };
-
-  fs.readFile(`${__dirname}/dist/logout.html`, (err, data) => {
-    if (err) {
-      return context.status(500).fail(err);
-    }
-
-    context
-      .headers(headers)
-      .status(200)
-      .succeed(data.toString());
-  });
-};
-
-module.exports = (event, context) => {
+module.exports = async (event, context) => {
   const { method, path , query} = event;
 
-  parseOrganiations: parseOrganizations;
-  decodeCookie: decodeCookie;
-  getCookie: getCookie;
-  getRequestedEntityFromPath: getRequestedEntityFromPath;
-  isResourceInTokenClaims: isResourceInTokenClaims;
-
   if (method !== 'GET') {
-    context.status(400).fail('Bad Request');
-    return;
+    return context.status(405).fail('Method not allowed');
   }
 
   if (/^\/logout\/?$/.test(path)) {
     return handleLogout(context);
   }
+
   let cookie = getCookie(event);
   let decodedCookie = decodeCookie(cookie);
   let organizations = parseOrganizations(decodedCookie);
@@ -56,8 +25,7 @@ module.exports = (event, context) => {
     // See if a user is trying to query functions they do not have permissions to view
     if (!isResourceInTokenClaims(path, query, decodedCookie, organizations)) {
       console.log("the user '" + decodedCookie["sub"] + "' tried to access a resource they are not entitled to")
-      context.status(403).succeed('Forbidden');
-      return;
+      return context.status(403).succeed('Forbidden');
     }
 
     // proxy api requests to the gateway
@@ -66,33 +34,43 @@ module.exports = (event, context) => {
     const url = `${gatewayUrl}/function/${proxyPath}`;
     var reqHeaders = event.headers;
     reqHeaders['host'] = gatewayUrl.replace('http://', '');
-    console.log(`proxying request to: ${url}`);
-    request(
-      {
-        url,
-        method,
+
+    let upstreamURL = url;
+    if(Object.keys(query).length > 0) {
+      upstreamURL = upstreamURL+"?"+qs.stringify(query);
+    }
+    console.log(`Proxying request to: ${upstreamURL}`);
+
+    try {
+      let opts = {
+        url: upstreamURL,
+        method: method,
         headers: reqHeaders,
-        qs: event.query,
-      },
-      (err, response, body) => {
-        console.log('proxy response code:', response.statusCode);
-        if (err) {
-          console.log('Proxy request failed', err);
-          context.status(500).fail('Proxy Request Failed');
-          return;
-        }
-        context
-          .headers(response.headers)
-          .status(response.statusCode)
-          .succeed(body);
-      }
-    );
-    return;
+      };
+
+      // console.log(opts,query)
+  
+      let res = await axios(opts)
+      let ctx = context;
+      // console.log('Res:', res);
+
+      console.log('Proxy response code:', res.status);
+
+      // console.log(res.status, res.headers, res.data.length)
+      return ctx.status(res.status)
+                .headers(res.headers)
+                .succeed(res.data);
+
+    } catch(err) {
+      console.log('Proxy request failed', err);
+      return context.status(500).fail('Proxy Request Failed');
+    }
   }
 
   let headers = {
     'Content-Type': '',
   };
+
   if (/.*\.js/.test(path)) {
     headers['Content-Type'] = 'application/javascript';
   } else if (/.*\.css/.test(path)) {
@@ -111,57 +89,57 @@ module.exports = (event, context) => {
     contentPath = `${__dirname}/dist/index.html`;
   }
 
-  fs.readFile(contentPath, (err, data) => {
-    if (err) {
-      context
-        .headers(headers)
-        .status(500)
-        .fail(err);
+  let fileData = ""
+  try {
+    fileData = await fsPromises.readFile(contentPath);
+  } catch (err) {
+    return context
+    .headers(headers)
+    .status(500)
+    .fail(err);
+  }
 
-      return;
+  let content = fileData.toString();
+
+  if (!headers['Content-Type']) {
+    headers['Content-Type'] = 'text/html';
+
+    const isSignedIn = /openfaas_cloud_token=.*\s*/.test(event.headers.cookie);
+
+    console.log(path);
+
+    if (path === "/" && isSignedIn) {
+      headers["Location"] =   "/dashboard/"+ decodedCookie["sub"];
+      return context
+          .headers(headers)
+          .status(307)
+          .succeed();
     }
 
-    let content = data.toString();
+    let claims = get_all_claims(organizations, decodedCookie);
 
-    function get_all_claims(organizations, decodedCookie) {
-      if (decodedCookie && organizations.length > 0) {
-        return  organizations.length > 0 ? organizations + "," + decodedCookie["sub"] : decodedCookie["sub"];
-      }
-      return ""
-    }
+    content = replaceTokens(content, isSignedIn, claims)
+  }
 
-    if (!headers['Content-Type']) {
-      headers['Content-Type'] = 'text/html';
+  context
+    .headers(headers)
+    .status(200)
+    .succeed(content);
+}
 
-      const isSignedIn = /openfaas_cloud_token=.*\s*/.test(event.headers.cookie);
+function replaceTokens(content, isSignedIn, claims) {
+    const { base_href, public_url, pretty_url, query_pretty_url } = process.env;
+    let replaced = content
 
-      console.log(path);
-      if (path === "/" && isSignedIn) {
-        headers["Location"] =   "/dashboard/"+ decodedCookie["sub"];
-        return context
-            .headers(headers)
-            .status(307)
-            .succeed();
-      }
+    replaced = replaced.replace(/__BASE_HREF__/g, base_href);
+    replaced = replaced.replace(/__PUBLIC_URL__/g, public_url);
+    replaced = replaced.replace(/__PRETTY_URL__/g, pretty_url);
+    replaced = replaced.replace(/__QUERY_PRETTY_URL__/g, query_pretty_url);
+    replaced = replaced.replace(/__IS_SIGNED_IN__/g, isSignedIn);
+    replaced = replaced.replace(/__ALL_CLAIMS__/g, claims);
 
-      let claims = get_all_claims(organizations, decodedCookie);
-
-      const { base_href, public_url, pretty_url, query_pretty_url } = process.env;
-      content = content.replace(/__BASE_HREF__/g, base_href);
-      content = content.replace(/__PUBLIC_URL__/g, public_url);
-      content = content.replace(/__PRETTY_URL__/g, pretty_url);
-      content = content.replace(/__QUERY_PRETTY_URL__/g, query_pretty_url);
-      content = content.replace(/__IS_SIGNED_IN__/g, isSignedIn);
-      content = content.replace(/__ALL_CLAIMS__/g, claims);
-
-    }
-
-    context
-      .headers(headers)
-      .status(200)
-      .succeed(content);
-  });
-};
+    return replaced
+}
 
 var parseOrganizations = function (decodedCookie) {
   if (decodedCookie && 'organizations' in decodedCookie) {
@@ -184,7 +162,7 @@ var decodeCookie = function (token) {
 
 var getCookie = function (event = {}) {
   if (!event.headers && !event.headers.cookie) {
-    console.log("event does not contain a cookie");
+    console.log("Event does not contain a cookie");
     return null;
   }
   return event.headers.cookie;
@@ -230,4 +208,40 @@ function isRepoOwnedByUser(query, user, organisations) {
     }
   }
   return false;
+}
+
+const handleLogout = async (context) => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const day = now.getDate();
+  const expires = new Date(year, month, day);
+  const headers = {
+    'Set-Cookie': [
+      'openfaas_cloud_token=',
+      `Expires=${expires.toUTCString()}`,
+      `Domain=${process.env.cookie_root_domain}`,
+      'Path=/',
+    ].join('; ')
+  };
+
+  let data = "";
+  try {
+    data = await fsPromises.readFile(`${__dirname}/dist/logout.html`)
+  } catch (err) {
+    return context.status(500).fail(err);
+  }
+
+  return context
+    .headers(headers)
+    .status(200)
+    .succeed(data.toString());
+}
+
+
+function get_all_claims(organizations, decodedCookie) {
+  if (decodedCookie && organizations.length > 0) {
+    return  organizations.length > 0 ? organizations + "," + decodedCookie["sub"] : decodedCookie["sub"];
+  }
+  return ""
 }
