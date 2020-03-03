@@ -1,6 +1,6 @@
 [[constraint]]
   name = "github.com/openfaas/faas"
-  version = "0.9.2"
+  version = "0.18.10"
 
 [prune]
   go-tests = true

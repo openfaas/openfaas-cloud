@@ -211,7 +211,7 @@ functions:
   metrics:
     lang: go
     handler: ./metrics
-    image: functions/system-metrics:0.1.1
+    image: functions/system-metrics:0.2.0
     labels:
       openfaas-cloud: "1"
       role: openfaas-system

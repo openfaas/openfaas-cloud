@@ -14,29 +14,36 @@ import (
 
 	"log"
 
-	"github.com/openfaas/faas/gateway/requests"
+	"github.com/openfaas/faas-provider/auth"
+	types "github.com/openfaas/faas-provider/types"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
 // Exporter is a prometheus exporter
 type Exporter struct {
 	metricOptions MetricOptions
-	services      []requests.Function
+	services      []types.FunctionStatus
+	credentials   *auth.BasicAuthCredentials
 }
 
 // NewExporter creates a new exporter for the OpenFaaS gateway metrics
-func NewExporter(options MetricOptions) *Exporter {
+func NewExporter(options MetricOptions, credentials *auth.BasicAuthCredentials) *Exporter {
 	return &Exporter{
 		metricOptions: options,
-		services:      []requests.Function{},
+		services:      []types.FunctionStatus{},
+		credentials:   credentials,
 	}
 }
 
 // Describe is to describe the metrics for Prometheus
 func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
+
 	e.metricOptions.GatewayFunctionInvocation.Describe(ch)
 	e.metricOptions.GatewayFunctionsHistogram.Describe(ch)
 	e.metricOptions.ServiceReplicasGauge.Describe(ch)
+
+	e.metricOptions.ServiceMetrics.Counter.Describe(ch)
+	e.metricOptions.ServiceMetrics.Histogram.Describe(ch)
 }
 
 // Collect collects data to be consumed by prometheus
@@ -50,18 +57,25 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 			WithLabelValues(service.Name).
 			Set(float64(service.Replicas))
 	}
+
 	e.metricOptions.ServiceReplicasGauge.Collect(ch)
+
+	e.metricOptions.ServiceMetrics.Counter.Collect(ch)
+	e.metricOptions.ServiceMetrics.Histogram.Collect(ch)
 }
 
 // StartServiceWatcher starts a ticker and collects service replica counts to expose to prometheus
 func (e *Exporter) StartServiceWatcher(endpointURL url.URL, metricsOptions MetricOptions, label string, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	quit := make(chan struct{})
+
+	timeout := 3 * time.Second
+
 	proxyClient := http.Client{
 		Transport: &http.Transport{
 			Proxy: http.ProxyFromEnvironment,
 			DialContext: (&net.Dialer{
-				Timeout:   3 * time.Second,
+				Timeout:   timeout,
 				KeepAlive: 0,
 			}).DialContext,
 			MaxIdleConns:          1,
@@ -77,8 +91,11 @@ func (e *Exporter) StartServiceWatcher(endpointURL url.URL, metricsOptions Metri
 			case <-ticker.C:
 
 				get, _ := http.NewRequest(http.MethodGet, endpointURL.String()+"system/functions", nil)
+				if e.credentials != nil {
+					get.SetBasicAuth(e.credentials.User, e.credentials.Password)
+				}
 
-				services := []requests.Function{}
+				services := []types.FunctionStatus{}
 				res, err := proxyClient.Do(get)
 				if err != nil {
 					log.Println(err)

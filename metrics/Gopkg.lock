@@ -26,20 +26,31 @@
   version = "v1.0.1"
 
 [[projects]]
-  digest = "1:04085a5305b499df2778bd1bc68cc08a132453a9596c407c97a0ddfc7c13fce9"
+  digest = "1:9e953a76c69bfff5050824268e9f3ea22f5bd5c90b9eec7f85d91ef90401c81b"
   name = "github.com/openfaas/faas"
-  packages = [
-    "gateway/metrics",
-    "gateway/requests",
-  ]
+  packages = ["gateway/metrics"]
   pruneopts = "UT"
-  revision = "3e0ed5edd7f96b28158972592ee2e401a37b8327"
-  version = "0.9.2"
+  revision = "80b6976c106370a7081b2f8e9099a6ea9638e1f3"
+  version = "0.18.10"
 
 [[projects]]
-  digest = "1:b6221ec0f8903b556e127c449e7106b63e6867170c2d10a7c058623d086f2081"
+  digest = "1:4a97aa8ada0b2f865ca69a3a3bc0a2524c24f31c578c995d5c52cecb6913a9dc"
+  name = "github.com/openfaas/faas-provider"
+  packages = [
+    "auth",
+    "types",
+  ]
+  pruneopts = "UT"
+  revision = "98c25c3919da1ca07bb93fad63fd9715b460963f"
+  version = "012.1"
+
+[[projects]]
+  digest = "1:d14a5f4bfecf017cb780bdde1b6483e5deb87e12c332544d2c430eda58734bcb"
   name = "github.com/prometheus/client_golang"
-  packages = ["prometheus"]
+  packages = [
+    "prometheus",
+    "prometheus/promhttp",
+  ]
   pruneopts = "UT"
   revision = "c5b7fccd204277076155f10851dad72b76a49317"
   version = "v0.8.0"

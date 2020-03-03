@@ -1,12 +1,9 @@
-// Copyright (c) Alex Ellis 2017. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+package types
 
-package requests
+// FunctionDeployment represents a request to create or update a Function.
+type FunctionDeployment struct {
 
-// CreateFunctionRequest create a function in the swarm.
-type CreateFunctionRequest struct {
-
-	// Service corresponds to a Docker Service
+	// Service corresponds to a Service
 	Service string `json:"service"`
 
 	// Image corresponds to a Docker image
@@ -49,6 +46,9 @@ type CreateFunctionRequest struct {
 	// ReadOnlyRootFilesystem removes write-access from the root filesystem
 	// mount-point.
 	ReadOnlyRootFilesystem bool `json:"readOnlyRootFilesystem"`
+
+	// Namespace for the function to be deployed into
+	Namespace string `json:"namespace,omitempty"`
 }
 
 // FunctionResources Memory and CPU
@@ -57,34 +57,43 @@ type FunctionResources struct {
 	CPU    string `json:"cpu"`
 }
 
-// Function exported for system/functions endpoint
-type Function struct {
-	Name            string  `json:"name"`
-	Image           string  `json:"image"`
-	InvocationCount float64 `json:"invocationCount"` // TODO: shouldn't this be int64?
-	Replicas        uint64  `json:"replicas"`
-	EnvProcess      string  `json:"envProcess"`
+// FunctionStatus exported for system/functions endpoint
+type FunctionStatus struct {
 
-	// AvailableReplicas is the count of replicas ready to receive invocations as reported by the back-end
+	// Name corresponds to a Service
+	Name string `json:"name"`
+
+	// Image corresponds to a Docker image
+	Image string `json:"image"`
+
+	// InvocationCount count of invocations
+	InvocationCount float64 `json:"invocationCount"`
+
+	// Replicas desired within the cluster
+	Replicas uint64 `json:"replicas"`
+
+	// EnvProcess is the process to pass to the watchdog, if in use
+	EnvProcess string `json:"envProcess"`
+
+	// AvailableReplicas is the count of replicas ready to receive
+	// invocations as reported by the backend
 	AvailableReplicas uint64 `json:"availableReplicas"`
 
 	// Labels are metadata for functions which may be used by the
-	// back-end for making scheduling or routing decisions
+	// backend for making scheduling or routing decisions
 	Labels *map[string]string `json:"labels"`
 
 	// Annotations are metadata for functions which may be used by the
-	// back-end for management, orchestration, events and build tasks
+	// backend for management, orchestration, events and build tasks
 	Annotations *map[string]string `json:"annotations"`
+
+	// Namespace where the function can be accessed
+	Namespace string `json:"namespace,omitempty"`
 }
 
-// AsyncReport is the report from a function executed on a queue worker.
-type AsyncReport struct {
-	FunctionName string  `json:"name"`
-	StatusCode   int     `json:"statusCode"`
-	TimeTaken    float64 `json:"timeTaken"`
-}
-
-// DeleteFunctionRequest delete a deployed function
-type DeleteFunctionRequest struct {
-	FunctionName string `json:"functionName"`
+// Secret for underlying orchestrator
+type Secret struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace,omitempty"`
+	Value     string `json:"value,omitempty"`
 }
