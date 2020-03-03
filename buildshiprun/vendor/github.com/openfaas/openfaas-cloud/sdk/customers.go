@@ -118,7 +118,8 @@ func (c *Customers) Fetch() error {
 	c.Sync.Lock()
 	defer c.Sync.Unlock()
 
-	fmt.Println(usernames)
+	log.Printf("%d customers found", len(usernames))
+
 	c.Usernames = &usernames
 	c.Expires = time.Now().Add(customerCacheExpiry)
 

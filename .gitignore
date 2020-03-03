@@ -16,3 +16,4 @@ key.pub
 
 template
 config.json
+/import-secrets/vendor/github.com/bitnami-labs/sealed-secrets/vendor_jsonnet/kube-libsonnet/examples/

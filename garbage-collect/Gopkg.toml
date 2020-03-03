@@ -1,6 +1,6 @@
 [[constraint]]
   name = "github.com/openfaas/openfaas-cloud"
-  version = "0.13.2"
+  version = "0.13.3"
 
 [[constraint]]
   branch = "master"
