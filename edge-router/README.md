@@ -46,7 +46,6 @@ If you wish to bypass authentication you can run the router auth an auth_url of 
 
 ```sh
 TAG=0.7.4
-I can't seem
 
 # As a container
 
