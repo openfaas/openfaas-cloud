@@ -1,11 +1,11 @@
 [[constraint]]
   name = "github.com/openfaas/openfaas-cloud"
-  version = "0.5.8"
-
-[prune]
-  go-tests = true
-  unused-packages = true
+  version = "0.13.2"
 
 [[constraint]]
   branch = "master"
   name = "github.com/alexellis/hmac"
+
+[prune]
+  go-tests = true
+  unused-packages = true

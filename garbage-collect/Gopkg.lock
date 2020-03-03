@@ -10,20 +10,20 @@
   revision = "5c52ab81c0de69124b2bac9eab16c326e22dfada"
 
 [[projects]]
-  digest = "1:bdc1992e06609e1a3204271c66f4a09ca742346cec96605c969aab22082d7cbe"
-  name = "github.com/openfaas/faas"
-  packages = ["gateway/types"]
+  digest = "1:640b3b23db9a5542f998adcf5ca3527951855f93156784dd9592242a61b89598"
+  name = "github.com/openfaas/faas-provider"
+  packages = ["auth"]
   pruneopts = "UT"
-  revision = "e67811c91c006dfe86feb945c88b0738ddf33a67"
-  version = "0.9.4"
+  revision = "98c25c3919da1ca07bb93fad63fd9715b460963f"
+  version = "012.1"
 
 [[projects]]
-  digest = "1:6c40fef89b608d7c3ae933e17c4406bc170cd5e1e3600e60a8a1e4be4c754843"
+  digest = "1:086823f00ee88d891674e7dfd9a76e22337cb457a2bb1fdbb78ad1cd2545a583"
   name = "github.com/openfaas/openfaas-cloud"
   packages = ["sdk"]
   pruneopts = "UT"
-  revision = "965a437d05c2818dacfbfb45c56ea3f9f20f447a"
-  version = "0.5.8"
+  revision = "fda6c9f2df03814ff2a2a451f2a67d1f83d82641"
+  version = "0.13.2"
 
 [solve-meta]
   analyzer-name = "dep"

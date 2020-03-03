@@ -8,7 +8,7 @@ functions:
   register-image:
     lang: go
     handler: ./register-image
-    image: functions/register-image:0.2.0
+    image: functions/register-image:0.2.1
     labels:
       openfaas-cloud: "1"
       role: openfaas-system

@@ -11,7 +11,7 @@
   name = "k8s.io/apimachinery"
 
 [[constraint]]
-  version = "0.9.11"
+  version = "0.13.2"
   name = "github.com/openfaas/openfaas-cloud"
 
 [prune]

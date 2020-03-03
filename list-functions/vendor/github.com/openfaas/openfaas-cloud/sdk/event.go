@@ -1,7 +1,12 @@
 package sdk
 
+import (
+	"strings"
+)
+
 // Event info used to pass events between functions
 type Event struct {
+	EventKey       string            `json:"event_key"`
 	Service        string            `json:"service"`
 	Owner          string            `json:"owner"`
 	OwnerID        int               `json:"owner-id"`
@@ -23,7 +28,14 @@ type Event struct {
 func BuildEventFromPushEvent(pushEvent PushEvent) *Event {
 	info := Event{}
 
+	shortRef := pushEvent.Ref
+
+	if index := strings.LastIndex(shortRef, "/"); index > -1 {
+		shortRef = shortRef[index+1:]
+	}
+
 	info.Service = pushEvent.Repository.Name
+	info.EventKey = pushEvent.Repository.Name + "-" + shortRef
 	info.Owner = pushEvent.Repository.Owner.Login
 	info.Repository = pushEvent.Repository.Name
 	info.URL = pushEvent.Repository.CloneURL

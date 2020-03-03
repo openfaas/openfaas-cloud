@@ -6,7 +6,7 @@ functions:
   system-github-event:
     lang: go
     handler: ./github-event
-    image: functions/github-event:0.9.0
+    image: functions/github-event:0.9.1
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -49,7 +49,7 @@ functions:
   git-tar:
     lang: dockerfile
     handler: ./git-tar
-    image: functions/of-git-tar:0.17.0
+    image: functions/of-git-tar:0.17.1
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -95,7 +95,7 @@ functions:
   garbage-collect:
     lang: go
     handler: ./garbage-collect
-    image: functions/garbage-collect:0.4.5
+    image: functions/garbage-collect:0.4.6
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -136,7 +136,7 @@ functions:
   import-secrets:
     lang: go
     handler: ./import-secrets
-    image: functions/import-secrets:0.6.0
+    image: functions/import-secrets:0.6.1
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -154,7 +154,7 @@ functions:
   pipeline-log:
     lang: go
     handler: ./pipeline-log
-    image: functions/pipeline-log:0.3.4
+    image: functions/pipeline-log:0.3.5
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -173,7 +173,7 @@ functions:
   list-functions:
     lang: go
     handler: ./list-functions
-    image: functions/list-functions:0.5.0
+    image: functions/list-functions:0.5.1
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -224,7 +224,7 @@ functions:
   function-logs:
     lang: go
     handler: ./function-logs
-    image: functions/function-logs:0.1.1
+    image: functions/function-logs:0.2.0
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
