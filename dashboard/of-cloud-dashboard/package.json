@@ -10,6 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.19.2",
+    "qs": "^6.9.1",
     "request": "^2.88.0"
   }
 }
