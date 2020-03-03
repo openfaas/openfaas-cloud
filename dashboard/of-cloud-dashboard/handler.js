@@ -39,7 +39,6 @@ module.exports = async (event, context) => {
     if(Object.keys(query).length > 0) {
       upstreamURL = upstreamURL+"?"+qs.stringify(query);
     }
-    console.log(`Proxying request to: ${upstreamURL}`);
 
     try {
       let opts = {
@@ -47,23 +46,20 @@ module.exports = async (event, context) => {
         method: method,
         headers: reqHeaders,
       };
-
-      // console.log(opts,query)
   
       let res = await axios(opts)
       let ctx = context;
-      // console.log('Res:', res);
 
-      console.log('Proxy response code:', res.status);
+      // Print to stderr to match the of-watchdog output
+      console.error(`${method} ${upstreamURL} - ${res.status}`);
 
-      // console.log(res.status, res.headers, res.data.length)
       return ctx.status(res.status)
                 .headers(res.headers)
                 .succeed(res.data);
 
     } catch(err) {
-      console.log('Proxy request failed', err);
-      return context.status(500).fail('Proxy Request Failed');
+      console.error(`${method} ${upstreamURL} - 500, error: ${err}`);
+      return context.status(500).fail('Proxy request failed');
     }
   }
 
