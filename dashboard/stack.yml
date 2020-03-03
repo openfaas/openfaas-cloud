@@ -6,7 +6,7 @@ functions:
   system-dashboard:
     lang: node12
     handler: ./of-cloud-dashboard
-    image: alexellis2/of-cloud-dashboard:0.7.18
+    image: functions/of-cloud-dashboard:0.8.0
     labels:
       openfaas-cloud: "1"
       role: openfaas-system

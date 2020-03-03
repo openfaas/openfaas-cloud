@@ -24,7 +24,7 @@ module.exports = async (event, context) => {
 
     // See if a user is trying to query functions they do not have permissions to view
     if (!isResourceInTokenClaims(path, query, decodedCookie, organizations)) {
-      console.log("the user '" + decodedCookie["sub"] + "' tried to access a resource they are not entitled to")
+      console.log("The user '" + decodedCookie["sub"] + "' tried to access a resource they are not entitled to")
       return context.status(403).succeed('Forbidden');
     }
 
@@ -50,15 +50,14 @@ module.exports = async (event, context) => {
       let res = await axios(opts)
       let ctx = context;
 
-      // Print to stderr to match the of-watchdog output
-      console.error(`${method} ${upstreamURL} - ${res.status}`);
+      console.log(`${method} ${upstreamURL} - ${res.status}`);
 
       return ctx.status(res.status)
                 .headers(res.headers)
                 .succeed(res.data);
 
     } catch(err) {
-      console.error(`${method} ${upstreamURL} - 500, error: ${err}`);
+      console.log(`${method} ${upstreamURL} - 500, error: ${err}`);
       return context.status(500).fail('Proxy request failed');
     }
   }
