@@ -75,14 +75,14 @@ struct sockaddr_any {
 */
 import "C"
 
-// Machine characteristics; for internal use.
+// Machine characteristics
 
 const (
-	sizeofPtr      = C.sizeofPtr
-	sizeofShort    = C.sizeof_short
-	sizeofInt      = C.sizeof_int
-	sizeofLong     = C.sizeof_long
-	sizeofLongLong = C.sizeof_longlong
+	SizeofPtr      = C.sizeofPtr
+	SizeofShort    = C.sizeof_short
+	SizeofInt      = C.sizeof_int
+	SizeofLong     = C.sizeof_long
+	SizeofLongLong = C.sizeof_longlong
 	PathMax        = C.PATH_MAX
 	MaxHostNameLen = C.MAXHOSTNAMELEN
 )
@@ -158,6 +158,8 @@ type Msghdr C.struct_msghdr
 
 type Cmsghdr C.struct_cmsghdr
 
+type Inet4Pktinfo C.struct_in_pktinfo
+
 type Inet6Pktinfo C.struct_in6_pktinfo
 
 type IPv6MTUInfo C.struct_ip6_mtuinfo
@@ -175,6 +177,7 @@ const (
 	SizeofIPv6Mreq         = C.sizeof_struct_ipv6_mreq
 	SizeofMsghdr           = C.sizeof_struct_msghdr
 	SizeofCmsghdr          = C.sizeof_struct_cmsghdr
+	SizeofInet4Pktinfo     = C.sizeof_struct_in_pktinfo
 	SizeofInet6Pktinfo     = C.sizeof_struct_in6_pktinfo
 	SizeofIPv6MTUInfo      = C.sizeof_struct_ip6_mtuinfo
 	SizeofICMPv6Filter     = C.sizeof_struct_icmp6_filter
