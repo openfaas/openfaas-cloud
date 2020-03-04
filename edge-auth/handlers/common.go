@@ -24,6 +24,10 @@ type OpenFaaSCloudClaims struct {
 	jwt.StandardClaims
 }
 
+func (c OpenFaaSCloudClaims) GetOrganizations() []string {
+	return strings.Split(c.Organizations, ",")
+}
+
 // ProviderAccessToken as issued by GitHub or GitLab
 type ProviderAccessToken struct {
 	AccessToken string `json:"access_token"`

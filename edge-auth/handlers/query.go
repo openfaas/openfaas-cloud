@@ -124,8 +124,10 @@ func validCookie(r *http.Request, cookieName string, publicKey crypto.PublicKey,
 				log.Printf("Validated JWT for (%s) %s", claims.Subject, claims.Name)
 			}
 			if found, _ := customers.Get(claims.Subject); found == false {
-				log.Printf("user [%s] was not a valid customer", claims.Subject)
-				return http.StatusUnauthorized
+				if !isInOrganisations(claims, customers) {
+					log.Printf("user [%s] was not a valid customer", claims.Subject)
+					return http.StatusUnauthorized
+				}
 			}
 
 			if debug {
@@ -138,4 +140,13 @@ func validCookie(r *http.Request, cookieName string, publicKey crypto.PublicKey,
 	}
 
 	return http.StatusUnauthorized
+}
+
+func isInOrganisations(claims OpenFaaSCloudClaims, customers *sdk.Customers) bool {
+	for _, org := range claims.GetOrganizations() {
+		if found, _ := customers.Get(org); found == true {
+			return true
+		}
+	}
+	return false
 }
