@@ -136,7 +136,7 @@ functions:
   import-secrets:
     lang: go
     handler: ./import-secrets
-    image: functions/import-secrets:0.6.1
+    image: functions/import-secrets:0.6.2
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
