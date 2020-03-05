@@ -124,5 +124,5 @@ func formatOrganizations(orgs []Organization) string {
 
 type Organization struct {
 	Login string `json:"login"`
-	ID    string `json:"id"`
+	ID    int    `json:"id"`
 }
