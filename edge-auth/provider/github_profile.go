@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -71,4 +72,52 @@ type GitHubProfile struct {
 	TwoFactor bool      `json:"two_factor_authentication"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// GetUserOrganizations using the API "List your organizations"
+// https://developer.github.com/v3/orgs/#list-your-organizations
+func (gh *GitHub) GetUserOrganizations(accessToken string) (string, error) {
+	organizations := []Organization{}
+
+	apiURL := fmt.Sprintf("https://api.github.com/user/orgs")
+
+	req, reqErr := http.NewRequest(http.MethodGet, apiURL, nil)
+	if reqErr != nil {
+		return "", fmt.Errorf("error while making request to `%s` organizations: %s", apiURL, reqErr.Error())
+	}
+
+	req.Header.Add("Authorization", "token "+accessToken)
+
+	resp, respErr := gh.Client.Do(req)
+	if resp.Body != nil {
+		defer resp.Body.Close()
+	}
+	if respErr != nil {
+		return "", fmt.Errorf("error while requesting organizations: %s", respErr.Error())
+	}
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("bad status code from request to GitHub organizations: %d", resp.StatusCode)
+	}
+
+	body, bodyErr := ioutil.ReadAll(resp.Body)
+	if bodyErr != nil {
+		return "", fmt.Errorf("error while reading body from GitHub organizations: %s", bodyErr.Error())
+	}
+
+	var allOrganizations []string
+	unmarshallErr := json.Unmarshal(body, &organizations)
+	if unmarshallErr != nil {
+		return "", fmt.Errorf("error while un-marshaling organizations: %s", unmarshallErr.Error())
+	}
+
+	for _, organization := range organizations {
+		allOrganizations = append(allOrganizations, organization.Login)
+	}
+	formatOrganizations := strings.Join(allOrganizations, ",")
+
+	return formatOrganizations, nil
+}
+
+type Organization struct {
+	Login string `json:"login"`
 }
