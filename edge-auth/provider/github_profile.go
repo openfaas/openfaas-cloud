@@ -77,8 +77,6 @@ type GitHubProfile struct {
 // GetUserOrganizations using the API "List your organizations"
 // https://developer.github.com/v3/orgs/#list-your-organizations
 func (gh *GitHub) GetUserOrganizations(accessToken string) (string, error) {
-	organizations := []Organization{}
-
 	apiURL := fmt.Sprintf("https://api.github.com/user/orgs")
 
 	req, reqErr := http.NewRequest(http.MethodGet, apiURL, nil)
@@ -106,20 +104,25 @@ func (gh *GitHub) GetUserOrganizations(accessToken string) (string, error) {
 		return "", fmt.Errorf("error while reading body from GitHub organizations: %s", bodyErr.Error())
 	}
 
-	var allOrganizations []string
-	unmarshalErr := json.Unmarshal(body, &organizations)
+	var orgs []Organization
+	unmarshalErr := json.Unmarshal(body, &orgs)
 	if unmarshalErr != nil {
 		return "", fmt.Errorf("error while un-marshaling organizations: %s, value: %q", unmarshalErr.Error(), body)
 	}
 
-	for _, organization := range organizations {
-		allOrganizations = append(allOrganizations, organization.Login)
-	}
-	formatOrganizations := strings.Join(allOrganizations, ",")
+	return formatOrganizations(orgs), nil
+}
 
-	return formatOrganizations, nil
+func formatOrganizations(orgs []Organization) string {
+	logins := []string{}
+	for _, organization := range orgs {
+		logins = append(logins, organization.Login)
+	}
+
+	return strings.Join(logins, ",")
 }
 
 type Organization struct {
 	Login string `json:"login"`
+	ID    string `json:"id"`
 }
