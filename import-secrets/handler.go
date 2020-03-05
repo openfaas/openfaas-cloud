@@ -59,7 +59,7 @@ func Handle(req []byte) string {
 	err = yaml.Unmarshal(req, &userSecret)
 
 	if err != nil {
-		fmt.Println("couldn't unmarshall secrets.yml\n", err)
+		fmt.Println("couldn't unmarshal secrets.yml\n", err)
 		os.Exit(-1)
 	}
 
@@ -128,7 +128,7 @@ func updateEncryptedData(ss *ssv1alpha1.SealedSecret, userSecret *SealedSecret) 
 			return fmt.Errorf("can't decode base64 string (%s) - error: %s", k, err)
 		}
 
-		ss.Spec.EncryptedData[k] = string(encodedBytes)
+		ss.Spec.EncryptedData[k] = base64.StdEncoding.EncodeToString(encodedBytes)
 	}
 
 	return nil
@@ -146,13 +146,13 @@ type eventInfo struct {
 	owner string
 }
 
-type SealedSecretSpec struct {
-	EncryptedData map[string]string `yaml:"encryptedData"`
-}
-
 type SealedSecret struct {
 	ApiVersion string             `yaml:"apiVersion"`
 	Kind       string             `yaml:"kind"`
 	Metadata   *metav1.ObjectMeta `yaml:"metadata"`
 	Spec       SealedSecretSpec   `yaml:"spec"`
+}
+
+type SealedSecretSpec struct {
+	EncryptedData map[string]string `yaml:"encryptedData"`
 }
