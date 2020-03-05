@@ -107,9 +107,9 @@ func (gh *GitHub) GetUserOrganizations(accessToken string) (string, error) {
 	}
 
 	var allOrganizations []string
-	unmarshallErr := json.Unmarshal(body, &organizations)
-	if unmarshallErr != nil {
-		return "", fmt.Errorf("error while un-marshaling organizations: %s", unmarshallErr.Error())
+	unmarshalErr := json.Unmarshal(body, &organizations)
+	if unmarshalErr != nil {
+		return "", fmt.Errorf("error while un-marshaling organizations: %s, value: %q", unmarshalErr.Error(), body)
 	}
 
 	for _, organization := range organizations {
