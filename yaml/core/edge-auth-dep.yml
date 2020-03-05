@@ -73,6 +73,10 @@ spec:
           - name: cookie_root_domain
             value: ".system.o6s.io"
 
+# Config for setting the cookie to "secure", set this to true for HTTPS only OAuth
+          - name: secure_cookie
+            value: false
+
 # This is a default and can be overridden
           - name: customers_url
             value: "https://raw.githubusercontent.com/openfaas/openfaas-cloud/master/CUSTOMERS"

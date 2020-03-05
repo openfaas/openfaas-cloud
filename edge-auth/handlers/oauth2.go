@@ -153,6 +153,7 @@ func MakeOAuth2Handler(config *Config) func(http.ResponseWriter, *http.Request) 
 
 		http.SetCookie(w, &http.Cookie{
 			HttpOnly: true,
+			Secure:   config.SecureCookie,
 			Name:     cookieName,
 			Value:    session,
 			Path:     "/",

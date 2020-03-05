@@ -1,12 +1,13 @@
 package test
 
 import (
+	"strconv"
 	"testing"
 )
 
 func Test_CoreEdgeAuthDep(t *testing.T) {
 	var parts []string
-	want := makeEdgeAuthDep(true, false)
+	want := makeEdgeAuthDep(true, false, false)
 	runYamlTest(parts, "./tmp/openfaas-cloud/templates/ofc-core/edge-auth-dep.yaml", want, t)
 }
 
@@ -14,7 +15,7 @@ func Test_CoreEdgeAuthDep_NonHttpProbe(t *testing.T) {
 	parts := []string{
 		"--set", "global.httpProbe=false",
 	}
-	want := makeEdgeAuthDep(false, false)
+	want := makeEdgeAuthDep(false, false, false)
 	runYamlTest(parts, "./tmp/openfaas-cloud/templates/ofc-core/edge-auth-dep.yaml", want, t)
 }
 
@@ -23,11 +24,11 @@ func Test_CoreEdgeAuthDep_CustomersSecret(t *testing.T) {
 		"--set", "customers.customersSecret=true",
 	}
 
-	want := makeEdgeAuthDep(true, true)
+	want := makeEdgeAuthDep(true, true, false)
 	runYamlTest(parts, "./tmp/openfaas-cloud/templates/ofc-core/edge-auth-dep.yaml", want, t)
 }
 
-func makeEdgeAuthDep(httpProbe, customersSecret bool) YamlSpec {
+func makeEdgeAuthDep(httpProbe, customersSecret, secureCookie bool) YamlSpec {
 	labels := make(map[string]string)
 
 	labels["app.kubernetes.io/component"] = "edge-auth"
@@ -43,7 +44,7 @@ func makeEdgeAuthDep(httpProbe, customersSecret bool) YamlSpec {
 
 	deployVolumes := makeDeployVolumes(requiredVolumes)
 	containerVolumes := makeContainerVolumes(customersSecret)
-	containerEnvironment := makeContainerEnv(customersSecret)
+	containerEnvironment := makeContainerEnv(customersSecret, secureCookie)
 
 	var livenessProbe LivenessProbe
 	if httpProbe {
@@ -133,7 +134,7 @@ func makeContainerVolumes(customersSecret bool) []ContainerVolume {
 	return vols
 }
 
-func makeContainerEnv(customersSecret bool) []Environment {
+func makeContainerEnv(customersSecret, secureCookie bool) []Environment {
 	var environ []Environment
 	environ = append(environ, Environment{Name: "port", Value: "8080"})
 	environ = append(environ, Environment{Name: "oauth_client_secret_path", Value: "/var/secrets/of-client-secret/of-client-secret"})
@@ -148,6 +149,7 @@ func makeContainerEnv(customersSecret bool) []Environment {
 	environ = append(environ, Environment{Name: "oauth_provider", Value: "github"})
 	environ = append(environ, Environment{Name: "external_redirect_domain", Value: "https://auth.system.example.com"})
 	environ = append(environ, Environment{Name: "cookie_root_domain", Value: ".system.example.com"})
+	environ = append(environ, Environment{Name: "secure_cookie", Value: strconv.FormatBool(secureCookie)})
 	if !customersSecret {
 		environ = append(environ, Environment{Name: "customers_url", Value: "https://example.com/customers_url"})
 	}

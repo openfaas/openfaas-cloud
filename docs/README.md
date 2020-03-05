@@ -510,6 +510,9 @@ Auth is optional and protects the dashboard from users accessing the page. It is
 
 To enable OAuth 2.0 we will need to set up a number of DNS entries or host file entries for local development.
 
+If you are using TLS to secure your application then you can enable the "Secure" setting on the cookie by updating the
+"secure_cookie" environment variable to "true" in the edge-auth deployment. Please see the installation guides 
+
 #### Disable auth for local development
 
 If you wish to disable Auth then you can change the edge-router's URL from `http://edge-auth:8080` (on Swarm) or `http://edge-auth.openfaas:8080` (on Kubernetes) to `http://echo:8080` or `http://echo.openfaas:8080` which will by-pass any need for a Cookie or JWT to be established by allowing the "echo" service to act as the authorziation. This works because the echo service will always return "200 OK" to requests.

@@ -30,6 +30,7 @@ func main() {
 	var oauthClientSecretPath string
 
 	var writeDebug bool
+	secureCookie := false
 
 	if val, exists := os.LookupEnv("oauth_provider"); exists {
 		oauthProvider = val
@@ -63,6 +64,13 @@ func main() {
 		cookieRootDomain = val
 	}
 
+	if val, exists := os.LookupEnv("secure_cookie"); exists {
+		if boolVal, err := strconv.ParseBool(val); err == nil {
+			secureCookie = boolVal
+		}
+		log.Printf("unable to convert %s to bool for %q", val, "secure_cookie")
+	}
+
 	if val, exists := os.LookupEnv("public_key_path"); exists {
 		publicKeyPath = val
 	}
@@ -88,6 +96,7 @@ func main() {
 		CookieRootDomain:       cookieRootDomain,
 		ExternalRedirectDomain: externalRedirectDomain,
 		Scope:                  "read:org,read:user,user:email",
+		SecureCookie:           secureCookie,
 		PublicKeyPath:          publicKeyPath,
 		PrivateKeyPath:         privateKeyPath,
 		OAuthClientSecretPath:  oauthClientSecretPath,
