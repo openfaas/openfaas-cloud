@@ -89,12 +89,14 @@ func (gh *GitHub) GetUserOrganizations(accessToken string) (string, error) {
 	req.Header.Add("Authorization", "token "+accessToken)
 
 	resp, respErr := gh.Client.Do(req)
-	if resp.Body != nil {
-		defer resp.Body.Close()
-	}
 	if respErr != nil {
 		return "", fmt.Errorf("error while requesting organizations: %s", respErr.Error())
 	}
+
+	if resp.Body != nil {
+		defer resp.Body.Close()
+	}
+
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("bad status code from request to GitHub organizations: %d", resp.StatusCode)
 	}

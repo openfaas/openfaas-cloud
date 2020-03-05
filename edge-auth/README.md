@@ -44,7 +44,7 @@ Please note - You need to be a public member of any Organisation that you wish t
 ## Building
 
 ```
-export TAG=0.7.1
+export TAG=0.7.2
 make build push
 ```
 
