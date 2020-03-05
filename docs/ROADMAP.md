@@ -12,7 +12,7 @@
 - [x] Free to use SaaS edition for community members and contributors
 - [x] Log storage on Minio (S3-compatible)
 - [x] Log storage on AWS S3
-- [ ] Kubernetes helm chart (plain YAML supported already)
+- [x] Kubernetes helm chart (plain YAML supported already)
 - [ ] Automation for the day-0 installation via Ansible or similar
 
 * Developer story

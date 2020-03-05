@@ -82,6 +82,8 @@ spec:
               value: {{ printf "%s://auth.system.%s" .Values.global.scheme .Values.global.rootDomain | quote }}
             - name: cookie_root_domain
               value: {{ printf ".system.%s" .Values.global.rootDomain | quote }}
+            - name: secure_cookie
+              value: {{ .Values.tls.enabled | quote }}
             {{- if not .Values.customers.customersSecret }}
             - name: customers_url
               value: {{ required "A valid .Values.customers.url entry required!" .Values.customers.url | quote }}
