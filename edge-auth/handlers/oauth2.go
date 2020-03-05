@@ -190,7 +190,9 @@ func createSession(token ProviderAccessToken, privateKey crypto.PrivateKey, conf
 	organizationList := ""
 
 	if providerName == "github" {
-		organizations, organizationsErr := getUserOrganizations(profile.Login, token.AccessToken)
+		github := provider.NewGitHub(http.DefaultClient)
+
+		organizations, organizationsErr := github.GetUserOrganizations(token.AccessToken)
 		if organizationsErr != nil {
 			return session, organizationsErr
 		}
@@ -232,50 +234,4 @@ func getToken(res *http.Response) (ProviderAccessToken, error) {
 	}
 
 	return token, fmt.Errorf("no body received from server")
-}
-
-func getUserOrganizations(username, accessToken string) (string, error) {
-
-	organizations := []Organization{}
-	apiURL := fmt.Sprintf("https://api.github.com/users/%s/orgs", username)
-
-	req, reqErr := http.NewRequest(http.MethodGet, apiURL, nil)
-	if reqErr != nil {
-		return "", fmt.Errorf("error while making request to `%s` organizations: %s", apiURL, reqErr.Error())
-	}
-	req.Header.Add("Authorization", "token "+accessToken)
-
-	client := http.DefaultClient
-	resp, respErr := client.Do(req)
-	if resp.Body != nil {
-		defer resp.Body.Close()
-	}
-	if respErr != nil {
-		return "", fmt.Errorf("error while requesting organizations: %s", respErr.Error())
-	}
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("bad status code from request to GitHub organizations: %d", resp.StatusCode)
-	}
-
-	body, bodyErr := ioutil.ReadAll(resp.Body)
-	if bodyErr != nil {
-		return "", fmt.Errorf("error while reading body from GitHub organizations: %s", bodyErr.Error())
-	}
-
-	var allOrganizations []string
-	unmarshallErr := json.Unmarshal(body, &organizations)
-	if unmarshallErr != nil {
-		return "", fmt.Errorf("error while un-marshaling organizations: %s", unmarshallErr.Error())
-	}
-
-	for _, organization := range organizations {
-		allOrganizations = append(allOrganizations, organization.Login)
-	}
-	formatOrganizations := strings.Join(allOrganizations, ",")
-
-	return formatOrganizations, nil
-}
-
-type Organization struct {
-	Login string `json:"login"`
 }
