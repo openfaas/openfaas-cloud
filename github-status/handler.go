@@ -119,13 +119,15 @@ func getLogs(status *sdk.CommitStatus, event *sdk.Event) (string, error) {
 }
 
 func reportToGithub(commitStatus *sdk.CommitStatus, event *sdk.Event) error {
+	appID := os.Getenv("github_app_id")
 	if os.Getenv("use_checks") == "false" {
-		return reportStatus(commitStatus.Status, commitStatus.Description, commitStatus.Context, event)
+		return reportStatus(commitStatus.Status, commitStatus.Description, appID, event)
 	}
 	return reportCheck(commitStatus, event)
 }
 
 func reportStatus(status string, desc string, statusContext string, event *sdk.Event) error {
+	appID := os.Getenv("github_app_id")
 
 	ctx := context.Background()
 
@@ -133,7 +135,7 @@ func reportStatus(status string, desc string, statusContext string, event *sdk.E
 
 	repoStatus := buildStatus(status, desc, statusContext, url)
 
-	log.Printf("Status: %s, Context: %s, GitHub AppID: %d, Repo: %s, Owner: %s", status, statusContext, event.InstallationID, event.Repository, event.Owner)
+	log.Printf("Status: %s, Context: %s, GitHub AppID: %s, Repo: %s, Owner: %s", status, statusContext, appID, event.Repository, event.Owner)
 
 	client := factory.MakeClient(ctx, token)
 
@@ -147,11 +149,11 @@ func reportStatus(status string, desc string, statusContext string, event *sdk.E
 
 func reportCheck(commitStatus *sdk.CommitStatus, event *sdk.Event) error {
 	ctx := context.Background()
-
+	appID := os.Getenv("github_app_id")
 	status := commitStatus.Status
 	url := buildPublicStatusURL(commitStatus.Status, commitStatus.Context, event)
 
-	log.Printf("Check: %s, Context: %s, GitHub AppID: %d, Repo: %s, Owner: %s", status, commitStatus.Context, event.InstallationID, event.Repository, event.Owner)
+	log.Printf("Check: %s, Context: %s, GitHub AppID: %s, Repo: %s, Owner: %s", status, commitStatus.Context, appID, event.Repository, event.Owner)
 
 	client := factory.MakeClient(ctx, token)
 
@@ -169,7 +171,7 @@ func reportCheck(commitStatus *sdk.CommitStatus, event *sdk.Event) error {
 		logValue = formatLog(logs, maxCheckMessageLength)
 	}
 
-	checks, _, _ := client.Checks.ListCheckRunsForRef(ctx, event.Owner, event.Repository, event.SHA, &github.ListCheckRunsOptions{CheckName: &commitStatus.Context})
+	checks, _, _ := client.Checks.ListCheckRunsForRef(ctx, event.Owner, event.Repository, event.SHA, &github.ListCheckRunsOptions{CheckName: &appID})
 
 	checkRunStatus := getCheckRunStatus(&status)
 	conclusion := getCheckRunConclusion(&status)
@@ -214,7 +216,7 @@ func reportCheck(commitStatus *sdk.CommitStatus, event *sdk.Event) error {
 		log.Printf("Creating check run %s", check.Name)
 	}
 	if apiErr != nil {
-		return fmt.Errorf("Failed to report status %s, error: %s", status, apiErr.Error())
+		return fmt.Errorf("failed to report status %s, error: %s", status, apiErr.Error())
 	}
 	return nil
 }
