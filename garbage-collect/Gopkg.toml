@@ -9,3 +9,7 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  name = "github.com/openfaas/faas-cli"
+  version = "0.12.0"

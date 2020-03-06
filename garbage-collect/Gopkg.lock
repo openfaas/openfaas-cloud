@@ -10,12 +10,58 @@
   revision = "5c52ab81c0de69124b2bac9eab16c326e22dfada"
 
 [[projects]]
-  digest = "1:640b3b23db9a5542f998adcf5ca3527951855f93156784dd9592242a61b89598"
-  name = "github.com/openfaas/faas-provider"
-  packages = ["auth"]
+  digest = "1:c150032ad5f0d37e884ce6428425292f1f866fd9c3fc4661a1ca539fda85460c"
+  name = "github.com/drone/envsubst"
+  packages = [
+    ".",
+    "parse",
+    "path",
+  ]
   pruneopts = "UT"
-  revision = "98c25c3919da1ca07bb93fad63fd9715b460963f"
-  version = "012.1"
+  revision = "5a78055244d6b899c2a2eb158c8454f548af9ab2"
+  version = "v1.0.2"
+
+[[projects]]
+  digest = "1:5d231480e1c64a726869bc4142d270184c419749d34f167646baa21008eb0a79"
+  name = "github.com/mitchellh/go-homedir"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "af06845cf3004701891bf4fdb884bfe4920b3727"
+  version = "v1.1.0"
+
+[[projects]]
+  digest = "1:cdf3df431e70077f94e14a99305808e3d13e96262b4686154970f448f7248842"
+  name = "github.com/openfaas/faas"
+  packages = ["gateway/requests"]
+  pruneopts = "UT"
+  revision = "326cc7a9b9235276ecf38430c49a5707a429c6c8"
+  version = "0.18.11"
+
+[[projects]]
+  digest = "1:a30656c0437adf47e02e95b0cbb646daf48fda764deeb113fac808cee9b01d0b"
+  name = "github.com/openfaas/faas-cli"
+  packages = [
+    "config",
+    "proxy",
+    "schema",
+    "stack",
+  ]
+  pruneopts = "UT"
+  revision = "b0a70a3f4f20d986ce12aff4216b3e7e07c0c44f"
+  version = "0.12.0"
+
+[[projects]]
+  digest = "1:e0d894b356dc84bf26c883b77c84386c75da35cf350daca0622d562560e89712"
+  name = "github.com/openfaas/faas-provider"
+  packages = [
+    "auth",
+    "httputil",
+    "logs",
+    "types",
+  ]
+  pruneopts = "UT"
+  revision = "478f741b64cbcfaaee852156b060514be56623b3"
+  version = "0.12.0"
 
 [[projects]]
   digest = "1:df78e66063fb11e516c09941a5b11e7a311af88edd6972b9170128899fb28c1a"
@@ -25,11 +71,28 @@
   revision = "6c3e056a6ac4475b11752fa219ca21b7bd7296ee"
   version = "0.13.3"
 
+[[projects]]
+  digest = "1:6baa565fe16f8657cf93469b2b8a6c61a277827734400d27e44d589547297279"
+  name = "github.com/ryanuber/go-glob"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "51a8f68e6c24dc43f1e371749c89a267de4ebc53"
+  version = "v1.0.0"
+
+[[projects]]
+  digest = "1:55b110c99c5fdc4f14930747326acce56b52cfce60b24b1c03ef686ac0e46bb1"
+  name = "gopkg.in/yaml.v2"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "53403b58ad1b561927d19068c655246f2db79d48"
+  version = "v2.2.8"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
     "github.com/alexellis/hmac",
+    "github.com/openfaas/faas-cli/proxy",
     "github.com/openfaas/openfaas-cloud/sdk",
   ]
   solver-name = "gps-cdcl"
