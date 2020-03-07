@@ -3,6 +3,7 @@ package function
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"log"
 	"os"
 	"strings"
@@ -68,9 +69,14 @@ func Handle(req []byte) string {
 	output, err := client.CreateRepository(&repoReq)
 
 	if err != nil {
-		log.Printf("CreateRepository error: %s\n", err.Error())
-		os.Exit(1)
+		if aerr, ok := err.(awserr.Error); ok {
+			if aerr.Code() != ecr.ErrCodeRepositoryAlreadyExistsException {
+				log.Printf("CreateRepository error: %s\n", err.Error())
+				os.Exit(1)
+			}
+		}
+		return fmt.Sprintf("Repo Exists: %s", *repoReq.RepositoryName)
 	}
 
-	return fmt.Sprintf("Created repo: %s\n", output.String())
+	return fmt.Sprintf("Created the repo: %s", output.String())
 }
