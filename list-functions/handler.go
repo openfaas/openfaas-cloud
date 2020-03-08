@@ -1,8 +1,8 @@
 package function
 
 import (
+	"context"
 	"encoding/json"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -10,7 +10,21 @@ import (
 	"strings"
 	"time"
 
+	"github.com/openfaas/faas-provider/types"
 	"github.com/openfaas/openfaas-cloud/sdk"
+
+	faasSDK "github.com/openfaas/faas-cli/proxy"
+)
+
+type FaaSAuth struct{}
+
+func (auth *FaaSAuth) Set(req *http.Request) error {
+	return sdk.AddBasicAuth(req)
+}
+
+var (
+	timeout   = 3 * time.Second
+	namespace = ""
 )
 
 // Handle takes the functions which are built
@@ -18,6 +32,10 @@ import (
 // to be consumed by the dashboard so the function
 // can be displayed
 func Handle(req []byte) string {
+
+	gatewayURL := os.Getenv("gateway_url")
+
+	client := faasSDK.NewClient(&FaaSAuth{}, gatewayURL, nil, &timeout)
 
 	user := string(req)
 	if len(user) == 0 {
@@ -34,44 +52,14 @@ func Handle(req []byte) string {
 		return "User is required as POST or querystring i.e. ?user=alexellis."
 	}
 
-	c := http.Client{
-		Timeout: time.Second * 3,
-	}
-
-	gatewayURL := os.Getenv("gateway_url")
-
-	httpReq, _ := http.NewRequest(http.MethodGet, gatewayURL+"system/functions", nil)
-	addAuthErr := sdk.AddBasicAuth(httpReq)
-	if addAuthErr != nil {
-		log.Printf("Basic auth error %s", addAuthErr)
-	}
-
-	response, err := c.Do(httpReq)
-	filtered := []sdk.Function{}
-
+	functions, err := client.ListFunctions(context.Background(), namespace)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	defer response.Body.Close()
-
-	bodyBytes, bErr := ioutil.ReadAll(response.Body)
-	if bErr != nil {
-		log.Fatal(bErr)
-	}
-
-	if response.StatusCode != http.StatusOK {
-		log.Fatalf("unable to query functions, status: %d, message: %s", response.StatusCode, string(bodyBytes))
-	}
-
-	functions := []sdk.Function{}
-	mErr := json.Unmarshal(bodyBytes, &functions)
-	if mErr != nil {
-		log.Fatal(mErr)
-	}
-
+	filtered := []types.FunctionStatus{}
 	for _, fn := range functions {
-		for k, v := range fn.Labels {
+		for k, v := range *fn.Labels {
 			if k == (sdk.FunctionLabelPrefix+"git-owner") && strings.EqualFold(v, user) {
 				// Hide internal-repo details
 				fn.Image = fn.Image[strings.Index(fn.Image, "/")+1:]
