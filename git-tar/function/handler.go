@@ -219,7 +219,7 @@ func Handle(req []byte) []byte {
 		tarMsg += fmt.Sprintf("%s @ %s, ", tar.functionName, tar.imageName)
 	}
 
-	deploymentMessage := fmt.Sprintf("Deployed: %s, time taken: %fs", strings.TrimRight(tarMsg, ", "), completed.Seconds())
+	deploymentMessage := fmt.Sprintf("Deployed: %s, time taken: %.2fs", strings.TrimRight(tarMsg, ", "), completed.Seconds())
 
 	auditEvent := sdk.AuditEvent{
 		Message: deploymentMessage,
