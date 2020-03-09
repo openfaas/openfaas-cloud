@@ -93,7 +93,8 @@ func Handle(req []byte) []byte {
 		os.Exit(-1)
 	}
 
-	clonePath, err := clone(pushEvent)
+	fetcher := GitRepoFetcher{}
+	clonePath, err := clone(fetcher, pushEvent)
 	if err != nil {
 		log.Println("Clone ", err.Error())
 		status.AddStatus(sdk.StatusFailure, "clone error : "+err.Error(), sdk.StackContext)

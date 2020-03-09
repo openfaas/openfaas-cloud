@@ -273,9 +273,16 @@ func getRepositoryURL(e sdk.PushEvent, authToken tokener) (string, error) {
 	return cu, nil
 }
 
-func clone(pushEvent sdk.PushEvent) (string, error) {
+func clone(fetcher RepoFetcher, pushEvent sdk.PushEvent) (string, error) {
 	workDir := os.TempDir()
 	destPath := path.Join(workDir, path.Join(pushEvent.Repository.Owner.Login, pushEvent.Repository.Name))
+
+	if len(pushEvent.Repository.Owner.Login) == 0 {
+		return "", fmt.Errorf("login must be specified")
+	}
+	if len(pushEvent.Repository.Name) == 0 {
+		return "", fmt.Errorf("repo name must be specified")
+	}
 
 	if _, err := os.Stat(destPath); err == nil {
 		truncateErr := os.RemoveAll(destPath)
@@ -314,25 +321,45 @@ func clone(pushEvent sdk.PushEvent) (string, error) {
 		}
 	}
 
-	git := exec.Command("git", "clone", cloneURL)
-	git.Dir = path.Join(workDir, pushEvent.Repository.Owner.Login)
-	log.Println(git.Dir)
-	err = git.Start()
-	if err != nil {
-		return "", fmt.Errorf("Cannot start git: %t", err)
-	}
-
-	err = git.Wait()
-
-	git = exec.Command("git", "checkout", pushEvent.AfterCommitID)
-	git.Dir = destPath
-	err = git.Start()
-	if err != nil {
-		return "", fmt.Errorf("Cannot start git checkout: %t", err)
-	}
-	err = git.Wait()
+	fetcher.Clone(cloneURL, path.Join(workDir, pushEvent.Repository.Owner.Login))
+	fetcher.Checkout(pushEvent.AfterCommitID, destPath)
 
 	return destPath, err
+}
+
+type RepoFetcher interface {
+	Clone(url, path string) error
+	Checkout(commitID, path string) error
+}
+
+type GitRepoFetcher struct {
+}
+
+func (c GitRepoFetcher) Clone(url, path string) error {
+	git := exec.Command("git", "clone", url)
+	git.Dir = path
+	log.Printf("Cloning %s to %s", url, path)
+
+	err := git.Start()
+	if err != nil {
+		return fmt.Errorf("Cannot start git: %t", err)
+	}
+
+	return git.Wait()
+}
+
+func (c GitRepoFetcher) Checkout(commitID, path string) error {
+	git := exec.Command("git", "checkout", commitID)
+	git.Dir = path
+	log.Printf("Checking out SHA: %s to %s", commitID, path)
+
+	err := git.Start()
+	if err != nil {
+		return fmt.Errorf("Cannot start git checkout: %t", err)
+	}
+
+	err = git.Wait()
+	return err
 }
 
 func deploy(tars []tarEntry, pushEvent sdk.PushEvent, stack *stack.Services, status *sdk.Status, payloadSecret string) error {
