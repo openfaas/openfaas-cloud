@@ -50,7 +50,7 @@ func Handle(req []byte) string {
 		deployedList += fn.GetOwner() + "/" + fn.GetRepo() + ", "
 	}
 
-	fmt.Printf("Functions owned by %s:\n %s", owner, strings.Trim(deployedList, ", "))
+	log.Printf("Functions owned by %s:\n %s", owner, strings.Trim(deployedList, ", "))
 
 	deleted := 0
 	for _, fn := range deployedFunctions {
