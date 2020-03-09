@@ -104,7 +104,11 @@ func Handle(req []byte) string {
 
 	sdk.PostAudit(auditEvent)
 
-	return fmt.Sprintf("Push - %v, git-tar status: %d\n", pushEvent, statusCode)
+	return fmt.Sprintf("Push: %s\n, git-tar: %d\n", formatPushEvent(pushEvent), statusCode)
+}
+
+func formatPushEvent(pushEvent sdk.PushEvent) string {
+	return pushEvent.Repository.Owner.Login + "/" + pushEvent.Repository.Name + "@" + pushEvent.Ref + "#" + pushEvent.Ref + " [" + pushEvent.Repository.CloneURL + "]"
 }
 
 func postEvent(pushEvent sdk.PushEvent) (int, error) {
