@@ -95,7 +95,7 @@ functions:
   garbage-collect:
     lang: go
     handler: ./garbage-collect
-    image: functions/garbage-collect:0.4.6
+    image: functions/garbage-collect:0.4.7
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
