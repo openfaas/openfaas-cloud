@@ -166,7 +166,7 @@ func Handle(req []byte) string {
 			log.Printf(statusErr.Error())
 		}
 
-		auditEvent.Message = fmt.Sprintf("buildshiprun failure: %s", msg)
+		auditEvent.Message = fmt.Sprintf("Error with buildshiprun: %s", msg)
 		sdk.PostAudit(auditEvent)
 
 		log.Printf("of-builder result: %s, logs: %s\n", result.Status, strings.Join(result.Log, "\n"))
@@ -176,7 +176,6 @@ func Handle(req []byte) string {
 	}
 
 	if len(imageName) > 0 {
-
 		// Replace image name for "localhost" for deployment
 		imageName = getImageName(repositoryURL, pushRepositoryURL, imageName)
 
@@ -224,6 +223,13 @@ func Handle(req []byte) string {
 			Image:   imageName,
 			Network: "func_functions",
 			Labels: map[string]string{
+				"faas_function":             serviceValue,
+				"app":                       serviceValue,
+				"com.openfaas.scale.min":    scalingMinLimit,
+				"com.openfaas.scale.max":    scalingMaxLimit,
+				"com.openfaas.scale.factor": scalingFactor,
+				zeroScaleLabel:              strconv.FormatBool(scaleToZero),
+
 				sdk.FunctionLabelPrefix + "git-cloud":      "1",
 				sdk.FunctionLabelPrefix + "git-owner":      event.Owner,
 				sdk.FunctionLabelPrefix + "git-owner-id":   fmt.Sprintf("%d", event.OwnerID),
@@ -233,12 +239,6 @@ func Handle(req []byte) string {
 				sdk.FunctionLabelPrefix + "git-private":    fmt.Sprintf("%d", private),
 				sdk.FunctionLabelPrefix + "git-scm":        event.SCM,
 				sdk.FunctionLabelPrefix + "git-branch":     buildBranch(),
-				"faas_function":                            serviceValue,
-				"app":                                      serviceValue,
-				"com.openfaas.scale.min":                   scalingMinLimit,
-				"com.openfaas.scale.max":                   scalingMaxLimit,
-				"com.openfaas.scale.factor":                scalingFactor,
-				zeroScaleLabel:                             strconv.FormatBool(scaleToZero),
 			},
 			Annotations:            userAnnotations,
 			Requests:               &FunctionResources{},
