@@ -219,7 +219,7 @@ func Handle(req []byte) []byte {
 		tarMsg += fmt.Sprintf("%s @ %s, ", tar.functionName, tar.imageName)
 	}
 
-	deploymentMessage := fmt.Sprintf("Deployed: %s. Took %s", strings.TrimRight(tarMsg, ", "), completed.String())
+	deploymentMessage := fmt.Sprintf("Deployed: %s, time taken: %fs", strings.TrimRight(tarMsg, ", "), completed.Seconds())
 
 	auditEvent := sdk.AuditEvent{
 		Message: deploymentMessage,
@@ -229,7 +229,7 @@ func Handle(req []byte) []byte {
 	}
 	sdk.PostAudit(auditEvent)
 
-	return []byte(deploymentMessage)
+	return []byte(deploymentMessage + "\n")
 }
 
 func collect(pushEvent sdk.PushEvent, stack *stack.Services) error {

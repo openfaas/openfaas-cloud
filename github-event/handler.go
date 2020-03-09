@@ -116,10 +116,11 @@ func Handle(req []byte) string {
 			"Content-Type":    "application/json",
 		}
 
-		body, statusCode, err := forward(req, "github-push", headers)
+		forwardTo := "github-push"
+		body, statusCode, err := forward(req, forwardTo, headers)
 
 		if statusCode == http.StatusOK {
-			return fmt.Sprintf("Forwarded to function: %d, %s", statusCode, body)
+			return fmt.Sprintf("[%s]: %d, %s", forwardTo, statusCode, body)
 		}
 
 		if err != nil {
@@ -318,9 +319,11 @@ func forward(req []byte, function string, headers map[string]string) (string, in
 	if res.Body != nil {
 		defer res.Body.Close()
 	}
+
 	body, _ := ioutil.ReadAll(res.Body)
 
-	if res.StatusCode != http.StatusOK {
+	if res.StatusCode != http.StatusOK &&
+		res.StatusCode != http.StatusAccepted {
 		err = fmt.Errorf(string(body))
 	}
 
