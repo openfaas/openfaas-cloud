@@ -1,14 +1,12 @@
-FROM golang:1.11-alpine3.10 as build
+FROM openfaas/faas-cli:0.11.8 as faas-cli
+FROM openfaas/classic-watchdog:0.18.1 as watchdog
+FROM golang:1.13-alpine3.11 as build
 
 ENV CGO_ENABLED=0
+ENV GO111MODULE=off
 
-RUN apk --no-cache add curl \ 
-    && echo "Pulling binaries from GitHub." \
-    && curl -sSLf https://github.com/openfaas/faas/releases/download/0.18.1/fwatchdog > /usr/bin/fwatchdog \
-    && curl -sSLf https://github.com/openfaas/faas-cli/releases/download/0.9.3/faas-cli > /usr/local/bin/faas-cli \
-    && chmod +x /usr/bin/fwatchdog \
-    && chmod +x /usr/local/bin/faas-cli \
-    && apk del curl --no-cache
+COPY --from=watchdog /fwatchdog /usr/bin/
+COPY --from=faas-cli /usr/bin/faas-cli /usr/bin/
 
 WORKDIR /go/src/handler
 COPY . .
@@ -21,7 +19,7 @@ RUN CGO_ENABLED=0 GOOS=linux \
     go build --ldflags "-s -w" -a -installsuffix cgo -o handler . && \
     go test $(go list ./... | grep -v /vendor/) -cover
 
-FROM alpine:3.10
+FROM alpine:3.11 as ship
 
 RUN apk --no-cache add \
     ca-certificates \
@@ -40,7 +38,7 @@ WORKDIR /home/app
 
 COPY --from=build /go/src/handler/handler    .
 COPY --from=build /usr/bin/fwatchdog         /usr/bin/fwatchdog
-COPY --from=build /usr/local/bin/faas-cli    /usr/local/bin/faas-cli
+COPY --from=build /usr/bin/faas-cli          /usr/local/bin/faas-cli
 
 RUN chmod 777 /tmp
 
