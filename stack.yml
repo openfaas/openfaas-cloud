@@ -173,7 +173,7 @@ functions:
   list-functions:
     lang: go
     handler: ./list-functions
-    image: functions/list-functions:0.5.1
+    image: functions/list-functions:0.6.0
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
