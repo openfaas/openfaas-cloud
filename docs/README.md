@@ -1,3 +1,5 @@
+Status: this documentation is no longer supported, please use one of the methods outlined in the README.
+
 ## OpenFaaS Cloud installation guide
 
 Installing OpenFaaS Cloud (aka OFC) requires some initial setup with GitHub or GitLab and a working installation of OpenFaaS (aka OF). If you'd like help please see below for how to join the Slack workspace.
