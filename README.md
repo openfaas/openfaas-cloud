@@ -77,13 +77,13 @@ OpenFaaS Ltd provides expert installation and support for OpenFaaS Cloud. You ca
 
 ### Option 2: Automated deployment (self-hosted)
 
-You can set up your own OpenFaaS Cloud with authentication and wildcard certificates using ofc-bootstrap in around 100 seconds.
-
-Get started: [ofc-bootstrap](https://github.com/openfaas-incubator/ofc-bootstrap)
+You can set up your own OpenFaaS Cloud with authentication and wildcard certificates using ofc-bootstrap in around 100 seconds using the ofc-bootstrap tool.
 
 This method assumes that you are using Kubernetes, have a public IP available or [are using the inlets-operator](https://github.com/inlets/inlets-operator), and have a domain name. Some basic knowledge of how to setup a GitHub App and GitHub OAuth App along with a DNS service account on DigitalOcean, Google Cloud DNS, Cloudflare or AWS Route53.
 
 A [developer install is also available via this blog post](https://blog.alexellis.io/openfaas-cloud-for-development/), which disables OAuth and TLS. You will still need an IP address and domain name.
+
+Deploy with: [ofc-bootstrap](https://github.com/openfaas-incubator/ofc-bootstrap)
 
 ### Option 3: Community Cluster (SaaS)
 
