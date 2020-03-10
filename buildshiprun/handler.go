@@ -2,6 +2,7 @@ package function
 
 import (
 	"bytes"
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -15,6 +16,8 @@ import (
 	"time"
 
 	"github.com/alexellis/hmac"
+	faasSDK "github.com/openfaas/faas-cli/proxy"
+	"github.com/openfaas/faas-cli/stack"
 	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
@@ -32,16 +35,25 @@ var (
 	imageValidator = regexp.MustCompile("(?:[a-zA-Z0-9./]*(?:[._-][a-z0-9]?)*(?::[0-9]+)?[a-zA-Z0-9./]+(?:[._-][a-z0-9]+)*/)*[a-zA-Z0-9]+(?:[._-][a-z0-9]+)+(?::[a-zA-Z0-9._-]+)?")
 )
 
-type FunctionResources struct {
-	Memory string `json:"memory,omitempty"`
-	CPU    string `json:"cpu,omitempty"`
-}
-
 type CPULimits struct {
 	Limit     string
 	Requests  string
 	Available bool
 }
+
+//FaaSAuth Authentication type for OpenFaaS
+type FaaSAuth struct {
+}
+
+//Set add basic authentication to the request
+func (auth *FaaSAuth) Set(req *http.Request) error {
+	return sdk.AddBasicAuth(req)
+}
+
+var (
+	timeout   = 3 * time.Second
+	namespace = ""
+)
 
 // Handle submits the tar to the of-builder then configures an OpenFaaS
 // deployment based upon stack.yml found in the Git repo. Finally starts
@@ -174,6 +186,9 @@ func Handle(req []byte) string {
 		log.Fatal(msg)
 		return msg
 	}
+	// Initializing the client and context
+	client := faasSDK.NewClient(&FaaSAuth{}, gatewayURL, nil, &timeout)
+	ctx := context.Background()
 
 	if len(imageName) > 0 {
 		// Replace image name for "localhost" for deployment
@@ -218,10 +233,10 @@ func Handle(req []byte) string {
 		userAnnotations := buildAnnotations(annotationWhitelist, event.Annotations)
 		userAnnotations[sdk.FunctionLabelPrefix+"git-repo-url"] = event.RepoURL
 
-		deploy := deployment{
-			Service: serviceValue,
-			Image:   imageName,
-			Network: "func_functions",
+		deploy := &faasSDK.DeployFunctionSpec{
+			FunctionName: serviceValue,
+			Image:        imageName,
+			Network:      "func_functions",
 			Labels: map[string]string{
 				"faas_function":             serviceValue,
 				"app":                       serviceValue,
@@ -240,25 +255,27 @@ func Handle(req []byte) string {
 				sdk.FunctionLabelPrefix + "git-scm":        event.SCM,
 				sdk.FunctionLabelPrefix + "git-branch":     buildBranch(),
 			},
-			Annotations:            userAnnotations,
-			Requests:               &FunctionResources{},
-			Limits:                 &FunctionResources{},
+			Annotations: userAnnotations,
+			FunctionResourceRequest: faasSDK.FunctionResourceRequest{
+				Limits:   &stack.FunctionResources{},
+				Requests: &stack.FunctionResources{},
+			},
 			EnvVars:                event.Environment,
 			Secrets:                event.Secrets,
 			ReadOnlyRootFilesystem: readOnlyRootFS,
 		}
 
-		deploy.Limits.Memory = defaultMemoryLimit
+		deploy.FunctionResourceRequest.Limits.Memory = defaultMemoryLimit
 
 		cpuLimit := getCPULimit()
 		if cpuLimit.Available {
 
 			if len(cpuLimit.Limit) > 0 {
-				deploy.Limits.CPU = cpuLimit.Limit
+				deploy.FunctionResourceRequest.Limits.CPU = cpuLimit.Limit
 			}
 
 			if len(cpuLimit.Requests) > 0 {
-				deploy.Requests.CPU = cpuLimit.Requests
+				deploy.FunctionResourceRequest.Requests.CPU = cpuLimit.Requests
 			}
 		}
 
@@ -268,8 +285,7 @@ func Handle(req []byte) string {
 			deploy.RegistryAuth = registryAuth
 		}
 
-		deployResult, err := deployFunction(deploy, gatewayURL)
-
+		deployResult, err := deployFunction(ctx, client, deploy, gatewayURL)
 		log.Println(deployResult)
 
 		if err != nil {
@@ -470,32 +486,15 @@ func getEventFromEnv() (*sdk.Event, error) {
 	return &info, err
 }
 
-func functionExists(deploy deployment, gatewayURL string) (bool, error) {
-
-	r, _ := http.NewRequest(http.MethodGet, gatewayURL+"system/functions", nil)
-
-	addAuthErr := sdk.AddBasicAuth(r)
-	if addAuthErr != nil {
-		log.Printf("Basic auth error %s", addAuthErr)
-	}
-
-	res, err := http.DefaultClient.Do(r)
-
+func functionExists(ctx context.Context, client *faasSDK.Client, functionName string, gatewayURL string) (bool, error) {
+	// client := faasSDK.NewClient(&FaaSAuth{}, gatewayURL, nil, &timeout)
+	functions, err := client.ListFunctions(ctx, namespace)
 	if err != nil {
-		fmt.Println(err)
 		return false, err
 	}
 
-	defer res.Body.Close()
-
-	fmt.Println("functionExists status: " + res.Status)
-	result, _ := ioutil.ReadAll(res.Body)
-
-	functions := []function{}
-	json.Unmarshal(result, &functions)
-
 	for _, function1 := range functions {
-		if function1.Name == deploy.Service {
+		if function1.Name == functionName {
 			return true, nil
 		}
 	}
@@ -503,49 +502,24 @@ func functionExists(deploy deployment, gatewayURL string) (bool, error) {
 	return false, err
 }
 
-func deployFunction(deploy deployment, gatewayURL string) (string, error) {
-	exists, err := functionExists(deploy, gatewayURL)
+func deployFunction(ctx context.Context, client *faasSDK.Client, deploySpec *faasSDK.DeployFunctionSpec, gatewayURL string) (string, error) {
+	var (
+		err error
+	)
+	exists, err := functionExists(ctx, client, deploySpec.FunctionName, gatewayURL)
 
-	bytesOut, _ := json.Marshal(deploy)
-
-	reader := bytes.NewBuffer(bytesOut)
-
-	fmt.Println("Deploying: " + deploy.Image + " as " + deploy.Service)
-	var res *http.Response
-	var httpReq *http.Request
-	var method string
+	fmt.Println("Deploying: " + deploySpec.Image + " as " + deploySpec.FunctionName)
+	// client := faasSDK.NewClient(&FaaSAuth{}, gatewayURL, nil, &timeout)
 	if exists {
-		method = http.MethodPut
-	} else {
-		method = http.MethodPost
+		deploySpec.Update = true
 	}
 
-	httpReq, err = http.NewRequest(method, gatewayURL+"system/functions", reader)
-	httpReq.Header.Set("Content-Type", "application/json")
-
-	addAuthErr := sdk.AddBasicAuth(httpReq)
-	if addAuthErr != nil {
-		log.Printf("Basic auth error %s", addAuthErr)
+	resStatus := client.DeployFunction(ctx, deploySpec)
+	log.Printf("Deploy status - %d", resStatus)
+	if resStatus < 200 || resStatus > 299 {
+		return "", fmt.Errorf("http status code %d", resStatus)
 	}
-
-	res, err = http.DefaultClient.Do(httpReq)
-
-	if err != nil {
-		log.Printf("error %s to system/functions %s", method, err)
-		return "", err
-	}
-
-	defer res.Body.Close()
-
-	log.Printf("Deploy status [%s] - %d", method, res.StatusCode)
-
-	buildStatus, _ := ioutil.ReadAll(res.Body)
-
-	if res.StatusCode < 200 || res.StatusCode > 299 {
-		return "", fmt.Errorf("http status code %d, error: %s", res.StatusCode, string(buildStatus))
-	}
-
-	return string(buildStatus), err
+	return fmt.Sprintf("%s deployed successfully", deploySpec.FunctionName), err
 }
 
 func enableStatusReporting() bool {
@@ -600,29 +574,6 @@ func validImage(image string) bool {
 		return true
 	}
 	return false
-}
-
-type deployment struct {
-	Service                string
-	Image                  string
-	Network                string
-	Labels                 map[string]string  `json:"labels"`
-	Limits                 *FunctionResources `json:"limits,omitempty"`
-	Requests               *FunctionResources `json:"requests,omitempty"`
-	EnvVars                map[string]string  `json:"envVars"` // EnvVars provides overrides for functions.
-	Secrets                []string           `json:"secrets"`
-	ReadOnlyRootFilesystem bool               `json:"readOnlyRootFilesystem"`
-	RegistryAuth           string             `json:"registryAuth"`
-	Annotations            map[string]string  `json:"annotations"`
-}
-
-type Limits struct {
-	Memory string
-	CPU    string
-}
-
-type function struct {
-	Name string
 }
 
 func getRegistryAuthSecret() string {
