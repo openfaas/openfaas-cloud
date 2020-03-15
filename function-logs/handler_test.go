@@ -2,11 +2,10 @@ package function
 
 import (
 	"encoding/json"
-	"fmt"
-	"github.com/openfaas/openfaas-cloud/sdk"
-	"strings"
 	"testing"
-	"time"
+
+	"github.com/openfaas/faas-provider/logs"
+	"github.com/openfaas/openfaas-cloud/sdk"
 )
 
 func Test_functionInResponse_fnIsInResponse(t *testing.T) {
@@ -102,15 +101,12 @@ func Test_functionInResponse_cantParseEmptyResponse(t *testing.T) {
 func Test_formatLogs_singleLogLine(t *testing.T) {
 	t.Run("", func(t *testing.T) {
 		messages := []string{"some message"}
-		logString := createLogMessage(messages)
+		logChan := createLogMessageChan(messages)
 
 		want := "some message"
 
-		got, err := formatLogs([]byte(logString))
+		got := formatLogs(logChan)
 
-		if err != nil {
-			t.Errorf("an error was thrown when we didnt expect it, %s", err)
-		}
 		if got != want {
 			t.Errorf("want: %q, got: %q", want, got)
 		}
@@ -120,43 +116,27 @@ func Test_formatLogs_singleLogLine(t *testing.T) {
 func Test_formatLogs_multiLogLine(t *testing.T) {
 	t.Run("", func(t *testing.T) {
 		messages := []string{"some message", "some second message"}
-		logString := createLogMessage(messages)
+		logChan := createLogMessageChan(messages)
 
-		want := "some messagesome second message"
+		want := "some message\nsome second message"
 
-		got, err := formatLogs([]byte(logString))
+		got := formatLogs(logChan)
 
-		if err != nil {
-			t.Errorf("an error was thrown when we didnt expect it, %s", err)
-		}
 		if got != want {
 			t.Errorf("want: %q, got: %q", want, got)
 		}
 	})
 }
 
-func Test_formatLogs_invalidLogLine(t *testing.T) {
-	t.Run("", func(t *testing.T) {
-		_, err := formatLogs([]byte("spfnsodufbnwiubfiwybca ciabcai"))
-
-		if err == nil {
-			t.Error("an error was not thrown when we expect it")
-		}
-	})
-}
-
 func Test_formatLogs_emptyLogLine(t *testing.T) {
 	t.Run("", func(t *testing.T) {
-		messages := []string{""}
-		logString := createLogMessage(messages)
+		messages := []string{}
+		logString := createLogMessageChan(messages)
 
 		want := ""
 
-		got, err := formatLogs([]byte(logString))
+		got := formatLogs(logString)
 
-		if err != nil {
-			t.Errorf("an error was thrown when we didnt expect it, %s", err)
-		}
 		if got != want {
 			t.Errorf("want: %q, got: %q", want, got)
 		}
@@ -165,12 +145,13 @@ func Test_formatLogs_emptyLogLine(t *testing.T) {
 
 func Test_formatLogs_emptyByteInput(t *testing.T) {
 	t.Run("", func(t *testing.T) {
-		want := ""
-		got, err := formatLogs([]byte(""))
+		messages := []string{""}
+		logChan := createLogMessageChan(messages)
 
-		if err != nil {
-			t.Errorf("an error was thrown when we didnt expect it, %s", err)
-		}
+		want := ""
+
+		got := formatLogs(logChan)
+
 		if got != want {
 			t.Errorf("want: %q, got: %q", want, got)
 		}
@@ -193,22 +174,14 @@ func createFnListJson(name string, labels map[string]string) string {
 
 }
 
-func createLogMessage(messages []string) string {
+func createLogMessageChan(messages []string) chan logs.Message {
+	logChan := make(chan logs.Message)
 
-	var b strings.Builder
-
-	for _, msg := range messages {
-		var logObj Message
-		logObj = Message{
-			Name:      "somename",
-			Instance:  "somepod",
-			Timestamp: time.Time{},
-			Text:      msg,
+	go func() {
+		for _, v := range messages {
+			logChan <- logs.Message{Text: v}
 		}
-
-		jsonStr, _ := json.Marshal(logObj)
-		b.WriteString(fmt.Sprintf("%s\n", jsonStr))
-	}
-
-	return b.String()
+		close(logChan)
+	}()
+	return logChan
 }

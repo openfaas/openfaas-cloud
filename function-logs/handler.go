@@ -1,10 +1,10 @@
 package function
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -12,7 +12,21 @@ import (
 	"strings"
 	"time"
 
+	faasSDK "github.com/openfaas/faas-cli/proxy"
+	"github.com/openfaas/faas-provider/logs"
+	"github.com/openfaas/faas-provider/types"
 	"github.com/openfaas/openfaas-cloud/sdk"
+)
+
+type FaaSAuth struct{}
+
+func (auth *FaaSAuth) Set(req *http.Request) error {
+	return sdk.AddBasicAuth(req)
+}
+
+var (
+	timeout   = 5 * time.Second
+	namespace = ""
 )
 
 // Handle grabs the logs for the fn that is named in the input
@@ -40,14 +54,18 @@ func Handle(req []byte) string {
 	allowed, err := isUserFunction(function, gatewayURL, user)
 
 	if err != nil {
-		log.Fatalf("there was an error requesting the function %q", function)
+		log.Fatalf("there was an error requesting the function %q: %s", function, err.Error())
 	}
 
 	if !allowed {
 		log.Fatalf("requested function %q could not be found or you are not allowed to access it", function)
 	}
 
-	formattedLogs, fmtErr := getFormattedLogs(gatewayURL, function)
+	client := faasSDK.NewClient(&FaaSAuth{}, gatewayURL, nil, &timeout)
+
+	ctx := context.Background()
+
+	formattedLogs, fmtErr := getFormattedLogs(*client, ctx, function)
 
 	if fmtErr != nil {
 		log.Fatalf("there was an error formatting logs for the function %q, %s", function, fmtErr)
@@ -55,46 +73,41 @@ func Handle(req []byte) string {
 	return formattedLogs
 }
 
-func getFormattedLogs(gatewayURL string, function string) (string, error) {
+func getFormattedLogs(client faasSDK.Client, ctx context.Context, function string) (string, error) {
 
 	if len(function) == 0 {
 		return "", errors.New("function name was empty, please provide a valid function name")
 	}
-	queryParams := make(map[string]string)
+	timeSince := time.Now().Add(-1 * time.Minute * 30)
+	logRequest := logs.Request{Name: function, Since: &timeSince, Follow: false}
 
-	queryParams["name"] = function
-	queryParams["follow"] = "false"
-	queryParams["since"] = time.Now().Add(-1 * time.Minute * 30).Format(time.RFC3339)
-
-	response, bodyBytes := makeGatewayHttpReq(gatewayURL+"/system/logs", queryParams)
-
-	if response.StatusCode != http.StatusOK {
-		return "", errors.New(fmt.Sprintf("unable to query logs, status: %d, message: %s", response.StatusCode, string(bodyBytes)))
+	logChan, err := client.GetLogs(ctx, logRequest)
+	if err != nil {
+		return "", errors.New(fmt.Sprintf("unable to query logs, message: %s", err.Error()))
 	}
 
-	formattedLogs, formatErr := formatLogs(bodyBytes)
+	formattedLogs := formatLogs(logChan)
 
-	if formatErr != nil {
-		return "", formatErr
-	}
 	return formattedLogs, nil
 }
 
 func isUserFunction(function string, gatewayURL string, user string) (bool, error) {
-	queryParams := make(map[string]string)
-	queryParams["user"] = user
 
 	if len(user) == 0 {
 		return false, errors.New("user is not set, user must be set for us to find logs")
 	}
 
-	response, bodyBytes := makeGatewayHttpReq(gatewayURL+"/function/list-functions", queryParams)
+	bytesIn := []byte("")
 
-	if response.StatusCode != http.StatusOK {
-		return false, errors.New(fmt.Sprintf("unable to query functions list, status: %d, message: %s", response.StatusCode, string(bodyBytes)))
+	nameQuery := []string{fmt.Sprintf("user=%s", user)}
+
+	resBytes, err := faasSDK.InvokeFunction(gatewayURL, "list-functions", &bytesIn, "", nameQuery, nil, false, "POST", true, "")
+
+	if err != nil {
+		return false, errors.New(fmt.Sprintf("unable to query functions list message: %s", err.Error()))
 	}
 
-	res, err := functionInResponse(bodyBytes, function, user)
+	res, err := functionInResponse(*resBytes, function, user)
 	if err != nil {
 		return false, err
 	}
@@ -102,24 +115,18 @@ func isUserFunction(function string, gatewayURL string, user string) (bool, erro
 	return res, nil
 }
 
-func formatLogs(msgBody []byte) (string, error) {
-	if len(msgBody) == 0 {
-		return "", nil
-	}
+func formatLogs(logChan <-chan logs.Message) string {
 	var b strings.Builder
-	for _, line := range strings.Split(strings.TrimSuffix(string(msgBody), "\n"), "\n") {
-		data := Message{}
-		if err := json.Unmarshal([]byte(line), &data); err != nil {
-			return "", err
+	for v := range logChan {
+		for _, line := range strings.Split(strings.TrimSuffix(v.Text, "\n"), "\n") {
+			b.WriteString(line + "\n")
 		}
-		b.WriteString(data.Text)
 	}
-
-	return strings.TrimRight(b.String(), "\n"), nil
+	return strings.TrimRight(b.String(), "\n")
 }
 
 func functionInResponse(bodyBytes []byte, function string, owner string) (bool, error) {
-	functions := []sdk.Function{}
+	functions := []types.FunctionStatus{}
 	mErr := json.Unmarshal(bodyBytes, &functions)
 	if mErr != nil {
 		return false, mErr
@@ -127,49 +134,8 @@ func functionInResponse(bodyBytes []byte, function string, owner string) (bool, 
 
 	for _, fn := range functions {
 		if fn.Name == function {
-			return fn.Labels["com.openfaas.cloud.git-owner"] == owner, nil
+			return (*fn.Labels)["com.openfaas.cloud.git-owner"] == owner, nil
 		}
 	}
 	return false, nil
-}
-
-func makeGatewayHttpReq(URL string, queryParams map[string]string) (*http.Response, []byte) {
-	c := http.Client{
-		Timeout: time.Second * 3,
-	}
-
-	httpReq, _ := http.NewRequest(http.MethodGet, URL, nil)
-
-	query := url.Values{}
-
-	for key, value := range queryParams {
-		query.Add(key, value)
-	}
-
-	addAuthErr := sdk.AddBasicAuth(httpReq)
-	if addAuthErr != nil {
-		log.Fatalf("Basic auth error %s", addAuthErr)
-	}
-
-	httpReq.URL.RawQuery = query.Encode()
-
-	response, err := c.Do(httpReq)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer response.Body.Close()
-	bodyBytes, bErr := ioutil.ReadAll(response.Body)
-	if bErr != nil {
-		log.Fatal(bErr)
-	}
-
-	return response, bodyBytes
-}
-
-type Message struct {
-	Name      string    `json:"name"`
-	Instance  string    `json:"instance"`
-	Timestamp time.Time `json:"timestamp"`
-	Text      string    `json:"text"`
 }
