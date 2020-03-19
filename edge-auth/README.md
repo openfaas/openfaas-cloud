@@ -44,7 +44,7 @@ Please note - You need to be a public member of any Organisation that you wish t
 ## Building
 
 ```
-export TAG=0.7.2
+export TAG=0.7.3
 make build push
 ```
 
@@ -105,7 +105,7 @@ echo -n "$CLIENT_SECRET" | docker secret create of-client-secret -
 
 ```sh
 docker rm -f edge-auth
-export TAG=0.7.1
+export TAG=0.7.3
 
 docker run \
  -e client_secret="$CLIENT_SECRET" \
