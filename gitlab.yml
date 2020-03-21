@@ -26,6 +26,11 @@ functions:
       - payload-secret
       - gitlab-api-token
       - customers
+    limits:
+      memory: 128Mi
+    requests:
+      memory: 32Mi
+      cpu: 50m
 
   gitlab-push:
     lang: go
@@ -44,6 +49,11 @@ functions:
     secrets:
       - payload-secret
       - customers
+    limits:
+      memory: 128Mi
+    requests:
+      memory: 32Mi
+      cpu: 50m
 
   gitlab-status:
     lang: go
@@ -61,3 +71,8 @@ functions:
     secrets:
       - gitlab-api-token
       - payload-secret
+    limits:
+      memory: 128Mi
+    requests:
+      memory: 32Mi
+      cpu: 50m

@@ -23,6 +23,11 @@ functions:
       - github-webhook-secret
       - payload-secret
       - customers
+    limits:
+      memory: 128Mi
+    requests:
+      memory: 32Mi
+      cpu: 50m
 
   github-push:
     lang: go
@@ -45,6 +50,11 @@ functions:
       - github-webhook-secret
       - payload-secret
       - customers
+    limits:
+      memory: 128Mi
+    requests:
+      memory: 32Mi
+      cpu: 50m
 
   git-tar:
     lang: dockerfile
@@ -67,6 +77,11 @@ functions:
       - private-key
   # Uncomment this for GitLab
   #      - gitlab-api-token
+    limits:
+      memory: 128Mi
+    requests:
+      memory: 32Mi
+      cpu: 50m
 
   buildshiprun:
     lang: go
@@ -91,6 +106,11 @@ functions:
       - basic-auth-password
       - payload-secret
   #      - swarm-pull-secret
+    limits:
+      memory: 128Mi
+    requests:
+      memory: 32Mi
+      cpu: 50m
 
   garbage-collect:
     lang: go
@@ -111,6 +131,11 @@ functions:
       - basic-auth-user
       - basic-auth-password
       - payload-secret
+    limits:
+      memory: 128Mi
+    requests:
+      memory: 32Mi
+      cpu: 50m
 
   github-status:
     lang: go
@@ -132,6 +157,11 @@ functions:
     secrets:
       - private-key
       - payload-secret
+    limits:
+      memory: 128Mi
+    requests:
+      memory: 32Mi
+      cpu: 50m
 
   import-secrets:
     lang: go
@@ -150,6 +180,11 @@ functions:
       - github.yml
     secrets:
       - payload-secret
+    limits:
+      memory: 128Mi
+    requests:
+      memory: 32Mi
+      cpu: 50m
 
   pipeline-log:
     lang: go
@@ -169,6 +204,11 @@ functions:
       - s3-access-key
       - s3-secret-key
       - payload-secret
+    limits:
+      memory: 128Mi
+    requests:
+      memory: 32Mi
+      cpu: 50m
 
   list-functions:
     lang: go
@@ -186,6 +226,11 @@ functions:
     secrets:
       - basic-auth-user
       - basic-auth-password
+    limits:
+      memory: 128Mi
+    requests:
+      memory: 32Mi
+      cpu: 50m
 
   audit-event:
     lang: go
@@ -196,6 +241,11 @@ functions:
       com.openfaas.scale.zero: false
     environment_file:
       - slack.yml
+    limits:
+      memory: 128Mi
+    requests:
+      memory: 32Mi
+      cpu: 50m
 
   echo:
     skip_build: true
@@ -207,6 +257,11 @@ functions:
     environment:
       write_debug: true
       read_debug: true
+    limits:
+      memory: 128Mi
+    requests:
+      memory: 32Mi
+      cpu: 50m
 
   metrics:
     lang: go
@@ -220,6 +275,11 @@ functions:
       - gateway_config.yml
     environment:
       content_type: "application/json"
+    limits:
+      memory: 128Mi
+    requests:
+      memory: 32Mi
+      cpu: 50m
 
   function-logs:
     lang: go
@@ -237,5 +297,10 @@ functions:
     secrets:
       - basic-auth-user
       - basic-auth-password
+    limits:
+      memory: 128Mi
+    requests:
+      memory: 32Mi
+      cpu: 50m
 
 

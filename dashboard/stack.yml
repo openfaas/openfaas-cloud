@@ -12,3 +12,8 @@ functions:
       role: openfaas-system
     environment_file:
       - dashboard_config.yml
+    limits:
+      memory: 256Mi
+    requests:
+      memory: 64Mi
+      cpu: 50m
