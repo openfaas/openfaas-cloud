@@ -101,14 +101,20 @@ module.exports = async (event, context) => {
 
     const isSignedIn = /openfaas_cloud_token=.*\s*/.test(event.headers.cookie);
 
-    console.log(path);
-
     if (path === "/" && isSignedIn) {
-      headers["Location"] =   "/dashboard/"+ decodedCookie["sub"];
+      let statusCode = 404
+
+      // If we have a cookie, and it has a subject, then redirect to the subject's dashboard
+      if (decodedCookie && decodedCookie["sub"]) {
+        headers["Location"] =   "/dashboard/"+ decodedCookie["sub"];
+        statusCode = 307
+      }
+
       return context
           .headers(headers)
-          .status(307)
-          .succeed();
+          .status(statusCode)
+          .succeed()
+      
     }
 
     let claims = get_all_claims(organizations, decodedCookie);
