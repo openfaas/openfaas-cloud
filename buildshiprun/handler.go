@@ -507,9 +507,7 @@ func deployFunction(ctx context.Context, client *faasSDK.Client, deploySpec *faa
 		err error
 	)
 	exists, err := functionExists(ctx, client, deploySpec.FunctionName, gatewayURL)
-
-	fmt.Println("Deploying: " + deploySpec.Image + " as " + deploySpec.FunctionName)
-	// client := faasSDK.NewClient(&FaaSAuth{}, gatewayURL, nil, &timeout)
+	log.Println("Deploying: " + deploySpec.Image + " as " + deploySpec.FunctionName)
 	if exists {
 		deploySpec.Update = true
 	}

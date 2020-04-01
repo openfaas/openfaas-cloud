@@ -72,7 +72,7 @@ func Handle(req []byte) string {
 	for _, fn := range deployedFunctions {
 		if garbageReq.Repo == "*" ||
 			(fn.GetRepo() == garbageReq.Repo && !included(&fn, owner, garbageReq.Functions)) {
-			fmt.Printf("Delete: %s\n", fn.Name)
+			log.Printf("Delete: %s\n", fn.Name)
 			err = client.DeleteFunction(context.Background(), fn.Name, namespace)
 			if err != nil {
 				auditEvent := sdk.AuditEvent{
