@@ -1,2 +1,3 @@
 environment:
   slack_url: http://gateway.openfaas:8080/function/echo
+
