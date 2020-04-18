@@ -21,7 +21,7 @@ edgeAuth:
   clientId: ""
   writeDebug: false
   ## clientSecret is the value from your OAuth application
-  clientSecret:
+  clientSecret: ""
 
 edgeRouter:
   image: openfaas/edge-router:0.7.4
@@ -40,7 +40,7 @@ tls:
 
   ## route53 specific conofig, required if dnsService is set t route53
   route53:
-    region:
+    region: eu-west-1
     accessKeyID:
     ## ambientCredentials this should be set to true if you are using an AWS ambient credentials provider, such as kube2iam
     ambientCredentials: false
