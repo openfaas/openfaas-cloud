@@ -10,3 +10,5 @@ environment:
   pretty_url: https://user.o6s.io/function
   # Comment out if not using public pretty-URL
   query_pretty_url: 'true'
+  # Cookie root domain, set is using OAuth, used to remove a user's cookie
+  cookie_root_domain: 'system.o6s.io'
