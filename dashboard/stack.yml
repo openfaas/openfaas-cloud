@@ -6,7 +6,7 @@ functions:
   system-dashboard:
     lang: node12
     handler: ./of-cloud-dashboard
-    image: functions/of-cloud-dashboard:0.8.0
+    image: functions/of-cloud-dashboard:0.8.1
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
