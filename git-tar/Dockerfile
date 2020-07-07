@@ -1,6 +1,6 @@
-FROM openfaas/faas-cli:0.11.8 as faas-cli
-FROM openfaas/classic-watchdog:0.18.1 as watchdog
-FROM golang:1.13-alpine3.11 as build
+FROM openfaas/faas-cli:0.12.8 as faas-cli
+FROM openfaas/classic-watchdog:0.18.17 as watchdog
+FROM golang:1.13-alpine3.12 as build
 
 ENV CGO_ENABLED=0
 ENV GO111MODULE=off

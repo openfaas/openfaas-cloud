@@ -1,6 +1,6 @@
 [[constraint]]
   name = "github.com/openfaas/faas-cli"
-  version = "0.9.3"
+  version = "0.12.8"
 
 [[constraint]]
   name = "github.com/openfaas/openfaas-cloud"
@@ -25,5 +25,4 @@
 [prune]
   go-tests = true
   unused-packages = true
-
 

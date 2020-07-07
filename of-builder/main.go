@@ -30,11 +30,20 @@ import (
 // ConfigFileName for Docker bundle
 const ConfigFileName = "com.openfaas.docker.config"
 
+// DefaultFrontEnd to run the build with buildkit
+const DefaultFrontEnd = "tonistiigi/dockerfile:v0"
+
 var (
 	lchownEnabled bool
 	buildkitURL   string
 	buildArgs     = map[string]string{}
 )
+
+type buildConfig struct {
+	Ref       string            `json:"ref"`
+	Frontend  string            `json:"frontend,omitempty"`
+	BuildArgs map[string]string `json:"buildArgs,omitempty"`
+}
 
 func main() {
 	flag.Parse()
@@ -160,11 +169,7 @@ func build(w http.ResponseWriter, r *http.Request, buildArgs map[string]string) 
 		return nil, err
 	}
 
-	var cfg struct {
-		Ref      string
-		Frontend string
-	}
-
+	cfg := buildConfig{}
 	if err := json.Unmarshal(dt, &cfg); err != nil {
 		return nil, err
 	}
@@ -174,7 +179,7 @@ func build(w http.ResponseWriter, r *http.Request, buildArgs map[string]string) 
 	}
 
 	if cfg.Frontend == "" {
-		cfg.Frontend = "tonistiigi/dockerfile:v0"
+		cfg.Frontend = DefaultFrontEnd
 	}
 
 	insecure := "false"
@@ -188,6 +193,10 @@ func build(w http.ResponseWriter, r *http.Request, buildArgs map[string]string) 
 
 	for k, v := range buildArgs {
 		frontendAttrs[k] = v
+	}
+
+	for k, v := range cfg.BuildArgs {
+		frontendAttrs[fmt.Sprintf("build-arg:%s", k)] = v
 	}
 
 	contextDir := filepath.Join(tmpdir, "context")
