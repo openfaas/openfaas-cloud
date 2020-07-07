@@ -1,6 +1,7 @@
-FROM golang:1.11-alpine AS builder
+FROM golang:1.13-alpine AS builder
 
 ENV CGO_ENABLED=0
+ENV GO111MODULE=off
 
 RUN apk add --no-cache git g++ linux-headers curl ca-certificates
 
@@ -16,8 +17,7 @@ ADD vendor      vendor
 
 RUN go build -o /usr/bin/of-builder .
 
-FROM alpine:3.10
-
+FROM alpine:3.12
 RUN apk add --no-cache ca-certificates
 
 # Setting the group prevented access to /tmp at runtime

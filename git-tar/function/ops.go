@@ -36,11 +36,6 @@ type tarEntry struct {
 	imageName    string
 }
 
-type cfg struct {
-	Ref      string  `json:"ref"`
-	Frontend *string `json:"frontend,omitempty"`
-}
-
 func parseYAML(filePath string) (*stack.Services, error) {
 	envVarSubst := false
 	parsed, err := stack.ParseYAMLFile(path.Join(filePath, "stack.yml"), "", "", envVarSubst)
@@ -123,8 +118,13 @@ func makeTar(pushEvent sdk.PushEvent, filePath string, services *stack.Services)
 		imageName := formatImageShaTag(pushRepositoryURL, &v, pushEvent.AfterCommitID,
 			pushEvent.Repository.Owner.Login, pushEvent.Repository.Name)
 
-		config := cfg{
-			Ref: imageName,
+		allowedBuildArgs := []string{"GO111MODULE"}
+		buildArgs := makeBuildArgs(v.BuildArgs, allowedBuildArgs)
+
+		// Write a config file for the Docker build
+		config := buildConfig{
+			Ref:       imageName,
+			BuildArgs: buildArgs,
 		}
 
 		configBytes, _ := json.Marshal(config)
@@ -796,4 +796,17 @@ func invokeWithHMAC(uri string, payload []byte, payloadSecret string, headers ma
 	}
 
 	return res.StatusCode, resOut, nil
+}
+
+func makeBuildArgs(inputArgs map[string]string, allowed []string) map[string]string {
+	args := map[string]string{}
+	for key, value := range inputArgs {
+		for _, allow := range allowed {
+			if key == allow {
+				args[key] = value
+				break
+			}
+		}
+	}
+	return args
 }
