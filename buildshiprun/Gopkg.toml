@@ -1,12 +1,4 @@
 [[constraint]]
-  name = "github.com/alexellis/derek"
-  version = "0.5.0"
-
-[[constraint]]
-  name = "github.com/google/go-github"
-  version = "15.0.0"
-
-[[constraint]]
   name = "github.com/openfaas/openfaas-cloud"
   version = "0.13.3"
 
