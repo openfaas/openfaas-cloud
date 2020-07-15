@@ -10,12 +10,12 @@
   revision = "2aa6f33b730c79971cfc3c742f279195b0abc627"
 
 [[projects]]
-  digest = "1:870b3bdb112ed9edf6b44673517004654384f7be83b0834c7a9a7203f2cd01fd"
+  digest = "1:61f1d9e851534a1d5881efdb940794f3ad8a8553d9a942aef66ff092b26faa83"
   name = "github.com/alexellis/derek"
   packages = ["auth"]
   pruneopts = "UT"
-  revision = "852193f67a38f5613db9b83e9f4e4e0b139aae41"
-  version = "0.9.1"
+  revision = "b453a7326b674d6ee0d413fac7c39548c3614151"
+  version = "0.10.2"
 
 [[projects]]
   digest = "1:871b7cfa5fe18bfdbd4bf117c166c3cff8d3b61c8afe4e998b5b8ac0c160ca24"

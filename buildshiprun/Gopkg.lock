@@ -93,6 +93,7 @@
   input-imports = [
     "github.com/alexellis/hmac",
     "github.com/openfaas/faas-cli/proxy",
+    "github.com/openfaas/faas-cli/stack",
     "github.com/openfaas/openfaas-cloud/sdk",
   ]
   solver-name = "gps-cdcl"

@@ -302,5 +302,3 @@ functions:
     requests:
       memory: 32Mi
       cpu: 50m
-
-

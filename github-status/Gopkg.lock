@@ -2,15 +2,16 @@
 
 
 [[projects]]
-  digest = "1:dded960d3aa1f4479adddab5c94444f9a57ba32bb2c58655dc7eefcd8496bbb4"
+  digest = "1:7bfdc4646f8ec270a72a078719ef0f5ca551186d9343e99ee9d0efe51b3f6dd8"
   name = "github.com/alexellis/derek"
   packages = [
     "auth",
+    "config",
     "factory",
   ]
   pruneopts = "UT"
-  revision = "f8c2d49fd14b3e913c56ad2bd37193775836e906"
-  version = "0.6.1"
+  revision = "b453a7326b674d6ee0d413fac7c39548c3614151"
+  version = "0.10.2"
 
 [[projects]]
   digest = "1:871b7cfa5fe18bfdbd4bf117c166c3cff8d3b61c8afe4e998b5b8ac0c160ca24"
@@ -111,6 +112,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/alexellis/derek/auth",
+    "github.com/alexellis/derek/config",
     "github.com/alexellis/derek/factory",
     "github.com/alexellis/hmac",
     "github.com/google/go-github/github",

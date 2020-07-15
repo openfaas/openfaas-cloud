@@ -3,6 +3,7 @@ package function
 import (
 	"context"
 	"fmt"
+	"github.com/alexellis/derek/config"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -17,13 +18,14 @@ import (
 )
 
 const (
-	defaultPrivateKeyName   = "private-key"
-	defaultSecretMountPath  = "/var/openfaas/secrets"
-	githubCheckCompleted    = "completed"
-	githubCheckQueued       = "queued"
-	githubConclusionFailure = "failure"
-	githubConclusionSuccess = "success"
-	githubConclusionNeutral = "neutral"
+	defaultPrivateKeyName    = "private-key"
+	defaultPayloadSecretName = "payload-secret"
+	defaultSecretMountPath   = "/var/openfaas/secrets"
+	githubCheckCompleted     = "completed"
+	githubCheckQueued        = "queued"
+	githubConclusionFailure  = "failure"
+	githubConclusionSuccess  = "success"
+	githubConclusionNeutral  = "neutral"
 )
 
 var (
@@ -68,8 +70,12 @@ func Handle(req []byte) string {
 		log.Printf("reusing provided auth token")
 	} else {
 		var tokenErr error
-		privateKeyPath := sdk.GetPrivateKeyPath()
-		token, tokenErr = auth.MakeAccessTokenForInstallation(os.Getenv("github_app_id"), status.EventInfo.InstallationID, privateKeyPath)
+		privateKey, err := sdk.ReadSecret(defaultPrivateKeyName)
+		if err != nil {
+			fmt.Sprintf("Error reading privateKey: %v", err)
+			return "Error reading github private Key"
+		}
+		token, tokenErr = auth.MakeAccessTokenForInstallation(os.Getenv("github_app_id"), status.EventInfo.InstallationID, privateKey)
 		if tokenErr != nil {
 			log.Fatalf("failed to report status %v, error: %s\n", status, tokenErr.Error())
 		}
@@ -119,14 +125,31 @@ func getLogs(status *sdk.CommitStatus, event *sdk.Event) (string, error) {
 }
 
 func reportToGithub(commitStatus *sdk.CommitStatus, event *sdk.Event) error {
-	appID := os.Getenv("github_app_id")
-	if os.Getenv("use_checks") == "false" {
-		return reportStatus(commitStatus.Status, commitStatus.Description, appID, event)
+	secretKey, err := sdk.ReadSecret(defaultPayloadSecretName)
+	if err != nil {
+		log.Printf("reusing provided auth token")
+		log.Printf("Error reading secretKey: %v", err)
+		return err
 	}
-	return reportCheck(commitStatus, event)
+	privateKey, err := sdk.ReadSecret(defaultPrivateKeyName)
+	if err != nil {
+		log.Printf("Error reading privateKey: %v", err)
+		return err
+	}
+
+	appID := os.Getenv("github_app_id")
+	cfg := config.Config{
+		SecretKey:     secretKey,
+		PrivateKey:    privateKey,
+		ApplicationID: appID,
+	}
+	if os.Getenv("use_checks") == "false" {
+		return reportStatus(commitStatus.Status, commitStatus.Description, appID, event, cfg)
+	}
+	return reportCheck(commitStatus, event, cfg)
 }
 
-func reportStatus(status string, desc string, statusContext string, event *sdk.Event) error {
+func reportStatus(status string, desc string, statusContext string, event *sdk.Event, cfg config.Config) error {
 	appID := os.Getenv("github_app_id")
 
 	ctx := context.Background()
@@ -137,7 +160,7 @@ func reportStatus(status string, desc string, statusContext string, event *sdk.E
 
 	log.Printf("Status: %s, Context: %s, GitHub AppID: %s, Repo: %s, Owner: %s", status, statusContext, appID, event.Repository, event.Owner)
 
-	client := factory.MakeClient(ctx, token)
+	client := factory.MakeClient(ctx, token, cfg)
 
 	_, _, apiErr := client.Repositories.CreateStatus(ctx, event.Owner, event.Repository, event.SHA, repoStatus)
 	if apiErr != nil {
@@ -147,7 +170,7 @@ func reportStatus(status string, desc string, statusContext string, event *sdk.E
 	return nil
 }
 
-func reportCheck(commitStatus *sdk.CommitStatus, event *sdk.Event) error {
+func reportCheck(commitStatus *sdk.CommitStatus, event *sdk.Event, cfg config.Config) error {
 	ctx := context.Background()
 	appID := os.Getenv("github_app_id")
 	status := commitStatus.Status
@@ -155,7 +178,7 @@ func reportCheck(commitStatus *sdk.CommitStatus, event *sdk.Event) error {
 
 	log.Printf("Check: %s, Context: %s, GitHub AppID: %s, Repo: %s, Owner: %s", status, commitStatus.Context, appID, event.Repository, event.Owner)
 
-	client := factory.MakeClient(ctx, token)
+	client := factory.MakeClient(ctx, token, cfg)
 
 	now := github.Timestamp{time.Now()}
 
