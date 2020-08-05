@@ -130,3 +130,7 @@ Your function is now deleted.
 #### Delete the project
 
 If you delete your project your function will be automatically deleted from the cloud.
+
+#### Troubleshooting
+
+There are some usernames that don't conform to the buildkit and Kubernetes naming for secrets, (We use usernames for namespacing objects) - You may see `invalid reference format` in the buildkit logs - if you do there are github issues [here](https://github.com/openfaas/openfaas-cloud/issues/657) and [here](https://github.com/openfaas/openfaas-cloud/issues/644) where you can see what you need to change for things to work well with Gitlab.
