@@ -10,7 +10,7 @@ import {
   Collapse,
 } from 'reactstrap';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faGithub } from '@fortawesome/free-brands-svg-icons';
+import { faGithub, faGitlab } from '@fortawesome/free-brands-svg-icons';
 import { faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 
 class NavBarWithRouter extends Component {
@@ -94,15 +94,30 @@ class NavBarWithRouter extends Component {
         <Collapse isOpen={this.state.isActive} navbar>
           <Nav navbar>
             { this.createNavLink(pathname, user, 'Home') }
-            <NavItem>
-              <NavLink
-                className="py-3 px-3 px-md-2"
-                href="https://github.com/openfaas/openfaas-cloud"
-              >
-                <FontAwesomeIcon icon={faGithub} className="mr-1" />
-                GitHub
-              </NavLink>
-            </NavItem>
+            { window.GITHUB_APP_URL &&
+              <NavItem>
+                <NavLink
+                  className="py-3 px-3 px-md-2"
+                  href={window.GITHUB_APP_URL}
+                  title="Install on GitHub repo to deploy functions to OpenFaaS Cloud"
+                >
+                  <FontAwesomeIcon icon={faGithub} className="mr-1" />
+                  GitHub App
+                </NavLink>
+              </NavItem>
+            }
+            { window.GITLAB_URL &&
+              <NavItem>
+                <NavLink
+                  className="py-3 px-3 px-md-2"
+                  href={window.GITLAB_URL}
+                  title="GitLab instance to deploy functions to OpenFaaS Cloud"
+                >
+                  <FontAwesomeIcon icon={faGitlab} className="mr-1" />
+                  GitLab
+                </NavLink>
+              </NavItem>
+            }
           </Nav>
           <Nav navbar className="ml-auto">
             { this.isLoggedIn() && this.createNavLink(
