@@ -12,3 +12,8 @@ environment:
   query_pretty_url: 'true'
   # Cookie root domain, set is using OAuth, used to remove a user's cookie
   cookie_root_domain: 'system.o6s.io'
+  # Public URL for your GitHub app
+  # see https://github.com/settings/apps/
+  # github_app_url: https://github.com/apps/o6s-io
+  # Public URL for your GitLab instance
+  # gitlab_url: https://gitlab.o6s.io/
