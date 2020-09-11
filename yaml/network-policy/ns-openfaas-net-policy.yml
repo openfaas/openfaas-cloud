@@ -21,4 +21,4 @@ spec:
     - namespaceSelector: {}
       podSelector:
         matchLabels:
-          app: nginx-ingress
+          app.kubernetes.io/name: ingress-nginx
