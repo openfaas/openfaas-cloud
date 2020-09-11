@@ -35,12 +35,14 @@ func Test_CoreNetworkPolicy_Overrides(t *testing.T) {
 }
 
 func buildCoreNetworkPolicy(coreNamespace, functionNamespace string) YamlSpec {
-	podSelector := make(map[string]string)
+	nginxSelector := make(map[string]string)
+	nginxLegacySelector := make(map[string]string)
 	emptySelector := make(map[string]string)
 	matchLabelsSystem := make(map[string]string)
 	matchLabelsFunction := make(map[string]string)
 
-	podSelector["app"] = "nginx-ingress"
+	nginxSelector["app.kubernetes.io/name"] = "ingress-nginx"
+	nginxLegacySelector["app"] = "nginx-ingress"
 	matchLabelsSystem["role"] = "openfaas-system"
 	matchLabelsFunction["role"] = functionNamespace
 
@@ -72,7 +74,13 @@ func buildCoreNetworkPolicy(coreNamespace, functionNamespace string) YamlSpec {
 					{
 						Namespace: NamespaceSelector{},
 						Pod: MatchLabelSelector{
-							MatchLabels: podSelector,
+							MatchLabels: nginxSelector,
+						},
+					},
+					{
+						Namespace: NamespaceSelector{},
+						Pod: MatchLabelSelector{
+							MatchLabels: nginxLegacySelector,
 						},
 					},
 				},

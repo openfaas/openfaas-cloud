@@ -230,7 +230,7 @@ kubectl apply -f ./yaml/core
 
 (Optional) Deploy NetworkPolicy. These policies set the following rules:
 * Pods in the `openfaas-fn` namespace only accept traffic from namespaces and pods that have the label `role: openfaas-system`
-* Pods in the `openfaas` namespace only accept traffic from all pods in namespaces with the label `role: openfaas-system`, pods that have the label `role: openfaas-system` in the `openfaas-fn` namespace and finally pods from any namespace that have the label `app: nginx-ingress`(this is to allow traffic from the nginx ingress controller).
+* Pods in the `openfaas` namespace only accept traffic from all pods in namespaces with the label `role: openfaas-system`, pods that have the label `role: openfaas-system` in the `openfaas-fn` namespace and finally pods from any namespace that have the label `app.kubernetes.io/name: ingress-nginx` or `app: nginx-ingress`(this is to allow traffic from the nginx ingress controller).
 
 ```
 kubectl apply -f ./yaml/network-policy
