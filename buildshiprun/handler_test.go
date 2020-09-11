@@ -50,7 +50,7 @@ func TestGetEvent_ReadAnnotations(t *testing.T) {
 
 	for k, v := range want {
 		if _, ok := eventInfo.Annotations[k]; !ok {
-			t.Errorf("want %s to be present in event.Labels", k)
+			t.Errorf("want %s to be present in event.Annotations", k)
 			continue
 		}
 		if vv, _ := eventInfo.Annotations[k]; vv != v {
