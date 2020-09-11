@@ -238,6 +238,7 @@ functions:
     image: functions/audit-event:0.1.2
     labels:
       openfaas-cloud: "1"
+      role: openfaas-system
       com.openfaas.scale.zero: false
     environment_file:
       - slack.yml
