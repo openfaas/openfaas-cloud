@@ -71,7 +71,7 @@ The GitHub app will deliver webhooks to your OpenFaaS Cloud instance every time 
 This secret will be used by each OpenFaaS Cloud function to validate requests and to sign calls it needs to make to other functions.
 
 ```
-PAYLOAD_SECRET=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
+PAYLOAD_SECRET=$(head -c 12 /dev/urandom | shasum | cut -d' ' -f1)
 ```
 
 Kubernetes:
@@ -329,8 +329,8 @@ You can disable Log storage by commenting out the pipeline-log function from `st
 * Generate secrets for Minio
 
 ```
-SECRET_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
-ACCESS_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
+SECRET_KEY=$(head -c 12 /dev/urandom | shasum | cut -d' ' -f1)
+ACCESS_KEY=$(head -c 12 /dev/urandom | shasum | cut -d' ' -f1)
 ```
 
 * If you'd prefer to use an S3 Bucket hosted on AWS
