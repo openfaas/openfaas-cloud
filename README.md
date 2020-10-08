@@ -1,11 +1,7 @@
 OpenFaaS Cloud
 ==============
 
-Managed OpenFaaS for teams
-
-![Conceptual diagram](/docs/ofc-github-conceptual.png)
-
-The high-level workflow for the OpenFaaS Cloud CI/CD pipeline.
+The Multi-user OpenFaaS Platform
 
 ## Introduction
 
@@ -39,6 +35,10 @@ The details page for a function:
 ![Details page](/docs/details.png)
 
 ## Overview
+
+![Conceptual diagram](/docs/ofc-github-conceptual.png)
+
+The high-level workflow for the OpenFaaS Cloud CI/CD pipeline.
 
 ### KubeCon video
 
