@@ -70,8 +70,6 @@ spec:
             - name: customers_path
               value: "/var/secrets/of-customers/of-customers"
             {{- end }}
-            - name: client_secret
-              value: {{ required "A valid .Values.edgeAuth.clientSecret entry required!" .Values.edgeAuth.clientSecret | quote }}
             - name: client_id
               value: {{ required "A valid .Values.edgeAuth.clientId entry required!" .Values.edgeAuth.clientId | quote }}
             - name: oauth_provider_base_url

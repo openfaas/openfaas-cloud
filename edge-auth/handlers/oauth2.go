@@ -33,7 +33,7 @@ func MakeOAuth2Handler(config *Config) func(http.ResponseWriter, *http.Request) 
 		log.Fatalf("unable to parse private key: %s", keyErr.Error())
 	}
 
-	clientSecret := config.ClientSecret
+	var clientSecret string
 
 	if len(config.OAuthClientSecretPath) > 0 {
 		clientSecretBytes, err := ioutil.ReadFile(config.OAuthClientSecretPath)
@@ -41,6 +41,8 @@ func MakeOAuth2Handler(config *Config) func(http.ResponseWriter, *http.Request) 
 			log.Fatalf("OAuthClientSecretPath, unable to read path: %s, error: %s", config.OAuthClientSecretPath, err.Error())
 		}
 		clientSecret = strings.TrimSpace(string(clientSecretBytes))
+	} else {
+		log.Fatalf("OauthClientSecretPath should be set to load the secret")
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {

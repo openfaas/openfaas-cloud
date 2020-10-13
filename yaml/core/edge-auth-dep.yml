@@ -53,8 +53,6 @@ spec:
           - name: customers_path
             value: "/var/secrets/of-customers/of-customers"
 # Update for your configuration:
-          - name: client_secret # this can also be provided via a secret named of-client-secret
-            value: ""
           - name: client_id
             value: ""
           - name: oauth_provider_base_url

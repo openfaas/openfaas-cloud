@@ -52,10 +52,6 @@ func main() {
 		clientID = val
 	}
 
-	if val, exists := os.LookupEnv("client_secret"); exists {
-		clientSecret = val
-	}
-
 	if val, exists := os.LookupEnv("external_redirect_domain"); exists {
 		externalRedirectDomain = val
 	}
