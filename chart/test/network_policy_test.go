@@ -4,6 +4,15 @@ import (
 	"testing"
 )
 
+func Test_YamlSpec_NoNW_Policies(t *testing.T){
+	parts := []string{
+		"--set", "networkPolicies.enabled=false",
+	}
+	runYamlTestNoFileExpected(parts, "./tmp/openfaas-cloud/templates/network-policy/ns-openfaas-fn-net-policy.yml", t)
+	runYamlTestNoFileExpected(parts, "./tmp/openfaas-cloud/templates/network-policy/ns-openfaas-net-policy.yml", t)
+
+}
+
 func Test_YamlSpecFNNamespace_NoOverrides(t *testing.T) {
 	parts := []string{}
 	want := buildFnNetworkPolicy("openfaas-fn")
