@@ -7,7 +7,6 @@ to install OpenFaaS Cloud clusters.
 
 This is mainly for configuration documentation for developers wishing to use this chart in `ofc-bootstrap`.
 
-
 ## Configuration
 
 | Parameter | Description | Default|
@@ -20,10 +19,9 @@ This is mainly for configuration documentation for developers wishing to use thi
 | `edgeAuth.replicas` | `Number of replicas of edge-auth to run` | `1` |
 | `edgeAuth.enableOauth2` | `If OAuth2 is enabled in the installation` | `true` |
 | `edgeAuth.oauthProvider` | `The OAuth provider, github or gitlab` | `github` |
-| `edgeAuth.oauthProviderBaseURL` | `The OAuth2 base URL, required if using gitlab as OAuth2 provider` | `` |
+| `edgeAuth.oauthProviderBaseURL` | `The OAuth2 base URL, required if using gitlab as OAuth2 provider` | `""` |
 | `edgeAuth.clientId` | `The client ID provided by your OAuth provider` | `""` |
 | `edgeAuth.writeDebug` | `If Debug logging is enabled in edge-auth` | `false` |
-| `edgeAuth.clientSecret` | `The client secret provided by your OAuth2 provider` | `""` |
 | `edgeRouter.image` | `The container image for the OpenFaaS Cloud edge-router` | `openfaas/edge-router:0.7.4` |
 | `tls.enabled` | `If we are using TLS, certificated provided by LEtsEncrypt` | `true` |
 | `tls.email` | `The email for the LetsEncrypt TLS certificates. Required if TLS is enabled` | `example@example.com` |
@@ -36,7 +34,6 @@ This is mainly for configuration documentation for developers wishing to use thi
 | `tls.clouddns.projectID` | `If using Clouddns set this to your project ID` | `` |
 | `ingress.class` | `The ingress class used for ingress. Set to traefik if using traefik for ingress for example` | `nginx` |
 | `ingress.maxConnections` | `The max connections allowed for OpenFaaS Cloud Functions` | `` |
-| `ingress.requestsPerMinute` | `The max number of connections for ingress when using nginx for ingress class` | `20` |
 | `ingesss.requestsPerMinute` | `The max requests per minute when using nginx for the inress class` | `600` |
 | `customers.url` | `The public URL to a customers file, it should be unformatted with 1 username per line` | `""` |
 | `customers.customersSecret` | `If set to ture we use a secret for our customers list rather than a public URL` | `false` |

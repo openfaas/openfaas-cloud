@@ -143,7 +143,6 @@ func makeContainerEnv(customersSecret, secureCookie bool) []Environment {
 	if customersSecret {
 		environ = append(environ, Environment{Name: "customers_path", Value: "/var/secrets/of-customers/of-customers"})
 	}
-	environ = append(environ, Environment{Name: "client_secret", Value: "client-secret"})
 	environ = append(environ, Environment{Name: "client_id", Value: "client-id"})
 	environ = append(environ, Environment{Name: "oauth_provider_base_url", Value: ""})
 	environ = append(environ, Environment{Name: "oauth_provider", Value: "github"})
