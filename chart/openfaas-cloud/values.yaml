@@ -65,6 +65,10 @@ customers:
   ## indicated in the openfaas-cloud docs on customers. If you want this option, set this to true.
   customersSecret: false
 
+networkPolicies:
+  ## If true, network policies are enabled, otherwise they are not.
+  enabled: true
+
 
 ## global values that are re-used across multiple components
 global:

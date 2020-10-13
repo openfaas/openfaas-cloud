@@ -3,6 +3,7 @@ package test
 import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"os"
 	"reflect"
 	"testing"
 )
@@ -92,5 +93,20 @@ func runYamlTest(parts []string, filename string, want YamlSpec, t *testing.T) {
 	if !reflect.DeepEqual(want, got) {
 		t.Errorf("got:\n%+v\nbut want:\n%+v", got, want)
 		t.Fail()
+	}
+}
+
+func runYamlTestNoFileExpected(parts []string, filename string, t *testing.T) {
+	os.RemoveAll("./tmp")
+	_, _ = helmRunner(parts...)
+
+	_, err := ioutil.ReadFile(filename)
+
+	if err == nil {
+		t.Errorf("Expected file not to exist, got a file: %s", filename)
+	}
+
+	if !os.IsNotExist(err) {
+		t.Errorf("Expected file not to exist, got err: %v", err)
 	}
 }

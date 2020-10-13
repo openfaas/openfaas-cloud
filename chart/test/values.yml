@@ -11,6 +11,9 @@ customers:
 global:
   rootDomain: example.com
 
+networkPolicies:
+  enabled: true
+
 tls:
   enabled: false
   dnsService: fake

@@ -1,3 +1,4 @@
+{{- if .Values.networkPolicies.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -15,3 +16,4 @@ spec:
     - podSelector:
         matchLabels:
           role: openfaas-system
+{{- end }}

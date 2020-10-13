@@ -47,3 +47,4 @@ This is mainly for configuration documentation for developers wishing to use thi
 | `global.coreNamespace` | `The namespace for the core OFC components` | `openfaas` |
 | `global.functionsNamespace` | `The namespace for the User Functions` | `openfaas-fn` |
 | `global.httpProbe` | `The setting to detemine is we are using http probe or exec probe. Istio users may wish to set this to fale doe example.` | `true` |
+| `networkPolicies.enabled` | `The setting to turn on/off the deployment of the OFC Network policies` | `true` |
