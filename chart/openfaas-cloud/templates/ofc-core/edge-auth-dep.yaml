@@ -77,7 +77,11 @@ spec:
             - name: oauth_provider
               value: {{ .Values.edgeAuth.oauthProvider | quote }}
             - name: external_redirect_domain
-              value: {{ printf "%s://auth.system.%s" .Values.global.scheme .Values.global.rootDomain | quote }}
+              {{- if .Values.tls.enabled }}
+              value: {{ printf "https://auth.system.%s" .Values.global.rootDomain | quote }}
+              {{- else }}
+              value: {{ printf "http://auth.system.%s" .Values.global.rootDomain | quote }}
+              {{- end }}
             - name: cookie_root_domain
               value: {{ printf ".system.%s" .Values.global.rootDomain | quote }}
             - name: secure_cookie
