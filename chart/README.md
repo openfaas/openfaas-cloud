@@ -38,7 +38,6 @@ This is mainly for configuration documentation for developers wishing to use thi
 | `customers.url` | `The public URL to a customers file, it should be unformatted with 1 username per line` | `""` |
 | `customers.customersSecret` | `If set to ture we use a secret for our customers list rather than a public URL` | `false` |
 | `global.rootDomain` | `The root domain for this OFC installation` | `"example.com"` |
-| `global.scheme` | `Wither http or https, depending on the TLS setting` | `https` |
 | `global.enableECR` | `Set to true is using ECR as our container registry rather than Docker Hub` | `false` |
 | `global.imagePullPolicy` | `The policy for pulling OFC images, Allways or IfNotPresent for example` | `IfNotPresent` |
 | `global.coreNamespace` | `The namespace for the core OFC components` | `openfaas` |

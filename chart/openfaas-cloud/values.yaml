@@ -73,8 +73,6 @@ global:
 
   ## rootDomain is the root domain of the ofc installation o6s.io for example
   rootDomain: "example.com"
-  ## scheme is the http/https setting for the installation
-  scheme: https
   enableECR: false
   imagePullPolicy: IfNotPresent
   ## coreNamespace this is used where we need to communicate with core openfaas components

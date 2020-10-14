@@ -136,6 +136,7 @@ func makeContainerVolumes(customersSecret bool) []ContainerVolume {
 
 func makeContainerEnv(customersSecret, secureCookie bool) []Environment {
 	var environ []Environment
+
 	environ = append(environ, Environment{Name: "port", Value: "8080"})
 	environ = append(environ, Environment{Name: "oauth_client_secret_path", Value: "/var/secrets/of-client-secret/of-client-secret"})
 	environ = append(environ, Environment{Name: "public_key_path", Value: "/var/secrets/public/key.pub"})
@@ -146,7 +147,7 @@ func makeContainerEnv(customersSecret, secureCookie bool) []Environment {
 	environ = append(environ, Environment{Name: "client_id", Value: "client-id"})
 	environ = append(environ, Environment{Name: "oauth_provider_base_url", Value: ""})
 	environ = append(environ, Environment{Name: "oauth_provider", Value: "github"})
-	environ = append(environ, Environment{Name: "external_redirect_domain", Value: "https://auth.system.example.com"})
+	environ = append(environ, Environment{Name: "external_redirect_domain", Value: "http://auth.system.example.com"})
 	environ = append(environ, Environment{Name: "cookie_root_domain", Value: ".system.example.com"})
 	environ = append(environ, Environment{Name: "secure_cookie", Value: strconv.FormatBool(secureCookie)})
 	if !customersSecret {
