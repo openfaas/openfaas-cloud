@@ -15,7 +15,7 @@ COPY auth_proxy.go      .
 RUN go test -v \
     && go build -o /usr/bin/edge-router .
 
-FROM alpine:3.11 as ship
+FROM alpine:3.12 as ship
 
 RUN apk --no-cache add ca-certificates \
     && addgroup -S app && adduser -S -g app app \
