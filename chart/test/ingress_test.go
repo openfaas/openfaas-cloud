@@ -98,6 +98,9 @@ func buildIngressAuth(hostDomain, prefix, name, ingressClass, rpm, maxConnection
 	annotations["kubernetes.io/ingress.class"] = ingressClass
 	annotations["nginx.ingress.kubernetes.io/limit-connections"] = maxConnections
 	annotations["nginx.ingress.kubernetes.io/limit-rpm"] = rpm
+	if tls {
+		annotations["cert-manager.io/issuer"] = "letsencrypt-staging"
+	}
 
 	spec := Spec{
 		Rules: []SpecRules{{

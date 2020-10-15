@@ -54,6 +54,7 @@ func makeOFBuilderDep(httpProbe, isECR bool, replicas int, buildkitPrivileged, o
 		Kind:       "Deployment",
 		Metadata: MetadataItems{
 			Name:   "of-builder",
+			Namespace: "openfaas",
 			Labels: labels,
 		},
 		Spec: Spec{
