@@ -64,7 +64,7 @@ $ faas-cli deploy --filter="system-dashboard"
 If you have satisfied the prerequisites, the following command should create the assets for the Dashboard.
 
 ```bash
-make
+make build-dist
 ```
 
 **Edit `stack.yml` if needed.**
