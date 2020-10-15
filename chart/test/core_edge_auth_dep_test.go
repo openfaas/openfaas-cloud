@@ -72,6 +72,7 @@ func makeEdgeAuthDep(httpProbe, customersSecret, secureCookie bool) YamlSpec {
 		Kind:       "Deployment",
 		Metadata: MetadataItems{
 			Name:   "edge-auth",
+			Namespace: "openfaas",
 			Labels: labels,
 		},
 		Spec: Spec{
@@ -86,7 +87,7 @@ func makeEdgeAuthDep(httpProbe, customersSecret, secureCookie bool) YamlSpec {
 					Volumes: deployVolumes,
 					Containers: []DeploymentContainers{{
 						Name:                    "edge-auth",
-						Image:                   "openfaas/edge-auth:0.7.0",
+						Image:                   "openfaas/edge-auth:0.8.0",
 						ImagePullPolicy:         "IfNotPresent",
 						ContainerReadinessProbe: livenessProbe,
 						ContainerEnvironment:    containerEnvironment,

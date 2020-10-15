@@ -143,7 +143,7 @@ func makeIssuer(tlsSettings TLSSettings, coreNamespace, issuerName string) YamlS
 
 	return YamlSpec{
 		ApiVersion: "cert-manager.io/v1alpha2",
-		Kind:       "ClusterIssuer",
+		Kind:       "Issuer",
 		Metadata: MetadataItems{
 			Name:        issuerName,
 			Namespace:   coreNamespace,

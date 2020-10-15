@@ -1,6 +1,6 @@
 {{- if .Values.tls.enabled }}
 apiVersion: cert-manager.io/v1alpha2
-kind: ClusterIssuer
+kind: Issuer
 metadata:
   name: letsencrypt-prod
   namespace: {{ .Values.global.coreNamespace }}
