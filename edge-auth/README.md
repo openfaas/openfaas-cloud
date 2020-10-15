@@ -44,7 +44,7 @@ Please note - You need to be a public member of any Organisation that you wish t
 ## Building
 
 ```
-export TAG=0.7.3
+export TAG=0.8.0
 make build push
 ```
 
@@ -105,7 +105,7 @@ echo -n "$CLIENT_SECRET" | docker secret create of-client-secret -
 
 ```sh
 docker rm -f edge-auth
-export TAG=0.7.3
+export TAG=0.8.0
 
 docker run \
  -e client_secret="$CLIENT_SECRET" \
@@ -126,27 +126,6 @@ docker run \
 
 Edit `yaml/core/edge-auth-dep.yml` as needed and apply that file.
 
-### On Swarm:
-
-```sh
-export TAG=0.7.1
-docker service rm edge-auth
-docker service create --name edge-auth \
- -e oauth_client_secret_path="/run/secrets/of-client-secret" \
- -e client_id="$CLIENT_ID" \
- -e PORT=8080 \
- -p 8085:8080 \
- -e external_redirect_domain="http://auth.system.gw.io/" \
- -e cookie_root_domain=".system.gw.io" \
- -e public_key_path=/run/secrets/jwt-public-key \
- -e private_key_path=/run/secrets/jwt-private-key \
- -e oauth_provider="github" \
- --secret jwt-private-key \
- --secret jwt-public-key \
- --secret of-client-secret \
- openfaas/edge-auth:$TAG
-```
-
 ### GitLab integration
 
 If you want to integrate OpenFaaS Cloud with your self-managed GitLab you need to set env variables, where instead of ... you should put valid url to your self-hosted GitLab (for example: https://gitlab.domain.com):
@@ -155,4 +134,3 @@ If you want to integrate OpenFaaS Cloud with your self-managed GitLab you need t
 oauth_provider="gitlab"
 oauth_provider_base_url="https://gitlab.domain.com"
 ```
-
