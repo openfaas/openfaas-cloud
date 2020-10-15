@@ -20,7 +20,6 @@ func main() {
 	var oauthProviderBaseURL string
 
 	var clientID string
-	var clientSecret string
 	var externalRedirectDomain string
 	var cookieRootDomain string
 
@@ -87,7 +86,6 @@ func main() {
 		OAuthProvider:          strings.ToLower(oauthProvider),
 		OAuthProviderBaseURL:   oauthProviderBaseURL,
 		ClientID:               clientID,
-		ClientSecret:           clientSecret,
 		CookieExpiresIn:        cookieExpiry,
 		CookieRootDomain:       cookieRootDomain,
 		ExternalRedirectDomain: externalRedirectDomain,
