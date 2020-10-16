@@ -2,7 +2,7 @@
 # This is a YAML-formatted file.
 
 ofBuilder:
-  image: openfaas/of-builder:0.7.2
+  image: openfaas/of-builder:0.8.0
   replicas: 1
 
 buildKit:
@@ -83,4 +83,3 @@ global:
 
   ## httpProbe set this to false to use an exec probe instead - Istio users might want to set this to false.
   httpProbe: true
-

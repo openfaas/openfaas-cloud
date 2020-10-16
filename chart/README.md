@@ -11,11 +11,11 @@ This is mainly for configuration documentation for developers wishing to use thi
 
 | Parameter | Description | Default|
 | --------- | ------- | ---------- |
-| `ofBuilder.image` | `The image used to the OpenFaaS Builder` | `openfaas/of-builder:0.7.2` |
+| `ofBuilder.image` | `The image used to the OpenFaaS Builder` | `openfaas/of-builder:0.8.0` |
 | `ofBuilder.replicas` | `The number of replicas for the OpenFaaS Builder deployment` | `1` |
 | `buildKit.image` | `The Buildkit image used by OpenFaaS Cloud` | `moby/buildkit:v0.6.2` |
 | `buildKit.privileged` | `If the buildKit container should run in privilaged mode` | `true` |
-| `edgeAuth.image` | `The edge-auth image for OpenFaaS Cloud` | `openfaas/edge-auth:0.7.0` |
+| `edgeAuth.image` | `The edge-auth image for OpenFaaS Cloud` | `openfaas/edge-auth:0.8.0` |
 | `edgeAuth.replicas` | `Number of replicas of edge-auth to run` | `1` |
 | `edgeAuth.enableOauth2` | `If OAuth2 is enabled in the installation` | `true` |
 | `edgeAuth.oauthProvider` | `The OAuth provider, github or gitlab` | `github` |
