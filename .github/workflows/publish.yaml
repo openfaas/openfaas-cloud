@@ -1,0 +1,56 @@
+name: publish
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  init:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    outputs:
+      tag: ${{ steps.get_tag.outputs.tag }}
+    steps:
+      - name: Get TAG
+        id: get_tag
+        run: echo ::set-output name=TAG::${GITHUB_REF#refs/tags/}
+
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: init
+    strategy:
+      matrix:
+        go-version: [1.13.x]
+        svc: [
+          edge-router,
+          of-builder
+        ]
+    steps:
+      - name: Get TAG
+        id: get_tag
+        run: echo ::set-output name=TAG::${GITHUB_REF#refs/tags/}
+      - uses: actions/checkout@v2
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to GHCR
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          registry: ghcr.io
+      - name: Build and push ${{ matrix.svc }}
+        uses: docker/build-push-action@v2
+        with:
+          context: ./${{ matrix.svc }}
+          file: ./${{ matrix.svc }}/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ secrets.DOCKER_USERNAME }}/${{ matrix.svc }}:${{needs.init.outputs.tag}}
+            ghcr.io/${{ secrets.DOCKER_USERNAME }}/${{ matrix.svc }}:latest
