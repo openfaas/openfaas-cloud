@@ -30,7 +30,13 @@ func MakeQueryHandler(config *Config, protected []string, restrictedPrefix []str
 	customersURL := os.Getenv("customers_url")
 
 	customers := sdk.NewCustomers(customersPath, customersURL)
-	customers.Fetch()
+	if err := customers.Fetch(); err != nil {
+		log.Printf("Unable to fetch customers from configured source: %s", err)
+		return func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	}
+
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query()

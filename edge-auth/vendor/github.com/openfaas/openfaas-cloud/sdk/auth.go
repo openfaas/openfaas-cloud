@@ -35,6 +35,7 @@ func AddBasicAuth(req *http.Request) error {
 	return nil
 }
 
+//GetPrivateKeyPath get path of the private key file secret
 func GetPrivateKeyPath() string {
 	// Private key name can be different from the default 'private-key'
 	// When providing a different name in the stack.yaml, user need to specify the name
@@ -54,4 +55,13 @@ func GetPrivateKeyPath() string {
 	privateKeyPath := filepath.Join(secretMountPath, privateKeyName)
 
 	return privateKeyPath
+}
+
+//Auth authentication type for SDK client
+type Auth struct {
+}
+
+//Set set authorization header to the request
+func (auth *Auth) Set(req *http.Request) error {
+	return AddBasicAuth(req)
 }
