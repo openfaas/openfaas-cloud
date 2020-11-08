@@ -26,12 +26,12 @@
   version = "012.1"
 
 [[projects]]
-  digest = "1:072e4b47fac82c4cc1fd6b3d3d02247a735e9416fdb9f0e24efa976b01c68743"
+  digest = "1:510ea9e9f5bd484b0faffc28368a61eee6b3a83602a55cb2aa24d4c1b6def0e8"
   name = "github.com/openfaas/openfaas-cloud"
   packages = ["sdk"]
   pruneopts = "UT"
-  revision = "6a94566a9f09a6b7d0b645205cad2e64e115c0fd"
-  version = "0.13.0"
+  revision = "50cb7b54fc0a3d8e1e3cd94139f6c0b8b55a44ef"
+  version = "0.14.2"
 
 [solve-meta]
   analyzer-name = "dep"
