@@ -3,7 +3,7 @@
 # Run this command from one-level higher in the folder path, not this folder.
 
 (cd of-builder && make) && \
-(cd router && make build) && \
+(cd edge-router && make build) && \
 (cd sdk && go build) && \
 
 CLI="faas-cli"

@@ -76,3 +76,7 @@ func combineURL(a, b string) string {
 
 	return a + b
 }
+
+func (c *OpenFaaSCloudClaims) GetOrganizations() []string {
+	return strings.Split(c.Organizations, ",")
+}
