@@ -17,9 +17,9 @@ func serviceBuilder(svcName, svcType string, srcPort, targetPort int) SvcSpec {
 		ApiVersion: "v1",
 		Kind:       "Service",
 		Metadata: MetadataItems{
-			Name:   svcName,
+			Name:      svcName,
 			Namespace: "openfaas",
-			Labels: labelMap,
+			Labels:    labelMap,
 		},
 		Spec: MapSpec{
 			Type: svcType,

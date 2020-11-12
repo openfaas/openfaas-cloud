@@ -53,9 +53,9 @@ func makeOFBuilderDep(httpProbe, isECR bool, replicas int, buildkitPrivileged, o
 		ApiVersion: "apps/v1",
 		Kind:       "Deployment",
 		Metadata: MetadataItems{
-			Name:   "of-builder",
+			Name:      "of-builder",
 			Namespace: "openfaas",
-			Labels: labels,
+			Labels:    labels,
 		},
 		Spec: Spec{
 			Replicas: replicas,
@@ -69,7 +69,7 @@ func makeOFBuilderDep(httpProbe, isECR bool, replicas int, buildkitPrivileged, o
 					Volumes: deployVolumes,
 					Containers: []DeploymentContainers{{
 						Name:                    "of-builder",
-						Image:                   "openfaas/of-builder:0.7.2",
+						Image:                   "openfaas/of-builder:0.8.0",
 						ImagePullPolicy:         "IfNotPresent",
 						ContainerReadinessProbe: readinessProbe,
 						ContainerEnvironment:    containerEnvironment,

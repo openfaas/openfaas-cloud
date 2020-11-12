@@ -5,8 +5,40 @@ on:
     tags:
       - '*'
 
+
 jobs:
-  publish:
+  # Run the CI tests
+  publish-stack:
+    strategy:
+      matrix:
+        go-version: [1.13.x]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@master
+        with:
+          fetch-depth: 1
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Login to Docker Registry
+        uses: docker/login-action@v1
+        with:
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          registry: ghcr.io
+      - name: Get TAG
+        id: get_tag
+        run: echo ::set-output name=TAG::${GITHUB_REF#refs/tags/}
+      - name: Get Repo Owner
+        id: get_repo_owner
+        run: echo ::set-output name=repo_owner::$(echo ${{ github.event.repository.owner.login }} | tr '[:upper:]' '[:lower:]')
+      - name: Deploy Stacks
+        run: TAG=${{ steps.get_tag.outputs.TAG }} REPO=${{ steps.get_repo_owner.outputs.repo_owner }} sh ./contrib/publish.sh
+
+  # Test building the non-cli Containers
+  publish-containers:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -20,26 +52,23 @@ jobs:
       - uses: actions/checkout@master
         with:
           fetch-depth: 1
-      - name: Install Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: ${{ matrix.go-version }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - name: Get TAG
-        id: get_tag
-        run: echo ::set-output name=TAG::${GITHUB_REF#refs/tags/}
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Login to Docker Registry
         uses: docker/login-action@v1
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
+          username: ${{ github.repository_owner }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           registry: ghcr.io
-      - name: Build and push ${{ matrix.svc }}
+      - name: Get TAG
+        id: get_tag
+        run: echo ::set-output name=TAG::${GITHUB_REF#refs/tags/}
+      - name: Get Repo Owner
+        id: get_repo_owner
+        run: echo ::set-output name=repo_owner::$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')
+      - name: Build ${{ matrix.svc }}
         uses: docker/build-push-action@v2
         with:
           context: ./${{ matrix.svc }}
@@ -47,10 +76,6 @@ jobs:
           outputs: "type=registry,push=true"
           platforms: linux/amd64,linux/arm/v7,linux/arm64
           tags: |
-            ghcr.io/openfaas/${{ matrix.svc }}:${{ steps.get_tag.outputs.TAG }}
-            ghcr.io/openfaas/${{ matrix.svc }}:${{ github.sha }}
-            ghcr.io/openfaas/${{ matrix.svc }}:latest
-# Need a section for faas-cli on each fn in stack.yaml
-# section for of-dashboard's stack.yaml
-# https://github.com/alexellis/multiarch-templates/
-# Section to run the chart tests
+            ghcr.io/${{ steps.get_repo_owner.outputs.repo_owner }}/${{ matrix.svc }}:${{ steps.get_tag.outputs.TAG }}
+            ghcr.io/${{ steps.get_repo_owner.outputs.repo_owner }}/${{ matrix.svc }}:${{ github.sha }}
+            ghcr.io/${{ steps.get_repo_owner.outputs.repo_owner }}/${{ matrix.svc }}:latest

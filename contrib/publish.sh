@@ -1,5 +1,6 @@
 #!/bin/sh
 set -e
+
 # Run this command from one-level higher in the folder path, not this folder.
 
 CLI="faas-cli"
@@ -16,5 +17,8 @@ fi
 
 echo "Working folder: `pwd`"
 
-$CLI build --parallel=4
-$CLI build -f dashboard/stack.yml
+$CLI up --parallel=4 --skip-deploy
+HERE=`pwd`
+cd dashboard
+$CLI up -f stack.yml --skip-deploy
+cd $HERE

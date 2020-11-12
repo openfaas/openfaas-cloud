@@ -18,7 +18,7 @@ func helmRunnerToLocation(location string, parts ...string) (execute.ExecResult,
 	}
 	fullParts := append(firstParts, parts...)
 	task := execute.ExecTask{
-		Command: "helm3",
+		Command: "helm",
 		Args:    fullParts,
 	}
 

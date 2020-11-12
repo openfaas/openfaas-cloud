@@ -71,9 +71,9 @@ func makeEdgeAuthDep(httpProbe, customersSecret, secureCookie bool) YamlSpec {
 		ApiVersion: "apps/v1",
 		Kind:       "Deployment",
 		Metadata: MetadataItems{
-			Name:   "edge-auth",
+			Name:      "edge-auth",
 			Namespace: "openfaas",
-			Labels: labels,
+			Labels:    labels,
 		},
 		Spec: Spec{
 			Replicas: 1,

@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func Test_YamlSpec_NoNW_Policies(t *testing.T){
+func Test_YamlSpec_NoNW_Policies(t *testing.T) {
 	parts := []string{
 		"--set", "networkPolicies.enabled=false",
 	}
