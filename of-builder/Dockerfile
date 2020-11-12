@@ -1,5 +1,7 @@
 FROM golang:1.13-alpine AS builder
 
+## AH TODO set this up as a multi-arch build
+
 ENV CGO_ENABLED=0
 ENV GO111MODULE=off
 

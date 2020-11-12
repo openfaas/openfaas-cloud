@@ -1,4 +1,9 @@
-FROM golang:1.13-alpine AS build
+FROM --platform=${BUILDPLATFORM:-linux/amd64} golang:1.13 as build
+
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
+ARG TARGETOS
+ARG TARGETARCH
 
 WORKDIR /go/src/github.com/openfaas/openfaas-cloud/edge-router
 
@@ -12,17 +17,23 @@ COPY config_test.go     .
 COPY health.go          .
 COPY auth_proxy.go      .
 
-RUN go test -v \
-    && go build -o /usr/bin/edge-router .
+RUN gofmt -l -d $(find . -type f -name '*.go' -not -path "./vendor/*")
+RUN CGO_ENABLED=${CGO_ENABLED} GOOS=${TARGETOS} GOARCH=${TARGETARCH} go test -v
 
-FROM alpine:3.12 as ship
+RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} CGO_ENABLED=${CGO_ENABLED} go build \
+        --ldflags "-s -w" \
+        -a -installsuffix cgo \
+        -o edge-router .
+
+
+FROM --platform=${TARGETPLATFORM:-linux/amd64} alpine:3.12 as ship
 
 RUN apk --no-cache add ca-certificates \
     && addgroup -S app && adduser -S -g app app \
     && mkdir -p /home/app \
     && chown app /home/app
 
-COPY --from=build /usr/bin/edge-router /bin/
+COPY --from=build /go/src/github.com/openfaas/openfaas-cloud/edge-router /bin/
 
 WORKDIR /home/app/
 USER app

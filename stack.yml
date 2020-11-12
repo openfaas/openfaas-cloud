@@ -55,7 +55,7 @@ functions:
     requests:
       memory: 32Mi
       cpu: 50m
-
+# TODO waterdrips, this dockerfile multiarch?
   git-tar:
     lang: dockerfile
     handler: ./git-tar
