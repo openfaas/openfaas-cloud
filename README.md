@@ -5,7 +5,7 @@ The Multi-user OpenFaaS Platform
 
 ## Introduction
 
-[![Build Status](https://travis-ci.com/openfaas/openfaas-cloud.svg?branch=master)](https://travis-ci.com/openfaas/openfaas-cloud)
+![Build Status](https://github.com/openfaas/openfaas-cloud/workflows/build/badge.svg?branch=master)](https://github.com/openfaas/openfaas-cloud/actions)
 
 OpenFaaS Cloud introduces an automated build and management system for your Serverless functions with native integrations into your source-control management system whether that is GitHub or GitLab.
 
