@@ -6,7 +6,7 @@ functions:
   system-github-event:
     lang: go
     handler: ./github-event
-    image: functions/github-event:0.9.2
+    image: ghcr.io/${REPO:-openfaas}/github-event:${TAG:-latest-dev}
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -32,7 +32,7 @@ functions:
   github-push:
     lang: go
     handler: ./github-push
-    image: functions/github-push:0.7.5
+    image: ghcr.io/${REPO:-openfaas}/github-push:${TAG:-latest-dev}
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -55,11 +55,10 @@ functions:
     requests:
       memory: 32Mi
       cpu: 50m
-# TODO waterdrips, this dockerfile multiarch?
   git-tar:
     lang: dockerfile
     handler: ./git-tar
-    image: functions/of-git-tar:0.19.0
+    image: ghcr.io/${REPO:-openfaas}/of-git-tar:${TAG:-latest-dev}
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -86,7 +85,7 @@ functions:
   buildshiprun:
     lang: go
     handler: ./buildshiprun
-    image: functions/of-buildshiprun:0.14.0
+    image: ghcr.io/${REPO:-openfaas}/of-buildshiprun:${TAG:-latest-dev}
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -115,7 +114,7 @@ functions:
   garbage-collect:
     lang: go
     handler: ./garbage-collect
-    image: functions/garbage-collect:0.4.7
+    image: ghcr.io/${REPO:-openfaas}/garbage-collect:${TAG:-latest-dev}
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -140,7 +139,7 @@ functions:
   github-status:
     lang: go
     handler: ./github-status
-    image: functions/github-status:0.5.0
+    image: ghcr.io/${REPO:-openfaas}/github-status:${TAG:-latest-dev}
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -166,7 +165,7 @@ functions:
   import-secrets:
     lang: go
     handler: ./import-secrets
-    image: functions/import-secrets:0.6.2
+    image: ghcr.io/${REPO:-openfaas}/import-secrets:${TAG:-latest-dev}
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -189,7 +188,7 @@ functions:
   pipeline-log:
     lang: go
     handler: ./pipeline-log
-    image: functions/pipeline-log:0.3.5
+    image: ghcr.io/${REPO:-openfaas}/pipeline-log:${TAG:-latest-dev}
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -213,7 +212,7 @@ functions:
   list-functions:
     lang: go
     handler: ./list-functions
-    image: functions/list-functions:0.6.0
+    image: ghcr.io/${REPO:-openfaas}/list-functions:${TAG:-latest-dev}
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -235,7 +234,7 @@ functions:
   audit-event:
     lang: go
     handler: ./audit-event
-    image: functions/audit-event:0.1.2
+    image: ghcr.io/${REPO:-openfaas}/audit-event:${TAG:-latest-dev}
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -267,7 +266,7 @@ functions:
   metrics:
     lang: go
     handler: ./metrics
-    image: functions/system-metrics:0.2.0
+    image: ghcr.io/${REPO:-openfaas}/system-metrics:${TAG:-latest-dev}
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
@@ -285,7 +284,7 @@ functions:
   function-logs:
     lang: go
     handler: ./function-logs
-    image: functions/function-logs:0.2.0
+    image: ghcr.io/${REPO:-openfaas}/function-logs:${TAG:-latest-dev}
     labels:
       openfaas-cloud: "1"
       role: openfaas-system

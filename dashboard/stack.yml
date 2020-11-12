@@ -2,12 +2,11 @@ provider:
   name: openfaas
   gateway: http://127.0.0.1:8080
 
-# TODO Waterdrips this multi-arch
 functions:
   system-dashboard:
     lang: node12
     handler: ./of-cloud-dashboard
-    image: functions/of-cloud-dashboard:0.8.2
+    image: ghcr.io/${REPO:-openfaas}/of-cloud-dashboard:${TAG:-latest-dev}
     labels:
       openfaas-cloud: "1"
       role: openfaas-system

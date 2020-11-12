@@ -9,8 +9,25 @@ on:
       - '*'
 
 jobs:
+
+  test-chart:
+    strategy:
+      matrix:
+        go-version: [1.13.x]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@master
+        with:
+          fetch-depth: 1
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Run Tests
+        run: curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash && make test-chart
   # Run the CI tests
-  test:
+  build-stack:
     strategy:
       matrix:
         go-version: [1.13.x]
@@ -49,6 +66,9 @@ jobs:
       - name: Get TAG
         id: get_tag
         run: echo ::set-output name=TAG::latest-dev
+      - name: Get Repo
+        id: get_repo_owner
+        run: echo ::set-output name=repo_owner::$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')
       - name: Build ${{ matrix.svc }}
         uses: docker/build-push-action@v2
         with:
@@ -57,24 +77,6 @@ jobs:
           outputs: "type=image,push=false"
           platforms: linux/amd64,linux/arm/v7,linux/arm64
           tags: |
-            ghcr.io/openfaas/${{ matrix.svc }}:${{ steps.get_tag.outputs.TAG }}
-            ghcr.io/openfaas/${{ matrix.svc }}:${{ github.sha }}
-              ghcr.io/openfaas/${{ matrix.svc }}:latest
-  # TODO add build for all containers in here
-  build-stack:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go-version: [1.13.x]
-        svc: [
-          edge-auth,
-          edge-router,
-          of-builder
-        ]
-    steps:
-      - uses: actions/checkout@master
-        with:
-          fetch-depth: 1
-      - name: Get TAG
-        id: get_tag
-        run: echo ::set-output name=TAG::latest-dev
+            ghcr.io/${{ steps.get_repo_owner.outputs.repo_owner }}/${{ matrix.svc }}:${{ steps.get_tag.outputs.TAG }}
+            ghcr.io/${{ steps.get_repo_owner.outputs.repo_owner }}/${{ matrix.svc }}:${{ github.sha }}
+            ghcr.io/${{ steps.get_repo_owner.outputs.repo_owner }}/${{ matrix.svc }}:latest

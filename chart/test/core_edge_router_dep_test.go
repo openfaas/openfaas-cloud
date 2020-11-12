@@ -79,9 +79,9 @@ func makeEdgeRouterDep(httpProbe, oauthEnabled bool) YamlSpec {
 		ApiVersion: "apps/v1",
 		Kind:       "Deployment",
 		Metadata: MetadataItems{
-			Name:   "edge-router",
+			Name:      "edge-router",
 			Namespace: "openfaas",
-			Labels: labels,
+			Labels:    labels,
 		},
 		Spec: Spec{
 			Replicas: 1,

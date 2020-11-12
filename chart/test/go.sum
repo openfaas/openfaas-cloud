@@ -1,0 +1,6 @@
+github.com/alexellis/go-execute v0.0.0-20191029181357-d17947259f74 h1:3NSYa7HnT2RgQxFn1dHw7GJDgk5v1XzuNE3b1IdJVwY=
+github.com/alexellis/go-execute v0.0.0-20191029181357-d17947259f74/go.mod h1:zfRbgnPVxXCSpiKrg1CE72hNUWInqxExiaz2D9ppTts=
+gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=
+gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
+gopkg.in/yaml.v2 v2.2.7 h1:VUgggvou5XRW9mHwD/yXxIYSMtY0zoKQf/v226p2nyo=
+gopkg.in/yaml.v2 v2.2.7/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=

@@ -17,7 +17,8 @@ COPY template   template
 COPY provider   provider
 COPY main.go    .
 
-RUN gofmt -l -d $(find . -type f -name '*.go' -not -path "./vendor/*")
+# Run a gofmt and exclude all vendored code.
+RUN test -z "$(gofmt -l $(find . -type f -name '*.go' -not -path "./vendor/*"))" || { echo "Run \"gofmt -s -w\" on your Golang code"; exit 1; }
 
 RUN CGO_ENABLED=${CGO_ENABLED} GOOS=${TARGETOS} GOARCH=${TARGETARCH} go test -v
 
@@ -34,6 +35,7 @@ RUN apk --no-cache add ca-certificates \
     && chown app /home/app
 
 WORKDIR /home/app/
+
 COPY --from=build /go/src/github.com/openfaas/openfaas-cloud/edge-auth/edge-auth /bin/
 COPY --from=build /go/src/github.com/openfaas/openfaas-cloud/edge-auth/static      static
 COPY --from=build /go/src/github.com/openfaas/openfaas-cloud/edge-auth/template    template
