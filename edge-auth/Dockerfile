@@ -17,12 +17,14 @@ COPY template   template
 COPY provider   provider
 COPY main.go    .
 
-RUN CGO_ENABLED=${CGO_ENABLED} GOOS=${TARGETOS} GOARCH=${TARGETARCH} go test -v ./...
+RUN gofmt -l -d $(find . -type f -name '*.go' -not -path "./vendor/*")
+
+RUN CGO_ENABLED=${CGO_ENABLED} GOOS=${TARGETOS} GOARCH=${TARGETARCH} go test -v
 
 RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} CGO_ENABLED=${CGO_ENABLED} go build \
         --ldflags "-s -w" \
-        -a -installsuffix cgo -o edge-auth .
-
+        -a -installsuffix cgo \
+        -o edge-auth .
 
 FROM --platform=${TARGETPLATFORM:-linux/amd64} alpine:3.12 as ship
 
