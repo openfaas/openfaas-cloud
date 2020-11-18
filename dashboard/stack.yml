@@ -6,7 +6,7 @@ functions:
   system-dashboard:
     lang: node12
     handler: ./of-cloud-dashboard
-    image: ghcr.io/${REPO:-openfaas}/of-cloud-dashboard:${TAG:-latest-dev}
+    image: ghcr.io/${REPO:-openfaas}/of-cloud-dashboard:${TAG:-dev}
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
