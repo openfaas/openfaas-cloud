@@ -22,3 +22,5 @@ HERE=`pwd`
 cd dashboard
 $CLI up -f stack.yml --skip-deploy
 cd $HERE
+$CLI up -f gitlab.yml --skip-deploy
+$CLI up -f aws.yml --skip-deploy

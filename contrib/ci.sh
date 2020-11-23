@@ -18,3 +18,5 @@ echo "Working folder: `pwd`"
 
 $CLI build --parallel=4
 $CLI build -f dashboard/stack.yml
+$CLI build -f aws.yml
+$CLI build -f gitlab.yml
