@@ -2,16 +2,17 @@ provider:
   name: openfaas
   gateway: http://127.0.0.1:8080
 
+# needs to be run from root folder
 functions:
   system-dashboard:
     lang: node12
-    handler: ./of-cloud-dashboard
+    handler: ./dashboard/of-cloud-dashboard
     image: ghcr.io/${REPO:-openfaas}/of-cloud-dashboard:${TAG:-dev}
     labels:
       openfaas-cloud: "1"
       role: openfaas-system
     environment_file:
-      - dashboard_config.yml
+      - dashboard/dashboard_config.yml
     limits:
       memory: 256Mi
     requests:

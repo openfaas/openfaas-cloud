@@ -7,7 +7,7 @@ CLI="faas-cli"
 if ! [ -x "$(command -v faas-cli)" ]; then
     HERE=`pwd`
     cd /tmp/
-    curl -sL https://github.com/openfaas/faas-cli/releases/download/0.9.3/faas-cli > faas-cli
+    curl -sL https://github.com/openfaas/faas-cli/releases/download/0.12.19/faas-cli > faas-cli
     chmod +x ./faas-cli
     CLI="/tmp/faas-cli"
 
@@ -17,10 +17,4 @@ fi
 
 echo "Working folder: `pwd`"
 
-$CLI up --parallel=4 --skip-deploy
-HERE=`pwd`
-cd dashboard
-$CLI up -f stack.yml --skip-deploy
-cd $HERE
-$CLI up -f gitlab.yml --skip-deploy
-$CLI up -f aws.yml --skip-deploy
+$CLI publish -f $STACKFILE --platforms linux/amd64,linux/arm64,linux/arm/v7
