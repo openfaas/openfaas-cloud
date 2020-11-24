@@ -6,7 +6,7 @@ CLI="faas-cli"
 if ! [ -x "$(command -v faas-cli)" ]; then
     HERE=`pwd`
     cd /tmp/
-    curl -sL https://github.com/openfaas/faas-cli/releases/download/0.9.3/faas-cli > faas-cli
+    curl -sL https://github.com/openfaas/faas-cli/releases/download/0.12.19/faas-cli > faas-cli
     chmod +x ./faas-cli
     CLI="/tmp/faas-cli"
 
@@ -16,7 +16,4 @@ fi
 
 echo "Working folder: `pwd`"
 
-$CLI build --parallel=4
-$CLI build -f dashboard/stack.yml
-$CLI build -f aws.yml
-$CLI build -f gitlab.yml
+$CLI build -f $STACKFILE
