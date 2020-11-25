@@ -11,7 +11,7 @@ func Test_CoreOFBuilderDep_NonHttpProbe(t *testing.T) {
 		"--set", "buildKit.privileged=false",
 	}
 
-	want := makeOFBuilderDep(false, true, 5, "false", "moby/buildkit:v0.6.2")
+	want := makeOFBuilderDep(false, true, 5, "false", "moby/buildkit:v0.7.2")
 	runYamlTest(parts, "./tmp/openfaas-cloud/templates/ofc-core/of-builder-dep.yaml", want, t)
 }
 

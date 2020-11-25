@@ -6,7 +6,7 @@ ofBuilder:
   replicas: 1
 
 buildKit:
-  image: moby/buildkit:v0.6.2
+  image: moby/buildkit:v0.7.2
   privileged: true
 
 
