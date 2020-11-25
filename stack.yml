@@ -149,7 +149,7 @@ functions:
       read_debug: true
       combine_output: false
       validate_hmac: true
-      debug_token: true
+      debug_token: false
     environment_file:
       - gateway_config.yml
       - github.yml
@@ -247,22 +247,6 @@ functions:
       memory: 32Mi
       cpu: 50m
 
-  echo:
-    skip_build: true
-    image: functions/alpine:latest
-    fprocess: cat
-    labels:
-      openfaas-cloud: "1"
-      com.openfaas.scale.zero: false
-    environment:
-      write_debug: true
-      read_debug: true
-    limits:
-      memory: 128Mi
-    requests:
-      memory: 32Mi
-      cpu: 50m
-
   metrics:
     lang: go
     handler: ./metrics
@@ -302,3 +286,20 @@ functions:
     requests:
       memory: 32Mi
       cpu: 50m
+
+  echo:
+    lang: go
+    handler: ./echo
+    image: ghcr.io/${REPO:-openfaas}/ofc-echo:${TAG:-dev}
+    labels:
+      openfaas-cloud: "1"
+      com.openfaas.scale.zero: false
+    environment:
+      write_debug: true
+      read_debug: true
+    limits:
+      memory: 128Mi
+    requests:
+      memory: 32Mi
+      cpu: 50m
+
