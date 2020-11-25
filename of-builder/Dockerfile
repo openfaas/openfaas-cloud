@@ -42,7 +42,7 @@ RUN mkdir -p /home/app/.aws/
 WORKDIR /home/app
 
 COPY --from=build /usr/local/bin/docker-credential-ecr-login  /usr/local/bin/
-COPY --from=build /go/src/github.com/openfaas/openfaas-cloud/of-builder/of-builder home/app/
+COPY --from=build /go/src/github.com/openfaas/openfaas-cloud/of-builder/of-builder .
 
 RUN chown -R app /home/app
 
@@ -50,4 +50,4 @@ USER app
 EXPOSE 8080
 VOLUME /tmp/
 
-ENTRYPOINT ["/home/app/of-builder"]
+ENTRYPOINT ["./of-builder"]
