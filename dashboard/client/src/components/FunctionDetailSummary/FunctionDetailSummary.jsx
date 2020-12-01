@@ -149,7 +149,7 @@ const FunctionDetailSummary = ({
   const fnLogsButton = (
       <Button outline color="secondary" size="xs" tag={Link} to={toFnLogs}>
         <FontAwesomeIcon icon="folder-open" className="mr-2" />
-        <span>Invocation Logs</span>
+        <span>Logs</span>
       </Button>
   );
 
@@ -178,7 +178,7 @@ const FunctionDetailSummary = ({
       </div>
       <div className="col-lg-4">
         <FunctionOverviewPanel
-          headerText="Invocations"
+          headerText="Runtime"
           headerIcon={invocationsIcon}
           button={fnLogsButton}
         >
