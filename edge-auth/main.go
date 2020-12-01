@@ -16,6 +16,7 @@ import (
 const cookieExpiry = time.Hour * 48
 
 func main() {
+
 	var oauthProvider = "github"
 	var oauthProviderBaseURL string
 

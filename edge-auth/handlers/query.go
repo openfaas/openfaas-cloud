@@ -37,7 +37,6 @@ func MakeQueryHandler(config *Config, protected []string, restrictedPrefix []str
 		}
 	}
 
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query()
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -74,6 +75,56 @@ func (gl *GitLabProvider) GetProfile(accessToken string) (*Profile, error) {
 		Name:      gitlabProfile.Name,
 		TwoFactor: gitlabProfile.TwoFactor,
 	}, err
+}
+
+func (gl *GitLabProvider) GetUserProjects(accessToken string) (string, error) {
+
+	apiURL := gl.ApiURL + "groups?min_access_level=10"
+	req, reqErr := http.NewRequest(http.MethodGet, apiURL, nil)
+	if reqErr != nil {
+		return "", fmt.Errorf("error while making request to `%s` projects: %s", apiURL, reqErr.Error())
+	}
+
+	req.Header.Add("Authorization", "bearer "+accessToken)
+	res, respErr := gl.Client.Do(req)
+	if respErr != nil {
+		return "", fmt.Errorf("error while requesting projects: %s", respErr.Error())
+	}
+
+	if res.Body != nil {
+		defer res.Body.Close()
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("bad status code from request to GitLab projects: %d", res.StatusCode)
+	}
+
+	body, bodyErr := ioutil.ReadAll(res.Body)
+	if bodyErr != nil {
+		return "", fmt.Errorf("error while reading body from GitLab projects: %s", bodyErr.Error())
+	}
+
+	var orgs []GitLabProject
+	unmarshalErr := json.Unmarshal(body, &orgs)
+	if unmarshalErr != nil {
+		return "", fmt.Errorf("error while un-marshaling projects: %s, value: %q", unmarshalErr.Error(), body)
+	}
+
+	return formatGitLabOrganizations(orgs), nil
+}
+
+func formatGitLabOrganizations(orgs []GitLabProject) string {
+	logins := []string{}
+	for _, organization := range orgs {
+		logins = append(logins, organization.Path)
+	}
+
+	return strings.Join(logins, ",")
+}
+
+type GitLabProject struct {
+	ID   int    `json:"id"`
+	Path string `json:"path"`
 }
 
 // GitLabProfile represents a GitLabProvider profile

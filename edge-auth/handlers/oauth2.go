@@ -200,6 +200,14 @@ func createSession(token ProviderAccessToken, privateKey crypto.PrivateKey, conf
 			return session, organizationsErr
 		}
 		organizationList = organizations
+	} else if providerName == "gitlab" {
+		apiURL := config.OAuthProviderBaseURL + "/api/v4/"
+		gl := provider.NewGitLabProvider(http.DefaultClient, config.OAuthProviderBaseURL, apiURL)
+		organizations, organizationsErr := gl.GetUserProjects(token.AccessToken)
+		if organizationsErr != nil {
+			return session, organizationsErr
+		}
+		organizationList = organizations
 	}
 
 	method := jwt.GetSigningMethod(jwt.SigningMethodES256.Name)
