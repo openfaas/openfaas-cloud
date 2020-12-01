@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/openfaas/faas/gateway/metrics"
 )
@@ -19,10 +20,13 @@ type Metrics struct {
 
 // Handle exposes the OpenFaaS instance metrics
 func Handle(req []byte) string {
-	fnName, err := parseFunctionName()
-
+	fnName, ns, err := parseFunctionName()
 	if err != nil {
 		log.Fatalf("couldn't parse function name from query: %t", err)
+	}
+	if ns == "" {
+		// TODO: read from env-var for environments where this is overridden
+		ns = "openfaas-fn"
 	}
 
 	host := os.Getenv("prometheus_host")
@@ -32,18 +36,19 @@ func Handle(req []byte) string {
 		log.Fatalf("Could not convert env-var prometheus_port to int. Env-var value: %s. Error: %t", envPort, err)
 	}
 
-	metricsQuery := metrics.NewPrometheusQuery(host, port, &http.Client{})
+	metricsQuery := metrics.NewPrometheusQuery(host, port, http.DefaultClient)
 	metricsWindow := parseMetricsWindow()
-
-	fnMetrics, err := getMetrics(fnName, metricsQuery, metricsWindow)
+	key := fnName + "." + ns
+	fnMetrics, err := getMetrics(key, metricsQuery, metricsWindow)
 	if err != nil {
-		log.Fatalf("Couldn't get metrics from Prometheus for function %s, %t", fnName, err)
+		log.Fatalf("Couldn't get metrics from Prometheus for function %s, %t", key, err)
 	}
 
 	res, err := json.Marshal(fnMetrics)
 	if err != nil {
 		log.Fatalf("Couldn't marshal json %t", err)
 	}
+
 	return string(res)
 }
 
@@ -67,20 +72,27 @@ func parseMetricsWindow() string {
 	return metricsWindow
 }
 
-func parseFunctionName() (functionName string, error error) {
+func parseFunctionName() (name, namespace string, error error) {
 	if query, exists := os.LookupEnv("Http_Query"); exists {
-		vals, _ := url.ParseQuery(query)
-
-		functionNameQuery := vals.Get("function")
-
-		if len(functionNameQuery) > 0 {
-			return functionNameQuery, nil
+		val, err := url.ParseQuery(query)
+		if err != nil {
+			return "", "", err
 		}
 
-		return "", fmt.Errorf("there is no `function` inside env var Http_Query")
+		if functionName := val.Get("function"); len(functionName) > 0 {
+			name = functionName
+			if index := strings.Index(functionName, "."); index > -1 {
+				name = functionName[:index]
+				namespace = functionName[index:]
+			}
+
+			return name, namespace, nil
+		}
+
+		return "", "", fmt.Errorf("there is no `function` inside env var Http_Query")
 	}
 
-	return "", fmt.Errorf("unable to parse Http_Query")
+	return "", "", fmt.Errorf("unable to parse Http_Query")
 }
 
 func getMetrics(fnName string, metricsQuery metrics.PrometheusQueryFetcher, metricsWindow string) (*Metrics, error) {
