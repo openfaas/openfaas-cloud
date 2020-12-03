@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -50,7 +51,7 @@ func makeEdgeRouterDep(httpProbe, oauthEnabled bool) YamlSpec {
 	labels["app.kubernetes.io/instance"] = "RELEASE-NAME"
 	labels["app.kubernetes.io/managed-by"] = "Helm"
 	labels["app.kubernetes.io/name"] = "openfaas-cloud"
-	labels["helm.sh/chart"] = "openfaas-cloud-0.12.1"
+	labels["helm.sh/chart"] = fmt.Sprintf("openfaas-cloud-%s", ofcVersion)
 
 	containerEnvironment := makeRouterContainerEnv(oauthEnabled)
 
@@ -94,7 +95,7 @@ func makeEdgeRouterDep(httpProbe, oauthEnabled bool) YamlSpec {
 				Spec: TemplateSpec{
 					Containers: []DeploymentContainers{{
 						Name:                    "edge-router",
-						Image:                   "openfaas/edge-router:0.7.4",
+						Image:                   fmt.Sprintf("ghcr.io/openfaas/ofc-edge-router:%s", ofcVersion),
 						ImagePullPolicy:         "IfNotPresent",
 						ContainerReadinessProbe: readinessProbe,
 						ContainerEnvironment:    containerEnvironment,

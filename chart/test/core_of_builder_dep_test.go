@@ -1,6 +1,9 @@
 package test
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func Test_CoreOFBuilderDep_NonHttpProbe(t *testing.T) {
 	parts := []string{
@@ -22,7 +25,7 @@ func makeOFBuilderDep(httpProbe, isECR bool, replicas int, buildkitPrivileged, o
 	labels["app.kubernetes.io/instance"] = "RELEASE-NAME"
 	labels["app.kubernetes.io/managed-by"] = "Helm"
 	labels["app.kubernetes.io/name"] = "openfaas-cloud"
-	labels["helm.sh/chart"] = "openfaas-cloud-0.12.1"
+	labels["helm.sh/chart"] = fmt.Sprintf("openfaas-cloud-%s", ofcVersion)
 
 	deployVolumes := makeOFBuilderDeployVolumes([]string{"registry-secret", "payload-secret"}, isECR)
 	containerVolumes := makeOFBuilderContainerVolumes(isECR)
@@ -69,7 +72,7 @@ func makeOFBuilderDep(httpProbe, isECR bool, replicas int, buildkitPrivileged, o
 					Volumes: deployVolumes,
 					Containers: []DeploymentContainers{{
 						Name:                    "of-builder",
-						Image:                   "openfaas/of-builder:0.8.0",
+						Image:                   fmt.Sprintf("ghcr.io/openfaas/ofc-of-builder:%s", ofcVersion),
 						ImagePullPolicy:         "IfNotPresent",
 						ContainerReadinessProbe: readinessProbe,
 						ContainerEnvironment:    containerEnvironment,

@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	"strconv"
 	"testing"
 )
@@ -35,7 +36,7 @@ func makeEdgeAuthDep(httpProbe, customersSecret, secureCookie bool) YamlSpec {
 	labels["app.kubernetes.io/instance"] = "RELEASE-NAME"
 	labels["app.kubernetes.io/managed-by"] = "Helm"
 	labels["app.kubernetes.io/name"] = "openfaas-cloud"
-	labels["helm.sh/chart"] = "openfaas-cloud-0.12.1"
+	labels["helm.sh/chart"] = fmt.Sprintf("openfaas-cloud-%s", ofcVersion)
 
 	requiredVolumes := []string{"jwt-private-key", "jwt-public-key", "of-client-secret"}
 	if customersSecret {
@@ -87,7 +88,7 @@ func makeEdgeAuthDep(httpProbe, customersSecret, secureCookie bool) YamlSpec {
 					Volumes: deployVolumes,
 					Containers: []DeploymentContainers{{
 						Name:                    "edge-auth",
-						Image:                   "openfaas/edge-auth:0.8.0",
+						Image:                   fmt.Sprintf("ghcr.io/openfaas/ofc-edge-auth:%s", ofcVersion),
 						ImagePullPolicy:         "IfNotPresent",
 						ContainerReadinessProbe: livenessProbe,
 						ContainerEnvironment:    containerEnvironment,

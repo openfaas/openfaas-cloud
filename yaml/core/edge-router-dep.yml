@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: edge-router
-        image: openfaas/edge-router:0.7.5
+        image: ghcr.io/openfaas/ofc-edge-router:0.14.4
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
