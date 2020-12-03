@@ -2,7 +2,7 @@
 # This is a YAML-formatted file.
 
 ofBuilder:
-  image: openfaas/of-builder:0.8.0
+  image: ghcr.io/openfaas/ofc-of-builder:0.14.4
   replicas: 1
 
 buildKit:
@@ -11,7 +11,7 @@ buildKit:
 
 
 edgeAuth:
-  image: openfaas/edge-auth:0.8.0
+  image: ghcr.io/openfaas/ofc-edge-auth:0.14.4
   replicas: 1
   enableOAuth2: true
   oauthProvider: github
@@ -22,7 +22,7 @@ edgeAuth:
   writeDebug: false
 
 edgeRouter:
-  image: openfaas/edge-router:0.7.4
+  image: ghcr.io/openfaas/ofc-edge-router:0.14.4
 
 tls:
   enabled: false

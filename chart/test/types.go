@@ -1,5 +1,7 @@
 package test
 
+const ofcVersion = "0.14.4"
+
 type YamlSpec struct {
 	ApiVersion string            `yaml:"apiVersion"`
 	Kind       string            `yaml:"kind"`

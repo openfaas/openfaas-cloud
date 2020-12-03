@@ -32,7 +32,7 @@ spec:
             secretName: of-customers
       containers:
       - name: edge-auth
-        image: openfaas/edge-auth:0.7.1
+        image: ghcr.io/openfaas/ofc-edge-auth:0.14.4
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
