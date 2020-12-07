@@ -11,7 +11,7 @@ import {
 } from 'reactstrap';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGithub, faGitlab } from '@fortawesome/free-brands-svg-icons';
-import { faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import { faKey, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 
 class NavBarWithRouter extends Component {
   state = {
@@ -115,6 +115,18 @@ class NavBarWithRouter extends Component {
                 >
                   <FontAwesomeIcon icon={faGitlab} className="mr-1" />
                   GitLab
+                </NavLink>
+              </NavItem>
+            }
+            { window.PUBLIC_KEY_EXISTS &&
+              <NavItem>
+                <NavLink
+                  className="py-3 px-3 px-md-2"
+                  href="dist/pub-cert.pem"
+                  title="Encrypt function secrets for use in your git repository"
+                >
+                  <FontAwesomeIcon icon={faKey} className="mr-1" />
+                  Public Key
                 </NavLink>
               </NavItem>
             }
