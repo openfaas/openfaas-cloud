@@ -76,6 +76,18 @@ module.exports = async (event, context) => {
     headers['Content-Type'] = 'application/json';
   } else if (/.*\.map/.test(path)) {
     headers['Content-Type'] = 'application/octet-stream';
+  } else if (/^\/dist\/pub-cert.pem\/?$/.test(path)) {
+    if (!process.env.public_key) {
+      return context
+        .status(404)
+        .fail('Not found');
+    }
+
+    headers['Content-Type'] = 'text/plain';
+    return context
+      .headers(headers)
+      .status(200)
+      .succeed(process.env.public_key);
   }
 
   let contentPath = `${__dirname}${path}`;
@@ -129,7 +141,7 @@ module.exports = async (event, context) => {
 }
 
 function replaceTokens(content, isSignedIn, claims) {
-    const { base_href, public_url, pretty_url, query_pretty_url, github_app_url, gitlab_url } = process.env;
+    const { base_href, public_url, pretty_url, query_pretty_url, github_app_url, gitlab_url, public_key } = process.env;
     let replaced = content
 
     replaced = replaced.replace(/__BASE_HREF__/g, base_href);
@@ -140,6 +152,7 @@ function replaceTokens(content, isSignedIn, claims) {
     replaced = replaced.replace(/__ALL_CLAIMS__/g, claims);
     replaced = replaced.replace(/__GITHUB_APP_URL__/g, github_app_url || "");
     replaced = replaced.replace(/__GITLAB_URL__/g, gitlab_url || "");
+    replaced = replaced.replace(/__PUBLIC_KEY_EXISTS__/g, public_key ? "true" : "");
 
     return replaced
 }
