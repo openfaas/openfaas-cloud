@@ -39,6 +39,16 @@ $ faas-cli store deploy nodeinfo --name alexellis-nodeinfo \
  --annotation com.openfaas.cloud.git-repo-url=https://github.com/alexellis/nodeinfo
 ```
 
+### Deploy SealedSecrets public key
+
+The dashboard serves the SealedSecrets public key file in `/var/openfaas/secrets/pub-cert.pem`.
+
+To mount the key in Kubernetes, run:
+
+```
+$ kubectl create secret generic sealedsecrets-public-key -n openfaas-fn --from-file=pub-cert.pem
+```
+
 ### Deploy at least the list-functions function
 
 From the root directory edit `gateway_config.yml`, if on Swarm remove any `.openfaas` suffix you see in URLs.
@@ -106,7 +116,7 @@ npm i -g yarn
 The source code for the dashboard (written in React.js) with Bootstrap 3 has to be built into a generated folder. In order to do this type in `make`
 
 ```bash
-make
+make build-dist
 ```
 
 You will see new files written into `of-cloud-dashboard/dist`

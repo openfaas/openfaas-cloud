@@ -17,33 +17,3 @@ environment:
   # github_app_url: https://github.com/apps/o6s-io
   # Public URL for your GitLab instance
   # gitlab_url: https://gitlab.o6s.io/
-  # SealedSecrets public key
-  # public_key: |
-  #   -----BEGIN CERTIFICATE-----
-  #   MIIErjCCApagAwIBAgIRAOpOnJ35KXJmoda4VjnxqgIwDQYJKoZIhvcNAQELBQAw
-  #   ADAeFw0yMDEwMjAyMzE5MzhaFw0zMDEwMTgyMzE5MzhaMAAwggIiMA0GCSqGSIb3
-  #   DQEBAQUAA4ICDwAwggIKAoICAQC1RNAnJC850lP00fWJVGs7y/AaWU08eitNmqgm
-  #   VkRg04baGLSOIwv5aMzHe68e1bZUAa3NzhL7lKEJdgU4+G0eidVjg4hngVvPfaCy
-  #   o6OYU+f9rTDTwOihwOu1rGBUrG42S8niWJpfDMmzyFgG/AZAJfiYOK6/FIP0JoZB
-  #   JQqorJvsmdrhve+LlwUlFIBj9cP5mWQ2OlrM49QV2rlauJfR8UEwQxsQYmxDrKxe
-  #   NltLrrsSVqqarcOCE7vHlnV+YoBK9CEAu4nCjCDV3B8fRI3ODoO5twAGJ21NeVKm
-  #   OeqgDm48lViol3Fn5iBEd1Xsp+HKG2aki7H8SkNMPvbJutt+9buhctMT1DZGfkf1
-  #   vfdYFEOQ0G8rnnYQa6hiVPwR/a1HQ0L3cSDgLCCk1O2bu69wQQDT+IdPK3HJMyWM
-  #   JgXnL3HdvuWB2/35/88pVn26tGtRLM3Ye6OqbDMpC8mvNPvKyyvwg4h+PEX5U09X
-  #   v7pJQiUCwp1bPcDGSifdN+pFvMx188G7clrLXwjW0Grvc1aXCvOM+0/ZFaxXm2DO
-  #   j0DrrvjwQy+v4DxNNjYd2n/6IJlA1ea0EV6VkS7eWhX44DU3ILwLhTo0r9TWye49
-  #   7yPJjZsyM+tTKSEBxtQ59PFpvAYC6zBMbOtn5wbVFNLuiz78lVpcvJuEfl66QoME
-  #   yposYQIDAQABoyMwITAOBgNVHQ8BAf8EBAMCAAEwDwYDVR0TAQH/BAUwAwEB/zAN
-  #   BgkqhkiG9w0BAQsFAAOCAgEAnc5P1bXQFQXxF4+3xTsFll3JL1/b40UvnCPz8mUw
-  #   RioBFrpHp7w5ETcjGf9/ADzKx7k/ffzKPxQEiQj01Lsqy02TkQLwvWA5KXlY9OnJ
-  #   J+8IyJAbmnd6X0boMcKwtUc/vvrzkTP7gDthEX5y2kFJCCg/5k/d100U6E+1CN4h
-  #   0tSEfzKfSYW8EUHv5r4PQfFgd7n+afEGw/XURhdNUdO0a5EyvzU9510+hCZM2uRJ
-  #   KpqaQZ7tPP/pFtziDHP9imlij2CfOP5IQn8zWzbAJUK5vM/mmEyW8sDGhYno2xJS
-  #   aRR3J1m2ieDPmat56J4hVCaLQLknEsLGhbEUdJGJTdA4m8L1dYbIh2E4Nwa/WUuz
-  #   IcyQ7cTLMwHnHtB6Z35PptdJ/0SnRLut8sgj36UMxP9/McGXxoBMGT5WGfJV0n16
-  #   eRCzbWDg8xkr5ZqTofoIHs9SXx7Dm1GM+aB+rvHgQDUlnarqbQyWclqbArAqtcFI
-  #   W3bt8vFpHympK9sKNRv0oGnMdT3NJCftdkF28aXnAESv0DzkzZxOKooesNe+j5nx
-  #   jHP/isiGskK0EdOVetJN+FuDo0Ys+Ev/d7vAyy32WIcnTfbJ7nAHnhvhPCDp05F3
-  #   aAgXn0ahlcFp/HqzyD+hxPKszH1NG0WXEXIhNBr+1MoGlwTJ+PIp9oY4wt5SoKcz
-  #   rl4=
-  #   -----END CERTIFICATE-----

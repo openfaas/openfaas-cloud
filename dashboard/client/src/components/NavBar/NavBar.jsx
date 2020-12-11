@@ -118,18 +118,16 @@ class NavBarWithRouter extends Component {
                 </NavLink>
               </NavItem>
             }
-            { window.PUBLIC_KEY_EXISTS &&
-              <NavItem>
-                <NavLink
-                  className="py-3 px-3 px-md-2"
-                  href="dist/pub-cert.pem"
-                  title="Encrypt function secrets for use in your git repository"
-                >
-                  <FontAwesomeIcon icon={faKey} className="mr-1" />
-                  Public Key
-                </NavLink>
-              </NavItem>
-            }
+            <NavItem>
+              <NavLink
+                className="py-3 px-3 px-md-2"
+                href="api/pub-cert.pem"
+                title="Encrypt function secrets for use in your git repository"
+              >
+                <FontAwesomeIcon icon={faKey} className="mr-1" />
+                Public Key
+              </NavLink>
+            </NavItem>
           </Nav>
           <Nav navbar className="ml-auto">
             { this.isLoggedIn() && this.createNavLink(
