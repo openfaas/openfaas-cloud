@@ -13,6 +13,8 @@ functions:
       role: openfaas-system
     environment_file:
       - dashboard/dashboard_config.yml
+    secrets:
+      - sealedsecrets-public-key
     limits:
       memory: 256Mi
     requests:
