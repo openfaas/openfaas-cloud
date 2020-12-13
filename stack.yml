@@ -145,11 +145,10 @@ functions:
       role: openfaas-system
       com.openfaas.scale.zero: false
     environment:
-      write_debug: true
-      read_debug: true
+      write_debug: false
+      read_debug: false
       combine_output: false
       validate_hmac: true
-      debug_token: false
     environment_file:
       - gateway_config.yml
       - github.yml
@@ -298,8 +297,7 @@ functions:
       write_debug: true
       read_debug: true
     limits:
-      memory: 128Mi
+      memory: 64Mi
     requests:
       memory: 32Mi
       cpu: 50m
-

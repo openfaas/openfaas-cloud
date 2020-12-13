@@ -1,0 +1,4 @@
+github.com/alexellis/hmac v0.0.0-20180624210714-d5d71edd7bc7 h1:tPX9nmLsuE/p4NpX7fhH3fSIS1Ra1DFHv6FvF65rnMU=
+github.com/alexellis/hmac v0.0.0-20180624210714-d5d71edd7bc7/go.mod h1:uAbpy8G7sjNB4qYdY6ymf5OIQ+TLDPApBYiR0Vc3lhk=
+github.com/openfaas/faas-provider v0.0.0-20180910095832-845bf7aa58cb h1:ZVoe/adtSM12MduY4J/rJnSgGc0hIx602N2u+tg2Ujk=
+github.com/openfaas/faas-provider v0.0.0-20180910095832-845bf7aa58cb/go.mod h1:W4OIp33RUOpR7wW+omJB/7GhIydRmYXvKf/VqUKI4yM=
