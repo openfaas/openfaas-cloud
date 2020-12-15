@@ -9,6 +9,38 @@ import (
 	"github.com/openfaas/faas/gateway/metrics"
 )
 
+func Test_parseFunctionName_NoSuffix(t *testing.T) {
+	os.Setenv("Http_Query", "function=alexellis-hooks&metrics_window=60m&user=alexellis")
+	n, ns, err := parseFunctionName()
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n != "alexellis-hooks" {
+		t.Fatalf("want %s, got %s", "alexellis-hooks", n)
+	}
+
+	if ns != "" {
+		t.Fatalf("want %s, got %s", "", ns)
+	}
+}
+
+func Test_parseFunctionName_WithSuffix(t *testing.T) {
+	os.Setenv("Http_Query", "function=alexellis-hooks.dev&metrics_window=60m&user=alexellis")
+	n, ns, err := parseFunctionName()
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n != "alexellis-hooks" {
+		t.Fatalf("want %s, got %s", "alexellis-hooks", n)
+	}
+
+	if ns != "dev" {
+		t.Fatalf("want %s, got %s", "dev", ns)
+	}
+}
+
 type FakePrometheusQueryFetcher struct {
 }
 

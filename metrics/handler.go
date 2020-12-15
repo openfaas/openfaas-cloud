@@ -24,6 +24,7 @@ func Handle(req []byte) string {
 	if err != nil {
 		log.Fatalf("couldn't parse function name from query: %t", err)
 	}
+
 	if ns == "" {
 		// TODO: read from env-var for environments where this is overridden
 		ns = "openfaas-fn"
@@ -39,6 +40,7 @@ func Handle(req []byte) string {
 	metricsQuery := metrics.NewPrometheusQuery(host, port, http.DefaultClient)
 	metricsWindow := parseMetricsWindow()
 	key := fnName + "." + ns
+	// log.Printf("key: %q", key)
 	fnMetrics, err := getMetrics(key, metricsQuery, metricsWindow)
 	if err != nil {
 		log.Fatalf("Couldn't get metrics from Prometheus for function %s, %t", key, err)
@@ -72,7 +74,11 @@ func parseMetricsWindow() string {
 	return metricsWindow
 }
 
-func parseFunctionName() (name, namespace string, error error) {
+func parseFunctionName() (string, string, error) {
+	var (
+		name, namespace string
+	)
+
 	if query, exists := os.LookupEnv("Http_Query"); exists {
 		val, err := url.ParseQuery(query)
 		if err != nil {
@@ -83,7 +89,7 @@ func parseFunctionName() (name, namespace string, error error) {
 			name = functionName
 			if index := strings.Index(functionName, "."); index > -1 {
 				name = functionName[:index]
-				namespace = functionName[index:]
+				namespace = functionName[index+1:]
 			}
 
 			return name, namespace, nil
@@ -101,6 +107,7 @@ func getMetrics(fnName string, metricsQuery metrics.PrometheusQueryFetcher, metr
 		fnName,
 		metricsWindow,
 	)
+
 	expr := url.QueryEscape(queryValue)
 
 	response, err := metricsQuery.Fetch(expr)
